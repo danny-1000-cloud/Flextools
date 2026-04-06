@@ -48,11 +48,11 @@ input, select { width: 100%; padding: 10px; border: 1px solid var(--border); bor
         top: 0; 
         border-bottom: 1px solid var(--border); 
         box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-        padding-top: env(safe-area-inset-top, 10px);
+        padding-top: env(safe-area-inset-top, 5px);
     }
 
-    .logo-area { padding: 10px 15px; font-size: 1rem; }
-    .logo-area img { width: 20rem !important; height: 30% !important; align-items: center !important;}
+    .logo-area { padding: 5px 5px; font-size: 0.90rem; }
+    .logo-area img { width: 30rem !important; height: 40% !important; margin-top: -6rem; margin-bottom: -6rem;}
     
     /* Logo Mobile size */
     .main-logo { width: 100% !important; height: 50% !important; object-fit: contain; }
