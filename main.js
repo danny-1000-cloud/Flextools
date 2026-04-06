@@ -10,7 +10,7 @@ window.onload = () => {
     fromS.value = "USD"; toS.value = "NGN";
     quill = new Quill('#editor-container', { theme: 'snow' });
 
-    // SEO Hash Linking
+    // SEO Hash Support
     const hash = window.location.hash.substring(1);
     if (hash) {
         const btn = Array.from(document.querySelectorAll('.nav-item')).find(b => b.innerText.toLowerCase().includes(hash));
@@ -24,7 +24,6 @@ function showTool(id, btn) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     btn.classList.add('active');
     window.location.hash = id;
-    if (typeof gtag === 'function') gtag('event', 'tool_view', { 'tool_name': id });
 }
 
 async function convertCurrency() {

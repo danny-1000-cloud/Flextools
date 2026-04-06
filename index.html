@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FlexTools | Private PDF Editor, OCR & Currency Suite</title>
-    
     <meta name="description" content="100% Private Utility Suite. Edit PDFs, Convert Image to Word, and track live Currency rates locally.">
     <meta name="keywords" content="PDF Editor, Image to Word, OCR, Currency Converter, USD to NGN, GHS to USD, Image to PDF, Online Doc Editor">
     <meta name="author" content="FlexTools Pro">
-    
     <link rel="icon" type="image/x-icon" href="image/FlexTools logo with vibrant colors.png">
 
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
@@ -49,14 +47,14 @@
         </div>
         
         <nav class="nav-list">
-            <button class="nav-item active" onclick="showTool('currency', this)">Currency Converter</button>
-            <button class="nav-item" onclick="showTool('word', this)">Image to Word</button>
-            <button class="nav-item" onclick="showTool('pdf-editor', this)">PDF Editor (Live)</button>
-            <button class="nav-item" onclick="showTool('doc-editor', this)">Doc Editor</button>
-            <button class="nav-item" onclick="showTool('pdf', this)">Image to PDF</button>
+            <button class="nav-item active" onclick="showTool('currency', this)">Converter</button>
+            <button class="nav-item" onclick="showTool('word', this)">Img to Word</button>
+            <button class="nav-item" onclick="showTool('pdf-editor', this)">PDF Edit</button>
+            <button class="nav-item" onclick="showTool('doc-editor', this)">Doc Edit</button>
+            <button class="nav-item" onclick="showTool('pdf', this)">Img to PDF</button>
         </nav>
+
         <div class="support-card">
-            <p>Support this project</p>
             <a href="https://www.buymeacoffee.com/YOUR_USERNAME" target="_blank" class="bmc-button">☕ Buy me a coffee</a>
         </div>
     </aside>
@@ -75,23 +73,21 @@
             </div>
             <button class="btn-action" onclick="convertCurrency()">Check Live Rates</button>
             <div id="currResult" class="result-box"></div>
-
             <div class="seo-footer">
                 <h3>Global Exchange Rate Tracking</h3>
-                <p>FlexTools provides accurate, live market rates for over 160 currencies. Whether you are tracking <strong>USD to NGN</strong>, <strong>GHS to USD</strong>, or <strong>GBP to EUR</strong>, our tool ensures you get the mid-market rate instantly. Perfect for freelancers and international business.</p>
+                <p>FlexTools provides accurate, live market rates for over 160 currencies like <strong>USD to NGN</strong>, <strong>GHS to USD</strong>, or <strong>GBP to EUR</strong>.</p>
             </div>
         </section>
 
         <section id="word" class="tool-card">
-            <span class="pro-badge">AI Technology</span>
+            <span class="pro-badge">AI Tech</span>
             <h1>Image to Word Converter (OCR)</h1>
             <div class="upload-container"><input type="file" id="wordImageInput" accept="image/*"></div>
             <div id="ocrStatus" class="status-message"></div>
             <button class="btn-action" onclick="processImageToWord()">Extract Text to Word</button>
-
             <div class="seo-footer">
                 <h3>Optical Character Recognition (OCR)</h3>
-                <p>Convert JPG, PNG, and HEIC images into editable Microsoft Word documents. Our AI-driven OCR scans your photos locally, ensuring that sensitive data never leaves your device. Digitizes printed notes or scanned receipts in seconds.</p>
+                <p>Convert JPG, PNG, and HEIC images into editable Microsoft Word documents locally on your device.</p>
             </div>
         </section>
 
@@ -100,43 +96,32 @@
             <h1>Live PDF Text Editor</h1>
             <div class="editor-split">
                 <div class="editor-controls">
-                    <div class="upload-container">
-                        <label>Upload PDF</label>
-                        <input type="file" id="pdfEditInput" accept="application/pdf" onchange="previewPDF()">
-                    </div>
-                    <div class="input-group">
-                        <label>Text Overlay</label>
-                        <input type="text" id="pdfTextToAdd" placeholder="e.g. APPROVED" oninput="previewPDF()">
-                    </div>
+                    <div class="upload-container"><input type="file" id="pdfEditInput" accept="application/pdf" onchange="previewPDF()"></div>
+                    <div class="input-group"><input type="text" id="pdfTextToAdd" placeholder="Type text overlay..." oninput="previewPDF()"></div>
                     <button class="btn-action" onclick="downloadEditedPDF()">Save & Download</button>
                 </div>
-                <div class="editor-preview-container">
-                    <iframe id="pdfPreview"></iframe>
-                </div>
+                <div class="editor-preview-container"><iframe id="pdfPreview"></iframe></div>
             </div>
             <div class="seo-footer">
                 <h3>Edit PDF Privately</h3>
-                <p>FlexTools offers a unique <strong>private PDF editor</strong>. Most online editors store your files on their servers. FlexTools modifies your PDF directly in your browser. Add text, watermarks, or annotations safely and instantly.</p>
+                <p>Modify your PDF directly in your browser without uploading your files to any server.</p>
             </div>
         </section>
 
         <section id="doc-editor" class="tool-card">
             <span class="pro-badge">Full Suite</span>
             <h1>Advanced Word & Doc Editor</h1>
-            <div class="upload-container" style="border: 2px dashed #cbd5e1; margin-bottom: 15px; text-align: center;">
-                <label style="cursor:pointer; color: #2563eb; font-weight: bold;">
-                    📂 Upload .docx to Edit
-                    <input type="file" id="importDoc" accept=".docx" style="display:none;" onchange="importWordFile(this)">
-                </label>
+            <div class="upload-container" style="border: 2px dashed #cbd5e1; margin-bottom: 10px; text-align: center;">
+                <label style="cursor:pointer; color: #2563eb; font-weight: bold;">📂 Upload .docx<input type="file" id="importDoc" accept=".docx" style="display:none;" onchange="importWordFile(this)"></label>
             </div>
-            <div id="editor-container" style="height: 300px; margin-bottom: 20px;"></div>
+            <div id="editor-container" style="height: 250px; margin-bottom: 15px;"></div>
             <div class="converter-grid">
                 <button class="btn-action" onclick="downloadDocAsPDF()" style="background:#ef4444;">Export PDF</button>
                 <button class="btn-action" onclick="downloadDocAsWord()">Export Word</button>
             </div>
             <div class="seo-footer">
                 <h3>Online Word Document Editor</h3>
-                <p>Create, edit, and format documents without a Microsoft Office subscription. Our editor supports <strong>.docx import</strong> and export to both Word and PDF formats. A private alternative to Google Docs for quick editing.</p>
+                <p>A private alternative to Google Docs for quick editing and formatting of .docx files.</p>
             </div>
         </section>
 
@@ -146,13 +131,13 @@
             <div class="upload-container"><input type="file" id="pdfImageInput" accept="image/*"></div>
             <button class="btn-action" onclick="downloadPDF()">Convert to PDF</button>
             <div class="seo-footer">
-                <h3>Convert Photos to Professional PDFs</h3>
-                <p>Turn your photos, screenshots, or scans into a clean PDF document. Optimized for mobile users who need to compile document photos into a single file for email or official applications. 100% free with no watermarks.</p>
+                <h3>Convert Photos to PDFs</h3>
+                <p>Turn screenshots or scans into professional PDF documents instantly.</p>
             </div>
         </section>
 
-        <div class="mobile-support">
-            <a href="https://www.buymeacoffee.com/YOUR_USERNAME" target="_blank" class="bmc-button">☕ Support FlexTools</a>
+        <div class="mobile-footer">
+            <a href="https://www.buymeacoffee.com/YOUR_USERNAME" target="_blank" class="bmc-mobile-btn">☕ Support</a>
         </div>
     </main>
 
