@@ -10,7 +10,6 @@ window.onload = () => {
     fromS.value = "USD"; toS.value = "NGN";
     quill = new Quill('#editor-container', { theme: 'snow' });
 
-    // SEO Hash Support
     const hash = window.location.hash.substring(1);
     if (hash) {
         const btn = Array.from(document.querySelectorAll('.nav-item')).find(b => b.innerText.toLowerCase().includes(hash));
