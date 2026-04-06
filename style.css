@@ -52,6 +52,7 @@ input, select { width: 100%; padding: 10px; border: 1px solid var(--border); bor
     }
 
     .logo-area { padding: 10px 15px; font-size: 1rem; }
+    .logo-area img { width: 20rem !important; height: 30% !important; align-items: center !important;}
     
     /* Logo Mobile size */
     .main-logo { width: 100% !important; height: 50% !important; object-fit: contain; }
