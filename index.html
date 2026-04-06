@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlexTools | Private PDF Editor, OCR & Currency Suite</title>
+    
+    <meta name="description" content="100% Private Utility Suite. Edit PDFs, Convert Image to Word, and track live Currency rates locally.">
+    <meta name="keywords" content="PDF Editor, Image to Word, OCR, Currency Converter, USD to NGN, GHS to USD, Image to PDF, Online Doc Editor">
+    <meta name="author" content="FlexTools Pro">
+    
+    <link rel="icon" type="image/x-icon" href="image/FlexTools logo with vibrant colors.png">
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XXXXXXXXXX');
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "FlexTools Pro",
+      "url": "https://flextools.pro",
+      "description": "Free private tools to edit PDFs, convert images to Word, and track exchange rates locally.",
+      "applicationCategory": "UtilityApplication",
+      "featureList": "Live PDF Editor, Image to Word OCR, Currency Converter, Docx Editor, Image to PDF",
+      "offers": { "@type": "Offer", "price": "0" }
+    }
+    </script>
+
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo-area">
+            <img src="image/FlexTools logo with vibrant colors.png" alt="FlexTools Logo" style="width: 100%; height: 100%; object-fit: contain;">
+        </div>
+        
+        <nav class="nav-list">
+            <button class="nav-item active" onclick="showTool('currency', this)">Currency Converter</button>
+            <button class="nav-item" onclick="showTool('word', this)">Image to Word</button>
+            <button class="nav-item" onclick="showTool('pdf-editor', this)">PDF Editor (Live)</button>
+            <button class="nav-item" onclick="showTool('doc-editor', this)">Doc Editor</button>
+            <button class="nav-item" onclick="showTool('pdf', this)">Image to PDF</button>
+        </nav>
+        <div class="support-card">
+            <p>Support this project</p>
+            <a href="https://www.buymeacoffee.com/YOUR_USERNAME" target="_blank" class="bmc-button">☕ Buy me a coffee</a>
+        </div>
+    </aside>
+
+    <main class="workspace">
+        <section id="currency" class="tool-card active">
+            <span class="pro-badge">Real-Time Data</span>
+            <h1>Universal Currency Converter</h1>
+            <div class="input-group">
+                <label>Amount</label>
+                <input type="number" id="currAmount" placeholder="100.00">
+            </div>
+            <div class="converter-grid">
+                <div class="input-group"><label>From</label><select id="fromCurrency"></select></div>
+                <div class="input-group"><label>To</label><select id="toCurrency"></select></div>
+            </div>
+            <button class="btn-action" onclick="convertCurrency()">Check Live Rates</button>
+            <div id="currResult" class="result-box"></div>
+
+            <div class="seo-footer">
+                <h3>Global Exchange Rate Tracking</h3>
+                <p>FlexTools provides accurate, live market rates for over 160 currencies. Whether you are tracking <strong>USD to NGN</strong>, <strong>GHS to USD</strong>, or <strong>GBP to EUR</strong>, our tool ensures you get the mid-market rate instantly. Perfect for freelancers and international business.</p>
+            </div>
+        </section>
+
+        <section id="word" class="tool-card">
+            <span class="pro-badge">AI Technology</span>
+            <h1>Image to Word Converter (OCR)</h1>
+            <div class="upload-container"><input type="file" id="wordImageInput" accept="image/*"></div>
+            <div id="ocrStatus" class="status-message"></div>
+            <button class="btn-action" onclick="processImageToWord()">Extract Text to Word</button>
+
+            <div class="seo-footer">
+                <h3>Optical Character Recognition (OCR)</h3>
+                <p>Convert JPG, PNG, and HEIC images into editable Microsoft Word documents. Our AI-driven OCR scans your photos locally, ensuring that sensitive data never leaves your device. Digitizes printed notes or scanned receipts in seconds.</p>
+            </div>
+        </section>
+
+        <section id="pdf-editor" class="tool-card" style="max-width: 1000px;">
+            <span class="pro-badge">Live Preview</span>
+            <h1>Live PDF Text Editor</h1>
+            <div class="editor-split">
+                <div class="editor-controls">
+                    <div class="upload-container">
+                        <label>Upload PDF</label>
+                        <input type="file" id="pdfEditInput" accept="application/pdf" onchange="previewPDF()">
+                    </div>
+                    <div class="input-group">
+                        <label>Text Overlay</label>
+                        <input type="text" id="pdfTextToAdd" placeholder="e.g. APPROVED" oninput="previewPDF()">
+                    </div>
+                    <button class="btn-action" onclick="downloadEditedPDF()">Save & Download</button>
+                </div>
+                <div class="editor-preview-container">
+                    <iframe id="pdfPreview"></iframe>
+                </div>
+            </div>
+            <div class="seo-footer">
+                <h3>Edit PDF Privately</h3>
+                <p>FlexTools offers a unique <strong>private PDF editor</strong>. Most online editors store your files on their servers. FlexTools modifies your PDF directly in your browser. Add text, watermarks, or annotations safely and instantly.</p>
+            </div>
+        </section>
+
+        <section id="doc-editor" class="tool-card">
+            <span class="pro-badge">Full Suite</span>
+            <h1>Advanced Word & Doc Editor</h1>
+            <div class="upload-container" style="border: 2px dashed #cbd5e1; margin-bottom: 15px; text-align: center;">
+                <label style="cursor:pointer; color: #2563eb; font-weight: bold;">
+                    📂 Upload .docx to Edit
+                    <input type="file" id="importDoc" accept=".docx" style="display:none;" onchange="importWordFile(this)">
+                </label>
+            </div>
+            <div id="editor-container" style="height: 300px; margin-bottom: 20px;"></div>
+            <div class="converter-grid">
+                <button class="btn-action" onclick="downloadDocAsPDF()" style="background:#ef4444;">Export PDF</button>
+                <button class="btn-action" onclick="downloadDocAsWord()">Export Word</button>
+            </div>
+            <div class="seo-footer">
+                <h3>Online Word Document Editor</h3>
+                <p>Create, edit, and format documents without a Microsoft Office subscription. Our editor supports <strong>.docx import</strong> and export to both Word and PDF formats. A private alternative to Google Docs for quick editing.</p>
+            </div>
+        </section>
+
+        <section id="pdf" class="tool-card">
+            <span class="pro-badge">Instant Merge</span>
+            <h1>Image to PDF Converter</h1>
+            <div class="upload-container"><input type="file" id="pdfImageInput" accept="image/*"></div>
+            <button class="btn-action" onclick="downloadPDF()">Convert to PDF</button>
+            <div class="seo-footer">
+                <h3>Convert Photos to Professional PDFs</h3>
+                <p>Turn your photos, screenshots, or scans into a clean PDF document. Optimized for mobile users who need to compile document photos into a single file for email or official applications. 100% free with no watermarks.</p>
+            </div>
+        </section>
+
+        <div class="mobile-support">
+            <a href="https://www.buymeacoffee.com/YOUR_USERNAME" target="_blank" class="bmc-button">☕ Support FlexTools</a>
+        </div>
+    </main>
+
+    <script src="main.js"></script>
+    <script src="sw.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>
