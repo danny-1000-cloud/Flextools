@@ -46,7 +46,7 @@ body {
     padding: 0 5px 10px;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 15px;
 }
 
 .main-logo {
@@ -299,7 +299,9 @@ input:focus, select:focus {
     padding: 10px;
     background-color: #cbd5e1;
     text-align: center;
+    color: #16a34a;
     border-radius: 10px;
+    font-size: 1.2rem;
     font-weight: 800;
 }
 
@@ -322,7 +324,7 @@ input:focus, select:focus {
     }
 
     .main-logo {
-    width: 5rem;
+    width: 10rem;
     height: auto;
     }
     
@@ -341,8 +343,7 @@ input:focus, select:focus {
         background: white;
     }
 
-    .bmc-header-btn span { display: none; } /* Show only icon on small mobile */
-    .bmc-header-btn { padding: 12px; border-radius: 50%; }
+    .bmc-header-btn { padding: 12px; border-radius: 20px; }
 
     .content-area { padding: 20px; }
     .tool-card { padding: 30px; border-radius: 24px; }
