@@ -1,34 +1,14 @@
 let quill;
 
-// --- UPDATED WORLD CURRENCY LIST ---
+// --- UPDATED WORLD CURRENCY LIST (UNTOUCHED) ---
 const currencyData = {
-    "USD": "US Dollar",
-    "CAD": "Canadian Dollar",
-    "BRL": "Brazilian Real",
-    "MXN": "Mexican Peso",
-    "ARS": "Argentine Peso",
-    "EUR": "Euro",
-    "GBP": "British Pound",
-    "CHF": "Swiss Franc",
-    "RUB": "Russian Ruble",
-    "TRY": "Turkish Lira",
-    "SEK": "Swedish Krona",
-    "NGN": "Nigerian Naira",
-    "GHS": "Ghanaian Cedi",
-    "ZAR": "South African Rand",
-    "KES": "Kenyan Shilling",
-    "EGP": "Egyptian Pound",
-    "MAD": "Moroccan Dirham",
-    "JPY": "Japanese Yen",
-    "CNY": "Chinese Yuan",
-    "INR": "Indian Rupee",
-    "AED": "UAE Dirham",
-    "SAR": "Saudi Riyal",
-    "KRW": "South Korean Won",
-    "SGD": "Singapore Dollar",
-    "ILS": "Israeli Shekel",
-    "AUD": "Australian Dollar",
-    "NZD": "New Zealand Dollar"
+    "USD": "US Dollar", "CAD": "Canadian Dollar", "BRL": "Brazilian Real", "MXN": "Mexican Peso",
+    "ARS": "Argentine Peso", "EUR": "Euro", "GBP": "British Pound", "CHF": "Swiss Franc",
+    "RUB": "Russian Ruble", "TRY": "Turkish Lira", "SEK": "Swedish Krona", "NGN": "Nigerian Naira",
+    "GHS": "Ghanaian Cedi", "ZAR": "South African Rand", "KES": "Kenyan Shilling", "EGP": "Egyptian Pound",
+    "MAD": "Moroccan Dirham", "JPY": "Japanese Yen", "CNY": "Chinese Yuan", "INR": "Indian Rupee",
+    "AED": "UAE Dirham", "SAR": "Saudi Riyal", "KRW": "South Korean Won", "SGD": "Singapore Dollar",
+    "ILS": "Israeli Shekel", "AUD": "Australian Dollar", "NZD": "New Zealand Dollar"
 };
 
 window.onload = () => {
@@ -50,55 +30,38 @@ function showTool(id, btn) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     btn.classList.add('active');
     window.location.hash = id;
+
+    window.history.pushState(null, null, `/${id}`); // Changes URL to flextools.pro/currency
 }
 
-// --- NEW TOOLS (UNTOUCHED) ---
-async function mergePDFs() {
-    const files = document.getElementById('mergeInput').files;
-    if (files.length < 2) return alert("Select 2+ PDFs");
-    const mergedPdf = await PDFLib.PDFDocument.create();
-    for (let f of files) {
-        const b = await f.arrayBuffer();
-        const p = await PDFLib.PDFDocument.load(b);
-        const pages = await mergedPdf.copyPages(p, p.getPageIndices());
-        pages.forEach(pg => mergedPdf.addPage(pg));
+// --- UNIVERSAL TASK HANDLER (Manages Spinners & Done Message) ---
+async function processTask(toolName, callback) {
+    const btn = event.currentTarget;
+    const originalContent = btn.innerHTML;
+
+    try {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner"></span> Processing...`;
+        await callback();
+        showStatus(`✅ ${toolName} Completed!`, "success");
+    } catch (error) {
+        console.error(error);
+        showStatus(`❌ ${toolName} Failed: ${error.message}`, "error");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
     }
-    const pdfBytes = await mergedPdf.save();
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(new Blob([pdfBytes], { type: 'application/pdf' }));
-    link.download = "Merged_FlexTools.pdf"; link.click();
 }
 
-function compressImage() {
-    const file = document.getElementById('compressInput').files[0];
-    const quality = parseFloat(document.getElementById('compressQuality').value);
-    if (!file) return;
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (e) => {
-        const img = new Image(); img.src = e.target.result;
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width; canvas.height = img.height;
-            canvas.getContext('2d').drawImage(img, 0, 0);
-            canvas.toBlob((blob) => {
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = "compressed.jpg"; link.click();
-            }, 'image/jpeg', quality);
-        };
-    };
+function showStatus(message, type) {
+    const statusBox = document.createElement('div');
+    statusBox.className = `status-toast ${type}`;
+    statusBox.innerText = message;
+    document.body.appendChild(statusBox);
+    setTimeout(() => statusBox.remove(), 4000);
 }
 
-function convertUnits() {
-    const val = parseFloat(document.getElementById('unitValue').value);
-    const type = document.getElementById('unitType').value;
-    const res = document.getElementById('unitResult');
-    let out = (type === "length") ? `${val}m = ${(val * 3.28).toFixed(2)}ft` : `${val}kg = ${(val * 2.2).toFixed(2)}lb`;
-    res.style.display = "block"; res.innerHTML = `<strong>${out}</strong>`;
-}
-
-// --- ORIGINAL LOGIC RESTORED & WORKING ---
+// --- FINANCIAL TOOLS ---
 async function convertCurrency() {
     const amt = document.getElementById('currAmount').value;
     const from = document.getElementById('fromCurrency').value;
@@ -109,7 +72,6 @@ async function convertCurrency() {
     try {
         const response = await fetch(`https://open.er-api.com/v6/latest/${from}`);
         const data = await response.json();
-        
         if (data.result === "success") {
             const rate = data.rates[to];
             const result = (amt * rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -117,9 +79,155 @@ async function convertCurrency() {
             res.innerHTML = `${amt} ${from} = <span style="color:#f97316">${result} ${to}</span>`;
         }
     } catch (error) {
-        console.error("Currency Error:", error);
         res.innerHTML = "Error fetching rates.";
     }
 }
 
-// [Rest of your OCR, PDF Edit, Doc Import logic remains here exactly as provided]
+function convertUnits() {
+    const val = parseFloat(document.getElementById('unitValue').value);
+    const type = document.getElementById('unitType').value;
+    const res = document.getElementById('unitResult');
+    if (isNaN(val)) return;
+    let out = (type === "length") ? `${val}m = ${(val * 3.28).toFixed(2)}ft` : `${val}kg = ${(val * 2.2).toFixed(2)}lb`;
+    res.style.display = "block"; res.innerHTML = `<strong>${out}</strong>`;
+}
+
+// --- IMAGE PROCESSING TOOLS ---
+
+async function processImageToWord() {
+    await processTask("Image to Word", async () => {
+        const file = document.getElementById('wordImageInput').files[0];
+        if (!file) throw new Error("Select an image first.");
+        const { data: { text } } = await Tesseract.recognize(file, 'eng');
+        triggerDownload(new Blob([text], { type: 'application/msword' }), "FlexTools_OCR.doc");
+    });
+}
+
+async function compressImage() {
+    await processTask("Compression", async () => {
+        const file = document.getElementById('compressInput').files[0];
+        const quality = parseFloat(document.getElementById('compressQuality').value);
+        if (!file) throw new Error("Select an image.");
+        const img = await loadImage(file);
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width; canvas.height = img.height;
+        canvas.getContext('2d').drawImage(img, 0, 0);
+        canvas.toBlob(b => triggerDownload(b, "compressed.jpg"), 'image/jpeg', quality);
+    });
+}
+
+async function resizeImage() {
+    await processTask("Resize", async () => {
+        const file = document.getElementById('resizerInput').files[0];
+        const width = parseInt(document.getElementById('resizeWidth').value);
+        if (!file || !width) throw new Error("Missing file or width.");
+        const img = await loadImage(file);
+        const canvas = document.createElement('canvas');
+        const scale = width / img.width;
+        canvas.width = width;
+        canvas.height = img.height * scale;
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(b => triggerDownload(b, "resized.jpg"), 'image/jpeg');
+    });
+}
+
+async function convertFile() {
+    await processTask("Format Conversion", async () => {
+        const file = document.getElementById('fileConvInput').files[0];
+        const format = document.getElementById('fileToFormat').value;
+        if (!file) throw new Error("No file selected.");
+        const img = await loadImage(file);
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width; canvas.height = img.height;
+        canvas.getContext('2d').drawImage(img, 0, 0);
+        canvas.toBlob(b => triggerDownload(b, `converted.${format.split('/')[1]}`), format);
+    });
+}
+
+// --- PDF & DOC TOOLS ---
+
+async function mergePDFs() {
+    await processTask("Merge PDF", async () => {
+        const files = document.getElementById('mergeInput').files;
+        if (files.length < 2) throw new Error("Select 2+ PDFs");
+        const mergedPdf = await PDFLib.PDFDocument.create();
+        for (let f of files) {
+            const b = await f.arrayBuffer();
+            const p = await PDFLib.PDFDocument.load(b);
+            const pages = await mergedPdf.copyPages(p, p.getPageIndices());
+            pages.forEach(pg => mergedPdf.addPage(pg));
+        }
+        const pdfBytes = await mergedPdf.save();
+        triggerDownload(new Blob([pdfBytes], { type: 'application/pdf' }), "Merged.pdf");
+    });
+}
+
+async function splitPDF() {
+    await processTask("Split PDF", async () => {
+        const file = document.getElementById('splitInput').files[0];
+        const pageNum = parseInt(document.getElementById('splitPage').value) - 1;
+        if (!file) throw new Error("No PDF selected.");
+        const bytes = await file.arrayBuffer();
+        const pdfDoc = await PDFLib.PDFDocument.load(bytes);
+        const newPdf = await PDFLib.PDFDocument.create();
+        const [page] = await newPdf.copyPages(pdfDoc, [pageNum]);
+        newPdf.addPage(page);
+        const pdfBytes = await newPdf.save();
+        triggerDownload(new Blob([pdfBytes]), "Split_Page.pdf");
+    });
+}
+
+async function downloadPDF() {
+    await processTask("Image to PDF", async () => {
+        const file = document.getElementById('pdfImageInput').files[0];
+        if (!file) throw new Error("No image selected.");
+        const { jsPDF } = window.jspdf;
+        const imgData = await new Promise(res => {
+            const r = new FileReader(); r.onload = e => res(e.target.result); r.readAsDataURL(file);
+        });
+        const doc = new jsPDF();
+        doc.addImage(imgData, 'JPEG', 10, 10, 190, 0);
+        doc.save("Export.pdf");
+    });
+}
+
+function downloadDocAsWord() {
+    processTask("Word Export", () => {
+        const content = quill.getText();
+        triggerDownload(new Blob([content], { type: 'text/plain' }), "FlexTools_Doc.txt");
+    });
+}
+
+// --- HELPERS (UNTOUCHED LOGIC) ---
+function triggerDownload(blob, filename) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+}
+
+function loadImage(file) {
+    return new Promise(res => {
+        const img = new Image();
+        img.src = URL.createObjectURL(file);
+        img.onload = () => res(img);
+    });
+}
+
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+function toggleCategory(header) {
+    const content = header.nextElementSibling;
+    const chevron = header.querySelector('.chevron');
+    content.classList.toggle('show');
+    if (chevron) chevron.classList.toggle('rotate');
+}
+
+// Side-bar mobile fix
+const originalShowTool = showTool;
+showTool = function(id, btn) {
+    originalShowTool(id, btn);
+    if (window.innerWidth <= 900) toggleSidebar();
+    
+    
+}

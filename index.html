@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>FlexTools | Private PDF Editor, OCR & Utility Suite</title>
-    
-    <meta name="description" content="100% Private Utility Suite. Edit PDFs, Convert Image to Word, and track live Currency rates locally.">
+    <title>FlexTools Pro | All-in-One PDF, Image & Currency Converters</title>
+
+    <meta name="description" content="Access free online professional tools: Convert currency with live rates, extract text from images (OCR), merge/split PDFs, and compress images. Your fast, secure, all-in-one workspace.">
     <meta name="keywords" content="PDF Editor, Image to Word, OCR, Currency Converter, USD to NGN, GHS to USD, Image to PDF, Online Doc Editor">
     <meta name="author" content="FlexTools Pro">
     <link rel="icon" type="image/x-icon" href="image/FlexTools logo with vibrant colors.png">
@@ -33,48 +33,82 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <link rel="canonical" href="https://flextools.pro/" />
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <aside class="sidebar">
+    <header class="top-bar">
+    <div class="header-left">
+        <button class="menu-trigger" onclick="toggleSidebar()">☰</button>
+    </div>
+    <div class="header-right">
+        <div class="status-pill">Secure</div>
+    </div>
+</header>
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
         <div class="logo-wrap">
             <img src="image/FlexTools logo with vibrant colors.png" alt="FlexTools Logo" class="main-logo">
         </div>
-        
-        <nav class="nav-list">
-            <div class="nav-group">Financial & Units</div>
-            <button class="nav-item active" onclick="showTool('currency', this)"><span>💰</span> Converter</button>
-            <button class="nav-item" onclick="showTool('unit-converter', this)"><span>📏</span> Unit Conv</button>
-            
-            <div class="nav-group">Image Processing</div>
-            <button class="nav-item" onclick="showTool('word', this)"><span>📝</span> Img to Word</button>
-            <button class="nav-item" onclick="showTool('img-compressor', this)"><span>📉</span> Compress</button>
-            <button class="nav-item" onclick="showTool('img-resizer', this)"><span>📐</span> Resize</button>
-            
-            <div class="nav-group">PDF & Docs</div>
-            <button class="nav-item" onclick="showTool('pdf-editor', this)"><span>🖋️</span> PDF Editor</button>
-            <button class="nav-item" onclick="showTool('pdf-merge', this)"><span>🔗</span> Merge PDF</button>
-            <button class="nav-item" onclick="showTool('pdf-split', this)"><span>✂️</span> Split PDF</button>
-            <button class="nav-item" onclick="showTool('doc-editor', this)"><span>✍️</span> Doc Editor</button>
-            <button class="nav-item" onclick="showTool('pdf', this)"><span>📄</span> Img to PDF</button>
-            <button class="nav-item" onclick="showTool('file-converter', this)"><span>🔄</span> File Conv</button>
-        </nav>
-    </aside>
+        <button class="mobile-close" onclick="toggleSidebar()">✕</button>
+    </div>
+    
+    <nav class="nav-list">
+        <div class="nav-group">
+            <div class="group-header" onclick="toggleCategory(this)">
+                📊 Financial & Units <span class="chevron">▼</span>
+            </div>
+            <div class="group-content show">
+                <button class="nav-item active" onclick="showTool('currency', this)"><span>💰</span> Currency Converter</button>
+                <button class="nav-item" onclick="showTool('unit-converter', this)"><span>📏</span> Unit Converter</button>
+            </div>
+        </div>
+
+        <div class="nav-group">
+            <div class="group-header" onclick="toggleCategory(this)">
+                🖼️ Image Processing <span class="chevron">▼</span>
+            </div>
+            <div class="group-content">
+                <button class="nav-item" onclick="showTool('word', this)"><span>📝</span> Img to Word</button>
+                <button class="nav-item" onclick="showTool('img-compressor', this)"><span>📉</span> Compress</button>
+                <button class="nav-item" onclick="showTool('img-resizer', this)"><span>📐</span> Resize</button>
+                <button class="nav-item" onclick="showTool('file-converter', this)"><span>🔄</span> Format Conv</button>
+            </div>
+        </div>
+
+        <div class="nav-group">
+            <div class="group-header" onclick="toggleCategory(this)">
+                📄 PDF & Docs <span class="chevron">▼</span>
+            </div>
+            <div class="group-content">
+                <button class="nav-item" onclick="showTool('pdf-editor', this)"><span>🖋️</span> PDF Editor</button>
+                <button class="nav-item" onclick="showTool('pdf-merge', this)"><span>🔗</span> Merge PDF</button>
+                <button class="nav-item" onclick="showTool('pdf-split', this)"><span>✂️</span> Split PDF</button>
+                <button class="nav-item" onclick="showTool('doc-editor', this)"><span>✍️</span> Doc Editor</button>
+                <button class="nav-item" onclick="showTool('pdf', this)"><span>📷</span> Img to PDF</button>
+            </div>
+        </div>
+    </nav>
+    <a href="https://www.buymeacoffee.com/YOUR_USERNAME" target="_blank" class="bmc-header-btn">
+                <img src="https://cdn.buymeacoffee.com/buttons/bmc-new-btn-logo.svg" alt="Buy me a coffee">
+                <span>Support Us</span>
+    </a>
+</aside>
 
     <main class="workspace">
         <header class="top-bar">
             <div class="status-pill">Secure System</div>
-            <a href="https://www.buymeacoffee.com/YOUR_USERNAME" target="_blank" class="bmc-header-btn">
-                <img src="https://cdn.buymeacoffee.com/buttons/bmc-new-btn-logo.svg" alt="Buy me a coffee">
-                <span>Support Us</span>
-            </a>
         </header>
 
         <div class="content-area">
@@ -105,14 +139,14 @@
                 <h1>Image Compressor</h1>
                 <input type="file" id="compressInput" accept="image/*">
                 <input type="range" id="compressQuality" min="0.1" max="1.0" step="0.1" value="0.7">
-                <button class="btn-action" onclick="compressImage()">Compress</button>
+                <button class="btn-action" onclick="compressImage()">Compress Image</button>
             </section>
 
             <section id="img-resizer" class="tool-card">
                 <h1>Image Resizer</h1>
                 <input type="file" id="resizerInput" accept="image/*">
                 <div style="display:flex; gap:10px;"><input type="number" id="resizeWidth" placeholder="Width"><input type="number" id="resizeHeight" placeholder="Height"></div>
-                <button class="btn-action" onclick="resizeImage()">Resize</button>
+                <button class="btn-action" onclick="resizeImage()">Image Resize</button>
             </section>
 
             <section id="pdf-editor" class="tool-card">
@@ -155,6 +189,41 @@
                 <select id="fileToFormat"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option></select>
                 <button class="btn-action" onclick="convertFile()">Convert</button>
             </section>
+
+            <div class="content-area">
+    <section id="file-converter" class="tool-card">
+        <h1>Format Converter</h1>
+        </section>
+
+    <hr class="section-divider">
+
+    <article class="seo-content">
+        <section class="info-section">
+            <h2>Your Professional Digital Toolkit</h2>
+            <p><strong>FlexTools Pro</strong> is designed to streamline your digital workflow. Whether you're a student or a freelance professional, our suite of browser-based utilities offers speed and security in one interface.</p>
+        </section>
+
+        <div class="features-grid">
+            <div class="feature-item">
+                <h3>💰 Financial Precision</h3>
+                <p>Convert global currencies with real-time exchange rates. Perfect for international business and travel planning.</p>
+            </div>
+            <div class="feature-item">
+                <h3>🖼️ Image Mastery</h3>
+                <p>Use our <strong>Image to Word (OCR)</strong>, <strong>Compressor</strong>, and <strong>Resizer</strong> to optimize your media for any platform.</p>
+            </div>
+            <div class="feature-item">
+                <h3>📄 Document Control</h3>
+                <p>Merge, split, and edit PDFs or Word docs without installing heavy software. Everything runs directly in your browser.</p>
+            </div>
+        </div>
+
+        <section class="trust-section">
+            <h2>Secure & Private</h2>
+            <p>Your privacy is paramount. Files processed on FlexTools Pro are handled locally in your browser—we never store your personal data or documents on our servers.</p>
+        </section>
+    </article>
+    </div>
         </div>
     </main>
 
