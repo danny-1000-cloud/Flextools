@@ -12,26 +12,75 @@ const currencyData = {
 };
 
 window.onload = () => {
-    const fromS = document.getElementById('fromCurrency');
+const fromS = document.getElementById('fromCurrency');
     const toS = document.getElementById('toCurrency');
-    if(fromS) {
+    if (fromS && toS) {
         for (const [code, name] of Object.entries(currencyData)) {
             fromS.add(new Option(name, code)); 
             toS.add(new Option(name, code));
         }
         fromS.value = "USD"; toS.value = "NGN";
     }
-    quill = new Quill('#editor-container', { theme: 'snow' });
+
+    // 2. Initialize Quill (Safe Check)
+    if (document.getElementById('editor-container')) {
+        quill = new Quill('#editor-container', { theme: 'snow' });
+    }
+
+    // 3. THE PERMANENT ROUTING FIX
+    // Check if we are on Vercel (pathname) OR on your computer (hash)
+    let path = window.location.pathname.split('/').filter(Boolean)[0]; 
+    if (!path) {
+        // Fallback for local testing: check the # in the URL
+        path = window.location.hash.replace('#', '');
+    }
+    
+    if (path && document.getElementById(path)) {
+        const targetBtn = document.querySelector(`[onclick*="${path}"]`);
+        showTool(path, targetBtn); 
+    }
 };
 
 function showTool(id, btn) {
-    document.querySelectorAll('.tool-card').forEach(c => c.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    btn.classList.add('active');
-    window.location.hash = id;
+    const targetTool = document.getElementById(id);
+    if (!targetTool) return;
 
-    window.history.pushState(null, null, `/${id}`); // Changes URL to flextools.pro/currency
+    // 1. Switch Tool Visibility
+    document.querySelectorAll('.tool-card').forEach(c => c.classList.remove('active'));
+    targetTool.classList.add('active');
+
+    // 2. Update Sidebar Active Button
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+
+    // --- PERMANENT SIDEBAR FIX ---
+    // This part ensures the sidebar DOES NOT contract on refresh
+    const sidebar = document.querySelector('.sidebar'); // or '.nav-container'
+    const mainContent = document.querySelector('.main-content'); // or '#main'
+    
+    if (sidebar) {
+        // Force the 'active' class so the menu stays open
+        sidebar.classList.add('active'); 
+        
+        // If your CSS uses a class on the main content to push it over, add that too:
+        if (mainContent) {
+            mainContent.classList.add('active');
+        }
+    }
+
+    // 3. Routing (Local vs Live)
+    const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
+    if (isLocal) {
+        window.location.hash = id;
+    } else {
+        if (window.location.pathname !== `/${id}`) {
+            window.history.pushState({tool: id}, "", `/${id}`);
+        }
+    }
+
+    // 4. Update Title
+    const toolName = btn ? btn.innerText.trim() : "Tool";
+    document.title = `${toolName} | FlexTools Pro`;
 }
 
 // --- UNIVERSAL TASK HANDLER (Manages Spinners & Done Message) ---
@@ -221,6 +270,16 @@ function toggleCategory(header) {
     const chevron = header.querySelector('.chevron');
     content.classList.toggle('show');
     if (chevron) chevron.classList.toggle('rotate');
+}
+
+function toggleFaq(element) {
+    const item = element.parentElement;
+    item.classList.toggle('active');
+    
+    // Optional: Close other FAQs when one opens
+    document.querySelectorAll('.faq-item').forEach(other => {
+        if (other !== item) other.classList.remove('active');
+    });
 }
 
 // Side-bar mobile fix

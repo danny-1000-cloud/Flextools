@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Allow: /faq
+
+# Sitemaps tell engines where all your pages are
+Sitemap: https://flextools.pro/sitemap.xml
