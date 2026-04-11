@@ -291,13 +291,22 @@ showTool = function(id, btn) {
     
 }
 
+// Ensure this is at the bottom of your main.js
 const ptr = PullToRefresh.init({
-  mainElement: 'body', // The element you want to pull
-  onRefresh() {
-    window.location.reload(); // What happens when they pull
+  mainElement: 'body',
+  distThreshold: 90, // Increased resistance to prevent accidental triggers
+  distMax: 120,
+  distReload: 70,
+  onRefresh: function() {
+    return new Promise(function(resolve) {
+      // The "Timer": Wait 1.5 seconds before reloading
+      setTimeout(function() {
+        window.location.reload();
+        resolve();
+      }, 1500);
+    });
   },
-  distThreshold: 60, // How far they have to pull down
   instructionsPullToRefresh: 'Pull down to refresh',
-  instructionsReleaseToRefresh: 'Release to refresh',
-  instructionsRefreshing: 'Refreshing...'
+  instructionsReleaseToRefresh: 'Release to update',
+  instructionsRefreshing: 'Updating FlexTools...'
 });

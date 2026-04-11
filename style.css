@@ -29,6 +29,7 @@ body {
     display: flex;
     height: 100vh;
     overflow: hidden;
+    overscroll-behavior-y: contain;
 }
 
 /* --- SIDEBAR & NAVIGATION --- */
@@ -338,6 +339,26 @@ input, select {
     padding-bottom: 16px; 
 }
 .faq-item.active .faq-icon { transform: rotate(45deg); color: #ff4d4d; }
+
+/* Styling the pull-to-refresh container */
+.ptr--ptr {
+    background: #fdfdfd !important;
+    color: #2c3e50 !important;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 600;
+    box-shadow: none !important;
+}
+
+/* The loading text */
+.ptr--text {
+    font-size: 14px;
+    letter-spacing: 0.5px;
+}
+
+/* Add a subtle fade-in for the refresh box */
+.ptr--main {
+    transition: opacity 0.3s ease;
+}
 
 /* --- MOBILE RESPONSIVE --- */
 @media (max-width: 900px) {
