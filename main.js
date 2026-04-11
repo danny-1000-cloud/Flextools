@@ -290,3 +290,24 @@ showTool = function(id, btn) {
     
     
 }
+
+function bootSystem() {
+    // 1. Check the URL path (e.g., /faq or /pdf-editor)
+    let path = window.location.pathname.split('/').filter(Boolean)[0];
+    
+    // 2. Fallback to LocalStorage if the path is empty (the 'Local Browser' fix)
+    if (!path || path.includes('.html')) {
+        path = localStorage.getItem('activeTool') || 'currency';
+    }
+
+    // 3. Launch the tool
+    const targetSection = document.getElementById(path);
+    if (targetSection) {
+        showTool(path, null);
+    } else {
+        showTool('currency', null); // Safety fallback
+    }
+}
+
+// Run this as soon as the HTML is ready
+document.addEventListener('DOMContentLoaded', bootSystem);
