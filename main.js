@@ -49,22 +49,24 @@ function showTool(id, btn, isBoot = false) {
     const targetTool = document.getElementById(id);
     if (!targetTool) return;
 
-    // Switch Visibility
+    // Visibility
     document.querySelectorAll('.tool-card').forEach(c => c.classList.remove('active'));
     targetTool.classList.add('active');
 
-    // Update Active Button
+    // Sidebar Highlights
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     const activeBtn = btn || document.querySelector(`[onclick*="'${id}'"]`);
     if (activeBtn) activeBtn.classList.add('active');
 
-    // SAVE STATE
     localStorage.setItem('activeTool', id);
 
-    // Close sidebar on mobile ONLY if user clicked (not on refresh)
+    // CLOSE SIDEBAR ON MOBILE
     if (!isBoot && window.innerWidth <= 900) {
         document.getElementById('sidebar').classList.remove('open');
     }
+
+    // Scroll to top of the new tool automatically
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 
     // Update URL & Title
     const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";

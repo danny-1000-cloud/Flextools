@@ -361,31 +361,34 @@ input, select {
 }
 
 /* --- MOBILE RESPONSIVE --- */
+/* --- MOBILE OPTIMIZATION --- */
 @media (max-width: 900px) {
-    /* 1. Unlock the page height */
+    /* 1. Unlock the page height & scrolling */
     html, body {
         height: auto !important;
         overflow-y: auto !important;
         overflow-x: hidden;
         display: block !important;
+        position: relative;
     }
 
     /* 2. Fix the Workspace 'Trap' */
     .workspace {
         height: auto !important;
         min-height: 100vh;
-        overflow: visible !important; /* This allows the natural scroll */
+        overflow: visible !important; 
         display: flex;
         flex-direction: column;
         margin-top: 70px; /* Space for your fixed header */
+        width: 100%;
     }
 
-    /* 3. Ensure Content Area expands */
+    /* 3. Content Area Expansion */
     .content-area {
         flex: 1;
         overflow: visible !important;
-        padding: 20px 15px 80px 15px; /* Extra bottom padding for easy access */
-        background-attachment: scroll; /* Prevents background jitter */
+        padding: 20px 15px 80px 15px; 
+        background-attachment: scroll; 
     }
 
     /* 4. Tool Card Adjustments */
@@ -396,15 +399,31 @@ input, select {
         max-width: 100%;
     }
 
-    /* 5. Keep your logo/sidebar fixes */
+    /* 5. Sidebar Overlay Fix */
     .sidebar {
         z-index: 10000;
         left: -100% !important;
+        position: fixed;
+        top: 0;
+        height: 100vh;
+        width: 290px;
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .sidebar.open { left: 0 !important; }
+
+    /* Fix for the top-bar visibility */
+    body > .top-bar {
+        display: flex !important;
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 9999;
+        background: white;
+        height: 70px;
+        border-bottom: 1px solid var(--border);
+    }
 }
 
-/* 6. Ensure the Spinner is always visible over the workspace */
+/* --- 6. REFRESH SPINNER (Global Styles) --- */
 .refresh-overlay {
     position: fixed !important;
     inset: 0;
@@ -413,5 +432,30 @@ input, select {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 20000;
+    z-index: 20000; /* Stays above Sidebar */
 }
+
+/* The actual spinning circle */
+.refresh-spinner {
+    width: 48px;
+    height: 48px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #f97316; /* Your brand Orange */
+    border-radius: 50%;
+    animation: flexSpin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+@keyframes flexSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Text style for "Updating FlexTools..." */
+.refresh-overlay p {
+    font-weight: 800;
+    color: #0f172a;
+    font-size: 1rem;
+    margin: 0;
+}
+
