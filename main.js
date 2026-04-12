@@ -98,18 +98,15 @@ if (typeof PullToRefresh !== 'undefined') {
         distThreshold: 80,
         onRefresh() {
             return new Promise((resolve) => {
-                // Manually create the overlay if it doesn't exist
-                if (!document.querySelector('.refresh-overlay')) {
-                    const overlay = document.createElement('div');
-                    overlay.className = 'refresh-overlay';
-                    overlay.innerHTML = `
-                        <div class="refresh-spinner"></div>
-                        <p style="margin-top:20px; font-weight:800; color:#0f172a; font-family:inherit;">
-                            Updating FlexTools...
-                        </p>`;
-                    document.body.appendChild(overlay);
-                }
-                
+                // Force-inject the spinner overlay
+                const overlay = document.createElement('div');
+                overlay.className = 'refresh-overlay';
+                overlay.innerHTML = `
+                    <div class="refresh-spinner"></div>
+                    <p style="margin-top:20px; font-weight:800; color:#0f172a;">Updating FlexTools...</p>
+                `;
+                document.body.appendChild(overlay);
+
                 setTimeout(() => {
                     window.location.reload();
                     resolve();
