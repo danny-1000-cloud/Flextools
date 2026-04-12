@@ -364,7 +364,7 @@ input, select {
 @media (max-width: 900px) {
     body { flex-direction: column; }
     
-    body > .top-bar {
+    body > {
         display: flex !important;
         position: fixed;
         top: 0;
