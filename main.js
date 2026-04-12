@@ -49,20 +49,13 @@ function showTool(id, btn, isBoot = false) {
     const targetTool = document.getElementById(id);
     if (!targetTool) return;
 
-    // Visibility
     document.querySelectorAll('.tool-card').forEach(c => c.classList.remove('active'));
     targetTool.classList.add('active');
 
-    // Sidebar Highlights
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    const activeBtn = btn || document.querySelector(`[onclick*="'${id}'"]`);
-    if (activeBtn) activeBtn.classList.add('active');
-
-    localStorage.setItem('activeTool', id);
-
-    // CLOSE SIDEBAR ON MOBILE
     if (!isBoot && window.innerWidth <= 900) {
-        document.getElementById('sidebar').classList.remove('open');
+        // Use our toggle function to clean up classes/overlays
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar.classList.contains('open')) toggleSidebar();
     }
 
     // Scroll to top of the new tool automatically
@@ -298,13 +291,22 @@ function loadImage(file) {
     });
 }
 
-function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
-
-function toggleCategory(header) {
-    const content = header.nextElementSibling;
-    const chevron = header.querySelector('.chevron');
-    content.classList.toggle('show');
-    if (chevron) chevron.classList.toggle('rotate');
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('open');
+    
+    // Create/Toggle a dark overlay so user can click outside the menu to close it
+    let overlay = document.querySelector('.sidebar-overlay');
+    
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'sidebar-overlay';
+        overlay.onclick = toggleSidebar; // Clicking the dark area closes the menu
+        document.body.appendChild(overlay);
+    }
+    
+    // Toggle the active class to show/hide the dark background
+    overlay.classList.toggle('active');
 }
 
 function toggleFaq(element) {

@@ -360,70 +360,67 @@ input, select {
     transition: opacity 0.3s ease;
 }
 
-/* --- MOBILE RESPONSIVE --- */
-/* --- MOBILE OPTIMIZATION --- */
 @media (max-width: 900px) {
-    /* 1. Unlock the page height & scrolling */
+    /* 1. Remove redundant Secure button */
+    .top-bar .secure-btn { display: none !important; }
+
+    /* 2. Unlock scrolling */
     html, body {
         height: auto !important;
         overflow-y: auto !important;
-        overflow-x: hidden;
         display: block !important;
-        position: relative;
     }
 
-    /* 2. Fix the Workspace 'Trap' */
-    .workspace {
-        height: auto !important;
-        min-height: 100vh;
-        overflow: visible !important; 
-        display: flex;
-        flex-direction: column;
-        margin-top: 70px; /* Space for your fixed header */
-        width: 100%;
-    }
-
-    /* 3. Content Area Expansion */
-    .content-area {
-        flex: 1;
-        overflow: visible !important;
-        padding: 20px 15px 80px 15px; 
-        background-attachment: scroll; 
-    }
-
-    /* 4. Tool Card Adjustments */
-    .tool-card {
-        padding: 25px 20px;
-        border-radius: 20px;
-        margin-bottom: 30px;
-        max-width: 100%;
-    }
-
-    /* 5. Sidebar Overlay Fix */
+    /* 3. Sidebar Drawer Style */
     .sidebar {
-        z-index: 10000;
-        left: -100% !important;
         position: fixed;
+        left: -100% !important;
         top: 0;
         height: 100vh;
-        width: 290px;
+        width: 300px;
+        z-index: 10000;
+        background: white;
+        box-shadow: 15px 0 50px rgba(0,0,0,0.15);
         transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        padding-top: 60px;
     }
+
     .sidebar.open { left: 0 !important; }
 
-    /* Fix for the top-bar visibility */
-    body > .top-bar {
-        display: flex !important;
-        position: fixed;
-        top: 0; left: 0; right: 0;
-        z-index: 9999;
-        background: white;
-        height: 70px;
-        border-bottom: 1px solid var(--border);
+    /* 4. Mobile Close Button */
+    .mobile-close {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 32px;
+        background: none;
+        border: none;
+        color: #64748b;
+        line-height: 1;
+        display: block !important;
     }
+
+    /* 5. Content Layout (Prevents displacement) */
+    .workspace {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-top: 70px;
+        display: block !important;
+        overflow: visible !important;
+    }
+
+    /* Dark background when menu is open */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        z-index: 9999;
+    }
+    .sidebar-overlay.active { display: block; }
 }
 
-/* --- 6. REFRESH SPINNER (Global Styles) --- */
+/* --- 6. REFRESH SPINNER & OVERLAY (KEEP THIS) --- */
 .refresh-overlay {
     position: fixed !important;
     inset: 0;
@@ -432,10 +429,9 @@ input, select {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 20000; /* Stays above Sidebar */
+    z-index: 20000; /* Stays above everything */
 }
 
-/* The actual spinning circle */
 .refresh-spinner {
     width: 48px;
     height: 48px;
@@ -450,12 +446,3 @@ input, select {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
-
-/* Text style for "Updating FlexTools..." */
-.refresh-overlay p {
-    font-weight: 800;
-    color: #0f172a;
-    font-size: 1rem;
-    margin: 0;
-}
-
