@@ -382,19 +382,40 @@ input, select {
     }
 
     .sidebar {
-        position: fixed;
-        left: -100%;
-        top: 0;
-        height: 100vh;
-        width: 280px;
-        box-shadow: 20px 0 60px rgba(0,0,0,0.1);
+        left: -100% !important; /* Force hide on reload */
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
+    .sidebar.open { 
+        left: 0 !important; 
+    }
+
+    .refresh-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.refresh-spinner {
+    width: 45px;
+    height: 45px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #16a34a; /* Your Orange Brand Color */
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin { 
+    to { transform: rotate(360deg); } 
+}
 
     .bmc-header-btn{
         margin-bottom: 30px;
     }
-
-    .sidebar.open { left: 0; }
 
     .menu-trigger {
         background: none;

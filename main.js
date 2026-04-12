@@ -12,7 +12,8 @@ const currencyData = {
 };
 
 window.onload = () => {
-const fromS = document.getElementById('fromCurrency');
+    // Populate Currency
+    const fromS = document.getElementById('fromCurrency');
     const toS = document.getElementById('toCurrency');
     if (fromS && toS) {
         for (const [code, name] of Object.entries(currencyData)) {
@@ -22,65 +23,89 @@ const fromS = document.getElementById('fromCurrency');
         fromS.value = "USD"; toS.value = "NGN";
     }
 
-    // 2. Initialize Quill (Safe Check)
     if (document.getElementById('editor-container')) {
         quill = new Quill('#editor-container', { theme: 'snow' });
     }
 
-    // 3. THE PERMANENT ROUTING FIX
-    // Check if we are on Vercel (pathname) OR on your computer (hash)
-    let path = window.location.pathname.split('/').filter(Boolean)[0]; 
-    if (!path) {
-        // Fallback for local testing: check the # in the URL
-        path = window.location.hash.replace('#', '');
+    // 1. Get the last tool used (from URL or Storage)
+    let path = window.location.pathname.split('/').filter(Boolean)[0] || window.location.hash.replace('#', '') || localStorage.getItem('activeTool') || 'currency';
+    
+    // 2. Find the button and category
+    const targetBtn = document.querySelector(`[onclick*="'${path}'"]`);
+    if (targetBtn) {
+        const parentCategory = targetBtn.closest('.group-content');
+        if (parentCategory) {
+            parentCategory.classList.add('show'); // Open the specific folder
+            const chevron = parentCategory.parentElement.querySelector('.chevron');
+            if (chevron) chevron.style.transform = 'rotate(180deg)';
+        }
     }
     
-    if (path && document.getElementById(path)) {
-        const targetBtn = document.querySelector(`[onclick*="${path}"]`);
-        showTool(path, targetBtn); 
-    }
+    // 3. Show tool WITHOUT closing sidebar (to prevent mobile flicker on boot)
+    showTool(path, targetBtn, true); 
 };
 
-function showTool(id, btn) {
+function showTool(id, btn, isBoot = false) {
     const targetTool = document.getElementById(id);
     if (!targetTool) return;
 
-    // 1. Switch Tool Visibility
+    // Switch Visibility
     document.querySelectorAll('.tool-card').forEach(c => c.classList.remove('active'));
     targetTool.classList.add('active');
 
-    // 2. Update Sidebar Active Button
+    // Update Active Button
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    if (btn) btn.classList.add('active');
+    const activeBtn = btn || document.querySelector(`[onclick*="'${id}'"]`);
+    if (activeBtn) activeBtn.classList.add('active');
 
-    // --- PERMANENT SIDEBAR FIX ---
-    // This part ensures the sidebar DOES NOT contract on refresh
-    const sidebar = document.querySelector('.sidebar'); // or '.nav-container'
-    const mainContent = document.querySelector('.main-content'); // or '#main'
-    
-    if (sidebar) {
-        // Force the 'active' class so the menu stays open
-        sidebar.classList.add('active'); 
-        
-        // If your CSS uses a class on the main content to push it over, add that too:
-        if (mainContent) {
-            mainContent.classList.add('active');
-        }
+    // SAVE STATE
+    localStorage.setItem('activeTool', id);
+
+    // Close sidebar on mobile ONLY if user clicked (not on refresh)
+    if (!isBoot && window.innerWidth <= 900) {
+        document.getElementById('sidebar').classList.remove('open');
     }
 
-    // 3. Routing (Local vs Live)
+    // Update URL & Title
     const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
-    if (isLocal) {
-        window.location.hash = id;
-    } else {
-        if (window.location.pathname !== `/${id}`) {
-            window.history.pushState({tool: id}, "", `/${id}`);
-        }
-    }
+    if (isLocal) window.location.hash = id;
+    else if (window.location.pathname !== `/${id}`) window.history.pushState({tool: id}, "", `/${id}`);
+    
+    document.title = `${activeBtn ? activeBtn.innerText.trim() : "Tool"} | FlexTools Pro`;
+}
 
-    // 4. Update Title
-    const toolName = btn ? btn.innerText.trim() : "Tool";
-    document.title = `${toolName} | FlexTools Pro`;
+function toggleCategory(header) {
+    const content = header.nextElementSibling;
+    const chevron = header.querySelector('.chevron');
+    
+    // Close other folders to keep it tidy
+    document.querySelectorAll('.group-content').forEach(other => {
+        if (other !== content) {
+            other.classList.remove('show');
+            const c = other.parentElement.querySelector('.chevron');
+            if (c) c.style.transform = 'rotate(0deg)';
+        }
+    });
+
+    content.classList.toggle('show');
+    if (chevron) chevron.style.transform = content.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+// --- REFRESH SPINNER LOGIC ---
+if (typeof PullToRefresh !== 'undefined') {
+    PullToRefresh.init({
+        mainElement: 'body',
+        distThreshold: 100,
+        onRefresh() {
+            return new Promise((resolve) => {
+                const overlay = document.createElement('div');
+                overlay.className = 'refresh-overlay';
+                overlay.innerHTML = `<div class="refresh-spinner"></div><p style="margin-top:15px; font-weight:800; color:#0f172a;">Updating FlexTools...</p>`;
+                document.body.appendChild(overlay);
+                setTimeout(() => { window.location.reload(); resolve(); }, 1500);
+            });
+        }
+    });
 }
 
 // --- UNIVERSAL TASK HANDLER (Manages Spinners & Done Message) ---
@@ -282,31 +307,3 @@ function toggleFaq(element) {
     });
 }
 
-// Side-bar mobile fix
-const originalShowTool = showTool;
-showTool = function(id, btn) {
-    originalShowTool(id, btn);
-    if (window.innerWidth <= 900) toggleSidebar();
-    
-    
-}
-
-// Ensure this is at the bottom of your main.js
-const ptr = PullToRefresh.init({
-  mainElement: 'body',
-  distThreshold: 90, // Increased resistance to prevent accidental triggers
-  distMax: 120,
-  distReload: 70,
-  onRefresh: function() {
-    return new Promise(function(resolve) {
-      // The "Timer": Wait 1.5 seconds before reloading
-      setTimeout(function() {
-        window.location.reload();
-        resolve();
-      }, 1500);
-    });
-  },
-  instructionsPullToRefresh: 'Pull down to refresh',
-  instructionsReleaseToRefresh: 'Release to update',
-  instructionsRefreshing: 'Updating FlexTools...'
-});
