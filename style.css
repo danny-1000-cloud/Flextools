@@ -377,6 +377,10 @@ input, select {
         justify-content: space-between;
     }
 
+    .top-bar{
+        display: none;
+    }
+
     .sidebar {
         position: fixed;
         left: -100%;
