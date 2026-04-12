@@ -95,14 +95,25 @@ function toggleCategory(header) {
 if (typeof PullToRefresh !== 'undefined') {
     PullToRefresh.init({
         mainElement: 'body',
-        distThreshold: 100,
+        distThreshold: 80,
         onRefresh() {
             return new Promise((resolve) => {
-                const overlay = document.createElement('div');
-                overlay.className = 'refresh-overlay';
-                overlay.innerHTML = `<div class="refresh-spinner"></div><p style="margin-top:15px; font-weight:800; color:#0f172a;">Updating FlexTools...</p>`;
-                document.body.appendChild(overlay);
-                setTimeout(() => { window.location.reload(); resolve(); }, 1500);
+                // Manually create the overlay if it doesn't exist
+                if (!document.querySelector('.refresh-overlay')) {
+                    const overlay = document.createElement('div');
+                    overlay.className = 'refresh-overlay';
+                    overlay.innerHTML = `
+                        <div class="refresh-spinner"></div>
+                        <p style="margin-top:20px; font-weight:800; color:#0f172a; font-family:inherit;">
+                            Updating FlexTools...
+                        </p>`;
+                    document.body.appendChild(overlay);
+                }
+                
+                setTimeout(() => {
+                    window.location.reload();
+                    resolve();
+                }, 1500);
             });
         }
     });
