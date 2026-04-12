@@ -73,7 +73,7 @@ function toggleCategory(header) {
     const content = header.nextElementSibling;
     const chevron = header.querySelector('.chevron');
     
-    // Close other folders to keep it tidy
+    // 1. Close other folders
     document.querySelectorAll('.group-content').forEach(other => {
         if (other !== content) {
             other.classList.remove('show');
@@ -82,8 +82,13 @@ function toggleCategory(header) {
         }
     });
 
+    // 2. Toggle current folder
     content.classList.toggle('show');
-    if (chevron) chevron.style.transform = content.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0deg)';
+    
+    // 3. Apply rotation (matches your version)
+    if (chevron) {
+        chevron.style.transform = content.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
 }
 
 // --- REFRESH SPINNER LOGIC ---
