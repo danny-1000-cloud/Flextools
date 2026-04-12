@@ -298,7 +298,18 @@ function loadImage(file) {
 
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
+    const trigger = document.querySelector('.menu-trigger');
+    
+    if (!sidebar) return;
+
     sidebar.classList.toggle('open');
+
+    // Update the icon based on state
+    if (sidebar.classList.contains('open')) {
+        trigger.textContent = '✕'; // Close
+    } else {
+        trigger.textContent = '☰'; // Hamburger
+    }
     
     // Manage the dark background overlay
     let overlay = document.querySelector('.sidebar-overlay');
