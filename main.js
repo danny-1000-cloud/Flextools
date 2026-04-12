@@ -291,47 +291,22 @@ showTool = function(id, btn) {
     
 }
 
-// 1. Logic to keep the correct nav-group open
-function restoreNavState() {
-    const activeTool = localStorage.getItem('activeTool') || 'currency';
-    
-    // Find the tool button and its parent category
-    const activeBtn = document.querySelector(`[onclick*="${activeTool}"]`);
-    if (activeBtn) {
-        // Close all categories first
-        document.querySelectorAll('.group-content').forEach(el => el.classList.remove('show'));
-        
-        // Open the parent category of the active tool
-        const parentCategory = activeBtn.closest('.group-content');
-        if (parentCategory) parentCategory.classList.add('show');
-        
-        // Highlight the button
-        activeBtn.classList.add('active');
-    }
-}
-
-// 2. Pull-to-Refresh with Animation
-PullToRefresh.init({
-    mainElement: 'body',
-    distThreshold: 100,
-    onRefresh() {
-        return new Promise((resolve) => {
-            // Create a temporary overlay with a spinner
-            const loader = document.createElement('div');
-            loader.innerHTML = `
-                <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.9);z-index:9999;display:flex;flex-direction:column;justify-content:center;align-items:center;">
-                    <div class="loading-spinner"></div>
-                    <p style="font-family:sans-serif;color:#333;">Refreshing FlexTools...</p>
-                </div>`;
-            document.body.appendChild(loader);
-
-            setTimeout(() => {
-                window.location.reload();
-                resolve();
-            }, 1500);
-        });
-    }
+// Ensure this is at the bottom of your main.js
+const ptr = PullToRefresh.init({
+  mainElement: 'body',
+  distThreshold: 90, // Increased resistance to prevent accidental triggers
+  distMax: 120,
+  distReload: 70,
+  onRefresh: function() {
+    return new Promise(function(resolve) {
+      // The "Timer": Wait 1.5 seconds before reloading
+      setTimeout(function() {
+        window.location.reload();
+        resolve();
+      }, 1500);
+    });
+  },
+  instructionsPullToRefresh: 'Pull down to refresh',
+  instructionsReleaseToRefresh: 'Release to update',
+  instructionsRefreshing: 'Updating FlexTools...'
 });
-
-// Run restoration on load
-window.addEventListener('DOMContentLoaded', restoreNavState);
