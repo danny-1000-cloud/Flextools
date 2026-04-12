@@ -295,18 +295,19 @@ function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     sidebar.classList.toggle('open');
     
-    // Create/Toggle a dark overlay so user can click outside the menu to close it
+    // Manage the dark background overlay
     let overlay = document.querySelector('.sidebar-overlay');
-    
     if (!overlay) {
         overlay = document.createElement('div');
         overlay.className = 'sidebar-overlay';
-        overlay.onclick = toggleSidebar; // Clicking the dark area closes the menu
+        // Basic overlay styling via JS to ensure it works
+        overlay.style.cssText = "position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:9999; display:none;";
+        overlay.onclick = toggleSidebar; 
         document.body.appendChild(overlay);
     }
     
-    // Toggle the active class to show/hide the dark background
-    overlay.classList.toggle('active');
+    const isOpen = sidebar.classList.contains('open');
+    overlay.style.display = isOpen ? 'block' : 'none';
 }
 
 function toggleFaq(element) {
