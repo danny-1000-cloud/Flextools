@@ -377,7 +377,7 @@ input, select {
         justify-content: space-between;
     }
 
-    .top-bar{
+   body > .top-bar{
         display: none;
     }
 
