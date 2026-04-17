@@ -27,6 +27,25 @@ window.onload = () => {
         quill = new Quill('#editor-container', { theme: 'snow' });
     }
 
+    function initRefresher() {
+    if (typeof PullToRefresh === 'undefined') return;
+
+    PullToRefresh.init({
+        mainElement: 'body', 
+        onRefresh() {
+            window.location.reload();
+        },
+        distThreshold: 60,
+        distMax: 90,
+        shouldPullToRefresh: () => !window.scrollY, // Only pull if at the very top
+        instructionsPullToRefresh: 'Pull to refresh FlexTools',
+        instructionsReleaseToRefresh: 'Release to update',
+        refreshTimeout: 500
+    });
+}
+
+// Call this inside your window.onload
+
     // 2. SMART ROUTING WITH SAFETY FALLBACK
     // Try to find a saved tool; if none, default to 'currency'
     let activeTool = localStorage.getItem('activeTool') || 
@@ -109,21 +128,25 @@ function toggleCategory(header) {
     }
 }
 
-// 3. THE REFRESHER: Mobile "Sync" animation
 function initRefresher() {
+    // Only run if the library is actually loaded
+    if (typeof PullToRefresh === 'undefined') return;
+
     PullToRefresh.init({
         mainElement: 'body',
+        distThreshold: 60, // Lowered for easier mobile activation
+        distMax: 90,
         onRefresh() {
-            return new Promise((resolve) => {
-                const overlay = document.createElement('div');
-                overlay.className = 'refresh-overlay';
-                overlay.innerHTML = `
-                    <div class="refresh-spinner"></div>
-                    <p style="margin-top:20px; font-weight:bold;">Syncing FlexTools Pro...</p>
-                `;
-                document.body.appendChild(overlay);
-                setTimeout(() => { window.location.reload(); }, 1000);
-            });
+            // Create a simple, safe overlay
+            const ov = document.createElement('div');
+            ov.style = "position:fixed;inset:0;background:rgba(255,255,255,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:bold;";
+            ov.innerHTML = "Updating...";
+            document.body.appendChild(ov);
+
+            // Force a reload after a short delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 800);
         }
     });
 }
@@ -170,7 +193,7 @@ async function convertCurrency() {
             const rate = data.rates[to];
             const result = (amt * rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             res.style.display = "block";
-            res.innerHTML = `${amt} ${from} = <span style="color:#f97316">${result} ${to}</span>`;
+            res.innerHTML = `${amt} ${from} = <span style="color:#22c55e">${result} ${to}</span>`;
         }
     } catch (error) {
         res.innerHTML = "Error fetching rates.";

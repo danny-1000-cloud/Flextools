@@ -204,6 +204,46 @@ input, select {
     background: #f8fafc;
 }
 
+.result-box {
+    margin-top: 25px;
+    padding: 20px;
+    background: #f8fafc; /* Very light slate */
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    text-align: center;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+/* State when it has a result (Add this class via JS when calculated) */
+.result-box.active {
+    background: #f0fdf4; /* Light success green */
+    border-color: #22c55e;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.1);
+}
+
+/* Styling the text inside the box */
+.result-box {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #0f172a;
+    font-family: 'Inter', monospace; /* Monospace looks better for numbers */
+}
+
+/* Label text (if you add "Result:" inside) */
+.result-box small {
+    display: block;
+    font-size: 0.85rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+}
+
 .btn-action {
     background: #16a34a;
     color: white;
@@ -508,8 +548,44 @@ input, select {
         opacity: 1;
     }
 
+    .result-box {
+        font-size: 1.25rem;
+        padding: 15px;
+        margin-top: 20px;
+    }
+
     /* Prevent content from hiding under the fixed header */
     .workspace { margin-top: 60px !important; margin-left: 0 !important; width: 100%; }
+
+    .seo-content, .faq-container {
+        width: 100% !important;
+        padding: 20px 15px !important;
+        box-sizing: border-box;
+    }
+
+    /* Makes the SEO and FAQ text larger and comfortable */
+    .seo-content h2, .trust-section h2 {
+        font-size: 1.50rem !important;
+        line-height: 1.3;
+        margin-bottom: 20px;
+        text-align: left;
+    }
+
+    .seo-content p, .feature-item p, .faq-answer {
+        font-size: 1.25rem !important; /* Larger for easy mobile reading */
+        line-height: 1.8;
+        color: #334155;
+    }
+
+    /* Bigger FAQ/Feature Cards */
+    .feature-item, .faq-item {
+        padding: 30px 20px !important;
+        margin-bottom: 20px;
+        border-radius: 16px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+    }
+
 }
 
 /* --- DESKTOP PROTECTION --- */
@@ -531,6 +607,42 @@ input, select {
     .info-section, .trust-section {
         text-align: center;
     }
+
+    .result-box {
+        font-size: 1.25rem;
+        padding: 15px;
+        margin-top: 20px;
+    }
+
+    .seo-content, .faq-container {
+        width: 100% !important;
+        padding: 20px 15px !important;
+        box-sizing: border-box;
+    }
+
+    /* Makes the SEO and FAQ text larger and comfortable */
+    .seo-content h2, .trust-section h2 {
+        font-size: 1.50rem !important;
+        line-height: 1.3;
+        margin-bottom: 20px;
+        text-align: left;
+    }
+
+    .seo-content p, .feature-item p, .faq-answer {
+        font-size: 1.25rem !important; /* Larger for easy mobile reading */
+        line-height: 1.8;
+        color: #334155;
+    }
+
+    /* Bigger FAQ/Feature Cards */
+    .feature-item, .faq-item {
+        padding: 30px 20px !important;
+        margin-bottom: 20px;
+        border-radius: 16px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+    }
+
 }
 
 /* Small Mobile Screens (below 380px) */
@@ -545,5 +657,40 @@ input, select {
     
     .feature-item h3 {
         font-size: 1.1rem;
+    }
+
+    .seo-content, .faq-container {
+        width: 100% !important;
+        padding: 20px 15px !important;
+        box-sizing: border-box;
+    }
+
+    .result-box {
+        font-size: 1.25rem;
+        padding: 15px;
+        margin-top: 20px;
+    }
+
+    /* Makes the SEO and FAQ text larger and comfortable */
+    .seo-content h2, .trust-section h2 {
+        font-size: 1.50rem !important;
+        line-height: 1.3;
+        margin-bottom: 20px;
+        text-align: left;
+    }
+
+    .seo-content p, .feature-item p, .faq-answer {
+        font-size: 1.25rem !important; /* Larger for easy mobile reading */
+        line-height: 1.8;
+        color: #334155;
+    }
+
+    /* Bigger FAQ/Feature Cards */
+    .feature-item, .faq-item {
+        padding: 30px 20px !important;
+        margin-bottom: 20px;
+        border-radius: 16px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
     }
 }
