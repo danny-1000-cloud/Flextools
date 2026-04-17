@@ -12,10 +12,10 @@ const currencyData = {
 };
 
 window.onload = () => {
-    // Populate Currency
+    // 1. DATA INIT (Currency & Editor)
     const fromS = document.getElementById('fromCurrency');
     const toS = document.getElementById('toCurrency');
-    if (fromS && toS) {
+    if (fromS && toS && typeof currencyData !== 'undefined') {
         for (const [code, name] of Object.entries(currencyData)) {
             fromS.add(new Option(name, code)); 
             toS.add(new Option(name, code));
@@ -23,51 +23,69 @@ window.onload = () => {
         fromS.value = "USD"; toS.value = "NGN";
     }
 
-    if (document.getElementById('editor-container')) {
+    if (document.getElementById('editor-container') && typeof Quill !== 'undefined') {
         quill = new Quill('#editor-container', { theme: 'snow' });
     }
 
-    // 1. Get the last tool used (from URL or Storage)
-    let path = window.location.pathname.split('/').filter(Boolean)[0] || window.location.hash.replace('#', '') || localStorage.getItem('activeTool') || 'currency';
+    // 2. SMART ROUTING WITH SAFETY FALLBACK
+    // Try to find a saved tool; if none, default to 'currency'
+    let activeTool = localStorage.getItem('activeTool') || 
+                     window.location.hash.replace('#', '') || 
+                     'currency';
+
+    // Verify the tool actually exists in your HTML
+    let targetCard = document.getElementById(activeTool);
     
-    // 2. Find the button and category
-    const targetBtn = document.querySelector(`[onclick*="'${path}'"]`);
+    // SAFETY CHECK: If the saved tool is missing or broken, force currency
+    if (!targetCard) {
+        activeTool = 'currency';
+        targetCard = document.getElementById('currency');
+    }
+
+    // 3. UI RESTORATION
+    const targetBtn = document.querySelector(`[onclick*="'${activeTool}'"]`);
+    
     if (targetBtn) {
+        // Auto-expand the folder
         const parentCategory = targetBtn.closest('.group-content');
         if (parentCategory) {
-            parentCategory.classList.add('show'); // Open the specific folder
+            parentCategory.classList.add('show'); 
             const chevron = parentCategory.parentElement.querySelector('.chevron');
             if (chevron) chevron.style.transform = 'rotate(180deg)';
         }
     }
     
-    // 3. Show tool WITHOUT closing sidebar (to prevent mobile flicker on boot)
-    showTool(path, targetBtn, true); 
+    // Final Launch
+    showTool(activeTool, targetBtn, true); 
 };
 
 function showTool(id, btn, isBoot = false) {
-    const targetTool = document.getElementById(id);
-    if (!targetTool) return;
+    if (!id) return;
 
-    document.querySelectorAll('.tool-card').forEach(c => c.classList.remove('active'));
-    targetTool.classList.add('active');
+    // --- SAVE TO MEMORY (CRITICAL) ---
+    localStorage.setItem('activeTool', id); 
 
-    if (!isBoot && window.innerWidth <= 900) {
-        // Use our toggle function to clean up classes/overlays
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar.classList.contains('open')) toggleSidebar();
+    // Remove active class from all tool cards and buttons
+    document.querySelectorAll('.tool-card').forEach(card => card.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+
+    // Activate the selected tool card
+    const target = document.getElementById(id);
+    if (target) {
+        target.classList.add('active');
+        // Smooth scroll to top on mobile so they see the tool
+        if (!isBoot) window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Scroll to top of the new tool automatically
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Highlight the button in the sidebar
+    if (btn) btn.classList.add('active');
 
-    // Update URL & Title
-    const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
-    if (isLocal) window.location.hash = id;
-    else if (window.location.pathname !== `/${id}`) window.history.pushState({tool: id}, "", `/${id}`);
-    
-    document.title = `${activeBtn ? activeBtn.innerText.trim() : "Tool"} | FlexTools Pro`;
+    // Close sidebar on mobile ONLY if this wasn't an automatic boot-up
+    if (!isBoot && window.innerWidth <= 900) {
+        if (typeof toggleSidebar === 'function') toggleSidebar();
+    }
 }
+
 
 function toggleCategory(header) {
     const content = header.nextElementSibling;
@@ -91,26 +109,20 @@ function toggleCategory(header) {
     }
 }
 
-// --- REFRESH SPINNER LOGIC ---
-if (typeof PullToRefresh !== 'undefined') {
+// 3. THE REFRESHER: Mobile "Sync" animation
+function initRefresher() {
     PullToRefresh.init({
         mainElement: 'body',
-        distThreshold: 80,
         onRefresh() {
             return new Promise((resolve) => {
-                // Force-inject the spinner overlay
                 const overlay = document.createElement('div');
                 overlay.className = 'refresh-overlay';
                 overlay.innerHTML = `
                     <div class="refresh-spinner"></div>
-                    <p style="margin-top:20px; font-weight:800; color:#0f172a;">Updating FlexTools...</p>
+                    <p style="margin-top:20px; font-weight:bold;">Syncing FlexTools Pro...</p>
                 `;
                 document.body.appendChild(overlay);
-
-                setTimeout(() => {
-                    window.location.reload();
-                    resolve();
-                }, 1500);
+                setTimeout(() => { window.location.reload(); }, 1000);
             });
         }
     });
@@ -296,34 +308,12 @@ function loadImage(file) {
     });
 }
 
+// 4. SIDEBAR TOGGLE
 function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const trigger = document.querySelector('.menu-trigger');
-    
-    if (!sidebar) return;
-
-    sidebar.classList.toggle('open');
-
-    // Update the icon based on state
-    if (sidebar.classList.contains('open')) {
-        trigger.textContent = '✕'; // Close
-    } else {
-        trigger.textContent = '☰'; // Hamburger
-    }
-    
-    // Manage the dark background overlay
-    let overlay = document.querySelector('.sidebar-overlay');
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.className = 'sidebar-overlay';
-        // Basic overlay styling via JS to ensure it works
-        overlay.style.cssText = "position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:9999; display:none;";
-        overlay.onclick = toggleSidebar; 
-        document.body.appendChild(overlay);
-    }
-    
-    const isOpen = sidebar.classList.contains('open');
-    overlay.style.display = isOpen ? 'block' : 'none';
+    const sb = document.getElementById('sidebar');
+    const ov = document.querySelector('.sidebar-overlay');
+    if (sb) sb.classList.toggle('open');
+    if (ov) ov.classList.toggle('active');
 }
 
 function toggleFaq(element) {
