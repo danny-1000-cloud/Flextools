@@ -127,29 +127,7 @@ function toggleCategory(header) {
         chevron.style.transform = content.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0deg)';
     }
 }
-
-function initRefresher() {
-    // Only run if the library is actually loaded
-    if (typeof PullToRefresh === 'undefined') return;
-
-    PullToRefresh.init({
-        mainElement: 'body',
-        distThreshold: 60, // Lowered for easier mobile activation
-        distMax: 90,
-        onRefresh() {
-            // Create a simple, safe overlay
-            const ov = document.createElement('div');
-            ov.style = "position:fixed;inset:0;background:rgba(255,255,255,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:bold;";
-            ov.innerHTML = "Updating...";
-            document.body.appendChild(ov);
-
-            // Force a reload after a short delay
-            setTimeout(() => {
-                window.location.reload();
-            }, 800);
-        }
-    });
-}
+ 
 
 // --- UNIVERSAL TASK HANDLER (Manages Spinners & Done Message) ---
 async function processTask(toolName, callback) {
