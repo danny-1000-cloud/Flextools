@@ -556,58 +556,57 @@ input, select {
         margin-top: 20px;
     }
 
-    /* Prevent content from hiding under the fixed header */
-    .workspace { margin-top: 60px !important; margin-left: 0 !important; width: 100%; }
-
-    /* 1. Remove the "Pinch": Let content breathe across the screen */
-    /* Force containers to stop pinching the content */
-    .faq-container, .seo-content, .trust-section {
+    /* 1. THE WORKSPACE (Keep the Card look for the Tool only) */
+    .tool-box {
         width: 100% !important;
-        max-width: 100% !important;
-        padding: 40px 20px !important;
-        display: block !important; /* Forces vertical stacking */
-        margin: 0 !important;
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 20px !important;
+        padding: 24px !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+        margin-bottom: 40px !important;
+        display: block !important;
     }
 
-    /* KILL THE CARDS: Remove every border, shadow, and background */
-    .faq-item, .feature-item {
+    /* 2. THE SEO & FAQ (Remove Cards - Match the "Digital Toolkit" text) */
+    .seo-content, .faq-container, .trust-section {
         width: 100% !important;
+        padding: 0 24px !important; /* Matches the margin in your screenshot */
+        background: transparent !important;
+        display: block !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    /* 3. STRIP FAQ ITEMS (No more cards inside cards) */
+    .faq-item, .feature-item {
         background: transparent !important;
         border: none !important;
         box-shadow: none !important;
-        padding: 0 0 40px 0 !important; /* Only bottom spacing */
-        margin: 0 !important;
+        padding: 0 !important;
+        margin-bottom: 32px !important; /* Professional breathing room */
+        width: 100% !important;
         display: block !important;
     }
 
-    /* Fix the "Messed Up" Answer Text */
-    .faq-question, .faq-answer, .feature-item h3, .feature-item p {
+    /* 4. FIX "MESSED UP" TEXT (Ensure full-width flow) */
+    .faq-question, .feature-item h3, .seo-content h2, .trust-section h2 {
+        font-size: 22px !important; /* Bold like your screenshot */
+        font-weight: 800;
+        color: #0f172a;
+        text-align: left !important;
+        margin-bottom: 12px;
+        display: block !important;
         width: 100% !important;
+    }
+
+    .faq-answer, .feature-item p, .seo-content p, .trust-section p {
+        font-size: 16px !important;
+        line-height: 1.6;
+        color: #475569;
         text-align: left !important;
         display: block !important;
-        white-space: normal !important; /* Essential: prevents text from staying on one line */
-        word-wrap: break-word !important;
-        overflow-wrap: break-word !important;
-    }
-
-    .faq-question {
-        font-size: 1.4rem !important;
-        font-weight: 800;
-        margin-bottom: 10px;
-        color: #0f172a;
-    }
-
-    .faq-answer {
-        font-size: 1.1rem !important;
-        line-height: 1.6;
-        color: #4b5563;
-    }
-
-    /* Security & Privacy Distinction */
-    .trust-section {
-        border-top: 2px solid #f1f5f9 !important;
-        margin-top: 20px !important;
-        padding-top: 60px !important;
+        width: 100% !important;
     }
 }
 
@@ -619,143 +618,125 @@ input, select {
 }
 
 @media (min-width: 768px) {
-    .features-grid {
-        grid-template-columns: repeat(3, 1fr); /* 3 Columns on desktop */
-    }
-
-    .seo-content h2 {
-        font-size: 2.2rem;
-    }
-
-    .info-section, .trust-section {
-        text-align: center;
-    }
-
     .result-box {
         font-size: 1.25rem;
         padding: 15px;
         margin-top: 20px;
     }
 
-   /* Force containers to stop pinching the content */
-    .faq-container, .seo-content, .trust-section {
+   /* 1. THE WORKSPACE (Keep the Card look for the Tool only) */
+    .tool-box {
         width: 100% !important;
-        max-width: 100% !important;
-        padding: 40px 20px !important;
-        display: block !important; /* Forces vertical stacking */
-        margin: 0 !important;
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 20px !important;
+        padding: 24px !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+        margin-bottom: 40px !important;
+        display: block !important;
     }
 
-    /* KILL THE CARDS: Remove every border, shadow, and background */
-    .faq-item, .feature-item {
+    /* 2. THE SEO & FAQ (Remove Cards - Match the "Digital Toolkit" text) */
+    .seo-content, .faq-container, .trust-section {
         width: 100% !important;
+        padding: 0 24px !important; /* Matches the margin in your screenshot */
+        background: transparent !important;
+        display: block !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    /* 3. STRIP FAQ ITEMS (No more cards inside cards) */
+    .faq-item, .feature-item {
         background: transparent !important;
         border: none !important;
         box-shadow: none !important;
-        padding: 0 0 40px 0 !important; /* Only bottom spacing */
-        margin: 0 !important;
+        padding: 0 !important;
+        margin-bottom: 32px !important; /* Professional breathing room */
+        width: 100% !important;
         display: block !important;
     }
 
-    /* Fix the "Messed Up" Answer Text */
-    .faq-question, .faq-answer, .feature-item h3, .feature-item p {
+    /* 4. FIX "MESSED UP" TEXT (Ensure full-width flow) */
+    .faq-question, .feature-item h3, .seo-content h2, .trust-section h2 {
+        font-size: 22px !important; /* Bold like your screenshot */
+        font-weight: 800;
+        color: #0f172a;
+        text-align: left !important;
+        margin-bottom: 12px;
+        display: block !important;
         width: 100% !important;
+    }
+
+    .faq-answer, .feature-item p, .seo-content p, .trust-section p {
+        font-size: 16px !important;
+        line-height: 1.6;
+        color: #475569;
         text-align: left !important;
         display: block !important;
-        white-space: normal !important; /* Essential: prevents text from staying on one line */
-        word-wrap: break-word !important;
-        overflow-wrap: break-word !important;
-    }
-
-    .faq-question {
-        font-size: 1.4rem !important;
-        font-weight: 800;
-        margin-bottom: 10px;
-        color: #0f172a;
-    }
-
-    .faq-answer {
-        font-size: 1.1rem !important;
-        line-height: 1.6;
-        color: #4b5563;
-    }
-
-    /* Security & Privacy Distinction */
-    .trust-section {
-        border-top: 2px solid #f1f5f9 !important;
-        margin-top: 20px !important;
-        padding-top: 60px !important;
+        width: 100% !important;
     }
 }
 
 /* Small Mobile Screens (below 380px) */
 @media (max-width: 380px) {
-    .seo-content h2 {
-        font-size: 1.5rem;
-    }
-    
-    .feature-item {
-        padding: 15px;
-    }
-    
-    .feature-item h3 {
-        font-size: 1.1rem;
-    }
-
     .result-box {
         font-size: 1.25rem;
         padding: 15px;
         margin-top: 20px;
     }
 
-   /* Force containers to stop pinching the content */
-    .faq-container, .seo-content, .trust-section {
+   /* 1. THE WORKSPACE (Keep the Card look for the Tool only) */
+    .tool-box {
         width: 100% !important;
-        max-width: 100% !important;
-        padding: 40px 20px !important;
-        display: block !important; /* Forces vertical stacking */
-        margin: 0 !important;
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 20px !important;
+        padding: 24px !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+        margin-bottom: 40px !important;
+        display: block !important;
     }
 
-    /* KILL THE CARDS: Remove every border, shadow, and background */
-    .faq-item, .feature-item {
+    /* 2. THE SEO & FAQ (Remove Cards - Match the "Digital Toolkit" text) */
+    .seo-content, .faq-container, .trust-section {
         width: 100% !important;
+        padding: 0 24px !important; /* Matches the margin in your screenshot */
+        background: transparent !important;
+        display: block !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    /* 3. STRIP FAQ ITEMS (No more cards inside cards) */
+    .faq-item, .feature-item {
         background: transparent !important;
         border: none !important;
         box-shadow: none !important;
-        padding: 0 0 40px 0 !important; /* Only bottom spacing */
-        margin: 0 !important;
+        padding: 0 !important;
+        margin-bottom: 32px !important; /* Professional breathing room */
+        width: 100% !important;
         display: block !important;
     }
 
-    /* Fix the "Messed Up" Answer Text */
-    .faq-question, .faq-answer, .feature-item h3, .feature-item p {
+    /* 4. FIX "MESSED UP" TEXT (Ensure full-width flow) */
+    .faq-question, .feature-item h3, .seo-content h2, .trust-section h2 {
+        font-size: 22px !important; /* Bold like your screenshot */
+        font-weight: 800;
+        color: #0f172a;
+        text-align: left !important;
+        margin-bottom: 12px;
+        display: block !important;
         width: 100% !important;
+    }
+
+    .faq-answer, .feature-item p, .seo-content p, .trust-section p {
+        font-size: 16px !important;
+        line-height: 1.6;
+        color: #475569;
         text-align: left !important;
         display: block !important;
-        white-space: normal !important; /* Essential: prevents text from staying on one line */
-        word-wrap: break-word !important;
-        overflow-wrap: break-word !important;
-    }
-
-    .faq-question {
-        font-size: 1.4rem !important;
-        font-weight: 800;
-        margin-bottom: 10px;
-        color: #0f172a;
-    }
-
-    .faq-answer {
-        font-size: 1.1rem !important;
-        line-height: 1.6;
-        color: #4b5563;
-    }
-
-    /* Security & Privacy Distinction */
-    .trust-section {
-        border-top: 2px solid #f1f5f9 !important;
-        margin-top: 20px !important;
-        padding-top: 60px !important;
+        width: 100% !important;
     }
     
 }
