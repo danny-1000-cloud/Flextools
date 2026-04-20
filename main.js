@@ -78,28 +78,32 @@ window.onload = () => {
     showTool(activeTool, targetBtn, true); 
 };
 
+
 function showTool(id, btn, isBoot = false) {
     if (!id) return;
 
-    // --- SAVE TO MEMORY (CRITICAL) ---
     localStorage.setItem('activeTool', id); 
 
-    // Remove active class from all tool cards and buttons
+    // This updates the URL to flextools.pro/#currency
+    // Hashes (#) NEVER cause 404 errors on refresh
+    window.location.hash = id;
+
+    const displayTitle = id.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    document.title = `${displayTitle} | FlexTools Pro`;
+
     document.querySelectorAll('.tool-card').forEach(card => card.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
 
-    // Activate the selected tool card
     const target = document.getElementById(id);
     if (target) {
         target.classList.add('active');
-        // Smooth scroll to top on mobile so they see the tool
-        if (!isBoot) window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (!isBoot) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     }
 
-    // Highlight the button in the sidebar
     if (btn) btn.classList.add('active');
 
-    // Close sidebar on mobile ONLY if this wasn't an automatic boot-up
     if (!isBoot && window.innerWidth <= 900) {
         if (typeof toggleSidebar === 'function') toggleSidebar();
     }
