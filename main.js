@@ -331,3 +331,10 @@ function toggleFaq(element) {
     });
 }
 
+window.addEventListener('hashchange', () => {
+    const id = window.location.hash.replace('#', '');
+    if (id) {
+        const targetBtn = document.querySelector(`[onclick*="'${id}'"]`);
+        showTool(id, targetBtn, false);
+    }
+});

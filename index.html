@@ -85,46 +85,43 @@
     </div>
     
     <nav class="nav-list">
-        <div class="nav-group">
-            <div class="group-header" onclick="toggleCategory(this)">
-                📊 Financial & Units <span class="chevron">▼</span>
-            </div>
-            <div class="group-content">
-                <button class="nav-item active" onclick="showTool('currency', this)"><span>💰</span> Currency Converter</button>
-                <button class="nav-item" onclick="showTool('unit-converter', this)"><span>📏</span> Unit Converter</button>
-            </div>
+    <div class="nav-group">
+        <div class="group-header" onclick="toggleCategory(this)">
+            📊 Financial & Units <span class="chevron">▼</span>
         </div>
+        <div class="group-content">
+            <a href="#currency" class="nav-item active" onclick="showTool('currency', this); return false;"><span>💰</span> Currency Converter</a>
+            <a href="#unit-converter" class="nav-item" onclick="showTool('unit-converter', this); return false;"><span>📏</span> Unit Converter</a>
+        </div>
+    </div>
 
-        <div class="nav-group">
-            <div class="group-header" onclick="toggleCategory(this)">
-                🖼️ Image Processing <span class="chevron">▼</span>
-            </div>
-            <div class="group-content">
-                <button class="nav-item" onclick="showTool('word', this)"><span>📝</span> Img to Word</button>
-                <button class="nav-item" onclick="showTool('img-compressor', this)"><span>📉</span> Compress</button>
-                <button class="nav-item" onclick="showTool('img-resizer', this)"><span>📐</span> Resize</button>
-                <button class="nav-item" onclick="showTool('file-converter', this)"><span>🔄</span> Format Conv</button>
-            </div>
+    <div class="nav-group">
+        <div class="group-header" onclick="toggleCategory(this)">
+            🖼️ Image Processing <span class="chevron">▼</span>
         </div>
+        <div class="group-content">
+            <a href="#word" class="nav-item" onclick="showTool('word', this); return false;"><span>📝</span> Img to Word</a>
+            <a href="#img-compressor" class="nav-item" onclick="showTool('img-compressor', this); return false;"><span>📉</span> Compress</a>
+            <a href="#img-resizer" class="nav-item" onclick="showTool('img-resizer', this); return false;"><span>📐</span> Resize</a>
+            <a href="#file-converter" class="nav-item" onclick="showTool('file-converter', this); return false;"><span>🔄</span> Format Conv</a>
+        </div>
+    </div>
 
-        <div class="nav-group">
-            <div class="group-header" onclick="toggleCategory(this)">
-                📄 PDF & Docs <span class="chevron">▼</span>
-            </div>
-            <div class="group-content">
-                <button class="nav-item" onclick="showTool('pdf-editor', this)"><span>🖋️</span> PDF Editor</button>
-                <button class="nav-item" onclick="showTool('pdf-merge', this)"><span>🔗</span> Merge PDF</button>
-                <button class="nav-item" onclick="showTool('pdf-split', this)"><span>✂️</span> Split PDF</button>
-                <button class="nav-item" onclick="showTool('doc-editor', this)"><span>✍️</span> Doc Editor</button>
-                <button class="nav-item" onclick="showTool('pdf', this)"><span>📷</span> Img to PDF</button>
-            </div>
+    <div class="nav-group">
+        <div class="group-header" onclick="toggleCategory(this)">
+            📄 PDF & Docs <span class="chevron">▼</span>
         </div>
-        <button class="nav-item" onclick="showTool('faq', this)"><span>❓</span> FAQ</button>
-    </nav>
-    <a href="https://www.buymeacoffee.com/YOUR_USERNAME" target="_blank" class="bmc-header-btn">
-                <img src="https://cdn.buymeacoffee.com/buttons/bmc-new-btn-logo.svg" alt="Buy me a coffee">
-                <span>Support Us</span>
-    </a>
+        <div class="group-content">
+            <a href="#pdf-editor" class="nav-item" onclick="showTool('pdf-editor', this); return false;"><span>🖋️</span> PDF Editor</a>
+            <a href="#pdf-merge" class="nav-item" onclick="showTool('pdf-merge', this); return false;"><span>🔗</span> Merge PDF</a>
+            <a href="#pdf-split" class="nav-item" onclick="showTool('pdf-split', this); return false;"><span>✂️</span> Split PDF</a>
+            <a href="#doc-editor" class="nav-item" onclick="showTool('doc-editor', this); return false;"><span>✍️</span> Doc Editor</a>
+            <a href="#pdf" class="nav-item" onclick="showTool('pdf', this); return false;"><span>📷</span> Img to PDF</a>
+        </div>
+    </div>
+    
+    <a href="#faq" class="nav-item" onclick="showTool('faq', this); return false;"><span>❓</span> FAQ</a>
+</nav>
 </aside>
 
     <main class="workspace">

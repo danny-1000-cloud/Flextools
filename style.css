@@ -114,6 +114,7 @@ html, body {
 .chevron { font-size: 0.6rem; transition: transform 0.3s; }
 
 .nav-item {
+    text-decoration: none;
     display: flex;
     align-items: center;
     gap: 12px;
