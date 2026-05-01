@@ -1,5 +1,6 @@
 let quill;
 
+
 // --- UPDATED WORLD CURRENCY LIST (UNTOUCHED) ---
 const currencyData = {
     "USD": "US Dollar", "CAD": "Canadian Dollar", "BRL": "Brazilian Real", "MXN": "Mexican Peso",
@@ -185,10 +186,59 @@ async function convertCurrency() {
 function convertUnits() {
     const val = parseFloat(document.getElementById('unitValue').value);
     const type = document.getElementById('unitType').value;
-    const res = document.getElementById('unitResult');
-    if (isNaN(val)) return;
-    let out = (type === "length") ? `${val}m = ${(val * 3.28).toFixed(2)}ft` : `${val}kg = ${(val * 2.2).toFixed(2)}lb`;
-    res.style.display = "block"; res.innerHTML = `<strong>${out}</strong>`;
+    const resultBox = document.getElementById('unitResult');
+    let result = 0;
+    let unit = "";
+
+    if (isNaN(val)) {
+        resultBox.innerHTML = "Please enter a valid number";
+        return;
+    }
+
+    switch (type) {
+        case "mToFt":
+            result = val * 3.28084;
+            unit = "ft";
+            break;
+        case "ftToM":
+            result = val / 3.28084;
+            unit = "m";
+            break;
+        case "kgToLb":
+            result = val * 2.20462;
+            unit = "lb";
+            break;
+        case "lbToKg":
+            result = val / 2.20462;
+            unit = "kg";
+            break;
+        case "cToF":
+            result = (val * 9/5) + 32;
+            unit = "°F";
+            break;
+        case "fToC":
+            result = (val - 32) * 5/9;
+            unit = "°C";
+            break;
+        case "mbToGb":
+            result = val / 1024;
+            unit = "GB";
+            break;
+        case "gbToMb":
+            result = val * 1024;
+            unit = "MB";
+            break;
+        case "kmToMiles":
+            result = val * 0.621371;
+            unit = "miles"; 
+            break;
+        case "milesToKm":
+            result = val / 0.621371;
+            unit = "km";
+            break;
+    }
+
+    resultBox.innerHTML = `Result: ${result.toFixed(2)} ${unit}`;
 }
 
 // --- IMAGE PROCESSING TOOLS ---

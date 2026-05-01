@@ -144,10 +144,30 @@
 
             <section id="unit-converter" class="tool-card">
                 <h1>Unit Converter</h1>
-                <div class="input-group"><label>Value</label><input type="number" id="unitValue" placeholder="0"></div>
-                <div class="input-group"><label>Type</label><select id="unitType"><option value="length">Length (M to Ft)</option><option value="weight">Weight (KG to Lb)</option></select></div>
-                <button class="btn-action" onclick="convertUnits()">Convert Now</button>
-                <div id="unitResult" class="result-box"></div>
+<div class="input-group">
+    <label>Value</label>
+    <input type="number" id="unitValue" placeholder="0">
+</div>
+<div class="input-group">
+    <label>Type</label>
+            <select id="unitType">
+                    <!-- Existing -->
+                    <option value="mToFt">Length (Meters to Feet)</option>
+                    <option value="ftToM">Length (Feet to Meters)</option>
+                    <option value="kgToLb">Weight (KG to Pounds)</option>
+                    <option value="lbToKg">Weight (Pounds to KG)</option>
+                    
+                    <!-- New Options -->
+                    <option value="cToF">Temp (Celsius to Fahrenheit)</option>
+                    <option value="fToC">Temp (Fahrenheit to Celsius)</option>
+                    <option value="mbToGb">Data (MB to GB)</option>
+                    <option value="gbToMb">Data (GB to MB)</option>
+                    <option value="kmToMiles">Distance (KM to Miles)</option>
+                    <option value="milesToKm">Distance (Miles to KM)</option>
+                </select>
+            </div>
+            <button class="btn-action" onclick="convertUnits()">Convert Now</button>
+            <div id="unitResult" class="result-box"></div>
             </section>
 
             <section id="word" class="tool-card">
