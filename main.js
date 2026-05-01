@@ -108,6 +108,7 @@ function showTool(id, btn, isBoot = false) {
     if (!isBoot && window.innerWidth <= 900) {
         if (typeof toggleSidebar === 'function') toggleSidebar();
     }
+
 }
 
 
@@ -247,22 +248,99 @@ async function processImageToWord() {
     await processTask("Image to Word", async () => {
         const file = document.getElementById('wordImageInput').files[0];
         if (!file) throw new Error("Select an image first.");
+
+        // 1. Perform OCR
         const { data: { text } } = await Tesseract.recognize(file, 'eng');
-        triggerDownload(new Blob([text], { type: 'application/msword' }), "FlexTools_OCR.doc");
+
+        // 2. Display the text in a preview area instead of downloading
+        const previewArea = document.getElementById('wordPreviewArea');
+        const textField = document.getElementById('wordExtractedText');
+        
+        textField.value = text; // Put text in the box
+        previewArea.style.display = 'block'; // Show the preview section
     });
 }
 
-async function compressImage() {
-    await processTask("Compression", async () => {
-        const file = document.getElementById('compressInput').files[0];
-        const quality = parseFloat(document.getElementById('compressQuality').value);
-        if (!file) throw new Error("Select an image.");
-        const img = await loadImage(file);
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width; canvas.height = img.height;
-        canvas.getContext('2d').drawImage(img, 0, 0);
-        canvas.toBlob(b => triggerDownload(b, "compressed.jpg"), 'image/jpeg', quality);
+// 3. New helper to download ONLY when the user is ready
+function downloadProcessedWord() {
+    const text = document.getElementById('wordExtractedText').value;
+    triggerDownload(new Blob([text], { type: 'application/msword' }), "FlexTools_OCR.doc");
+}
+
+function copyToClipboard() {
+    const text = document.getElementById('wordExtractedText');
+    text.select();
+    document.execCommand('copy');
+    alert('Text copied to clipboard!');
+}
+
+
+let currentSourceImg = null;
+let isProcessing = false;
+
+/** 
+ * Step 1: Initial load 
+ */
+async function initCompressor() {
+    const input = document.getElementById('compressInput');
+    if (!input || !input.files[0]) return;
+
+    // Use the professional loader you already have in FlexTools Pro
+    currentSourceImg = await loadImage(input.files[0]);
+    
+    // Reveal the hidden container
+    document.getElementById('compressPreviewArea').style.display = 'block';
+    
+    compressImage(); 
+}
+
+/** 
+ * Step 2: High-speed live preview 
+ */
+function compressImage() {
+    const pct = document.getElementById('compressQuality').value;
+    document.getElementById('qualityValue').innerText = pct + "%";
+
+    if (!currentSourceImg || isProcessing) return;
+
+    // Tell the browser to update when the screen is ready (Prevents lag)
+    requestAnimationFrame(() => {
+        isProcessing = true;
+
+        const canvas = document.getElementById('previewCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Match resolution to image
+        canvas.width = currentSourceImg.width;
+        canvas.height = currentSourceImg.height;
+
+        // Instant GPU-based draw
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(currentSourceImg, 0, 0);
+
+        // Instant size estimation (fast math, no heavy blob creation)
+        const estimatedSize = (currentSourceImg.src.length * (pct / 100) / 1024).toFixed(2);
+        document.getElementById('sizeComparison').innerText = `Estimated Size: ~${estimatedSize} KB`;
+
+        isProcessing = false;
     });
+}
+
+/** 
+ * Step 3: Final heavy-lifting only on download 
+ */
+async function downloadCompressedImage() {
+    const pct = document.getElementById('compressQuality').value;
+    const offscreenCanvas = document.createElement('canvas');
+    offscreenCanvas.width = currentSourceImg.width;
+    offscreenCanvas.height = currentSourceImg.height;
+    const ctx = offscreenCanvas.getContext('2d');
+    ctx.drawImage(currentSourceImg, 0, 0);
+
+    // Only create the heavy file when user clicks the button
+    offscreenCanvas.toBlob((blob) => {
+        triggerDownload(blob, "FlexTools_Compressed.jpg");
+    }, 'image/jpeg', pct / 100);
 }
 
 async function resizeImage() {

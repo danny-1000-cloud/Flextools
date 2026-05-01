@@ -170,18 +170,75 @@
             <div id="unitResult" class="result-box"></div>
             </section>
 
-            <section id="word" class="tool-card">
-                <h1>Image to Word</h1>
-                <input type="file" id="wordImageInput" accept="image/*">
-                <button class="btn-action" onclick="processImageToWord()">Extract Text</button>
-            </section>
+<section id="word" class="tool-card">
+    <h1>Image to Word</h1>
+    <p style="margin-bottom: 15px; color: #555;">Upload an image to extract text and save it as a Word document.</p>
+    
+    <!-- Input Group -->
+    <div class="input-group" style="margin-bottom: 20px;">
+        <input type="file" id="wordImageInput" accept="image/*" style="margin-bottom: 10px;">
+        <button class="btn-action" onclick="processImageToWord()">Extract Text</button>
+    </div>
 
-            <section id="img-compressor" class="tool-card">
-                <h1>Image Compressor</h1>
-                <input type="file" id="compressInput" accept="image/*">
-                <input type="range" id="compressQuality" min="0.1" max="1.0" step="0.1" value="0.7">
-                <button class="btn-action" onclick="compressImage()">Compress Image</button>
-            </section>
+    <!-- Preview Area (Hidden by default) -->
+    <div id="wordPreviewArea" style="display: none; border-top: 2px solid #eee; padding-top: 20px; margin-top: 20px; text-align: left;">
+        <label for="wordExtractedText" style="font-weight: bold; display: block; margin-bottom: 8px;">
+            Document Preview & Editor:
+        </label>
+        <textarea id="wordExtractedText" 
+            style="width: 100%; min-height: 250px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; line-height: 1.5; resize: vertical; margin-bottom: 15px;"
+            placeholder="Your extracted text will appear here..."></textarea>
+        
+        <div class="preview-actions" style="display: flex; gap: 10px;">
+            <button class="btn-action" onclick="downloadProcessedWord()" style="background-color: #28a745;">
+                Download .doc File
+            </button>
+            <button class="btn-action" onclick="copyToClipboard()" style="background-color: #6c757d;">
+                Copy Text
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Check if your Nav Button uses 'compressor' or 'image-compressor' -->
+<section id="img-compressor" class="tool-card">
+    <h1>Image Compressor</h1>
+    <p class="tool-description">Optimized for speed. Adjust the slider to see changes instantly.</p>
+    
+    <div class="input-group">
+        <label style="display: block; margin-bottom: 8px; font-weight: bold;">Step 1: Upload Image</label>
+        <!-- Mobile friendly: 'accept' attribute triggers the camera/gallery on phones -->
+        <input type="file" id="compressInput" accept="image/*" onchange="initCompressor()">
+        
+        <div class="control-row" style="margin-top:20px;">
+            <label style="display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold;">
+                <span>Step 2: Quality</span>
+                <span id="qualityValue" style="color: #007bff;">70%</span>
+            </label>
+            <!-- Large touch target for mobile sliders -->
+            <input type="range" id="compressQuality" min="1" max="100" value="70" 
+                   oninput="compressImage()" style="width: 100%; height: 25px; cursor: pointer;">
+        </div>
+    </div>
+
+    <!-- Hidden Area: Reveals after upload -->
+    <div id="compressPreviewArea" style="display: none; border-top: 2px solid #eee; margin-top: 25px; padding-top: 20px;">
+        <div style="text-align: center;">
+            <p id="sizeComparison" style="font-size: 1.1rem; font-weight: bold; color: #28a745; margin-bottom: 15px;"></p>
+            
+            <!-- Mobile friendly: Full width button for easy tapping -->
+            <button class="btn-action" onclick="downloadCompressedImage()" style="background-color: #28a745; color: white; padding: 15px 24px; border: none; border-radius: 8px; cursor: pointer; width: 100%; max-width: 400px; font-weight: bold; font-size: 1rem;">
+                Download Compressed Image
+            </button>
+
+            <div style="margin-top: 20px; background: #fdfdfd; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                <p style="font-size: 0.8rem; color: #888; margin-bottom: 8px;">Live Preview (Scroll to view):</p>
+                <!-- Canvas is hardware-accelerated for smoother sliding -->
+                <canvas id="previewCanvas" style="max-width: 100%; height: auto; border-radius: 4px; display: block; margin: 0 auto;"></canvas>
+            </div>
+        </div>
+    </div>
+</section>
 
             <section id="img-resizer" class="tool-card">
                 <h1>Image Resizer</h1>
