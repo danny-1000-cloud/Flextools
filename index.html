@@ -8,7 +8,7 @@
     <meta name="description" content="Access free online professional tools: Convert currency with live rates, extract text from images (OCR), merge/split PDFs, and compress images. Your fast, secure, all-in-one workspace.">
     <meta name="keywords" content="PDF Editor, Image to Word, OCR, Currency Converter, USD to NGN, GHS to USD, Image to PDF, Online Doc Editor">
     <meta name="author" content="FlexTools Pro">
-    <link rel="icon" type="image/x-icon" href="image/FlexTools logo with vibrant colors.png">
+    <link rel="icon" type="image/x-icon" href="image/logo.png">
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZV6B2200DR"></script>
@@ -91,7 +91,7 @@
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <div class="logo-wrap">
-            <img src="image/FlexTools logo with vibrant colors.png" alt="FlexTools Logo" class="main-logo">
+            <img src="/image/logo.png" alt="FlexTools Logo" class="main-logo">
         </div>
         <button class="mobile-close" onclick="toggleSidebar()">✕</button>
     </div>
@@ -102,8 +102,8 @@
             📊 Financial & Units <span class="chevron">▼</span>
         </div>
         <div class="group-content">
-            <a href="#currency" class="nav-item active" onclick="showTool('currency', this); return false;"><span>💰</span> Currency Converter</a>
-            <a href="#unit-converter" class="nav-item" onclick="showTool('unit-converter', this); return false;"><span>📏</span> Unit Converter</a>
+            <a href="currency-converter" class="nav-item active" onclick="showTool('currency-converter', this); return false;"><span>💰</span> Currency Converter</a>
+            <a href="unit-converter" class="nav-item" onclick="showTool('unit-converter', this); return false;"><span>📏</span> Unit Converter</a>
         </div>
     </div>
 
@@ -112,10 +112,10 @@
             🖼️ Image Processing <span class="chevron">▼</span>
         </div>
         <div class="group-content">
-            <a href="#word" class="nav-item" onclick="showTool('word', this); return false;"><span>📝</span> Img to Word</a>
-            <a href="#img-compressor" class="nav-item" onclick="showTool('img-compressor', this); return false;"><span>📉</span> Compress</a>
-            <a href="#img-resizer" class="nav-item" onclick="showTool('img-resizer', this); return false;"><span>📐</span> Resize</a>
-            <a href="#file-converter" class="nav-item" onclick="showTool('file-converter', this); return false;"><span>🔄</span> Format Conv</a>
+            <a href="word" class="nav-item" onclick="showTool('word', this); return false;"><span>📝</span> Img to Word</a>
+            <a href="img-compressor" class="nav-item" onclick="showTool('img-compressor', this); return false;"><span>📉</span> Compress</a>
+            <a href="img-resizer" class="nav-item" onclick="showTool('img-resizer', this); return false;"><span>📐</span> Resize</a>
+            <a href="file-converter" class="nav-item" onclick="showTool('file-converter', this); return false;"><span>🔄</span> Format Conv</a>
         </div>
     </div>
 
@@ -124,15 +124,15 @@
             📄 PDF & Docs <span class="chevron">▼</span>
         </div>
         <div class="group-content">
-            <a href="#pdf-editor" class="nav-item" onclick="showTool('pdf-editor', this); return false;"><span>🖋️</span> PDF Editor</a>
-            <a href="#pdf-merge" class="nav-item" onclick="showTool('pdf-merge', this); return false;"><span>🔗</span> Merge PDF</a>
-            <a href="#pdf-split" class="nav-item" onclick="showTool('pdf-split', this); return false;"><span>✂️</span> Split PDF</a>
-            <a href="#doc-editor" class="nav-item" onclick="showTool('doc-editor', this); return false;"><span>✍️</span> Doc Editor</a>
-            <a href="#pdf" class="nav-item" onclick="showTool('pdf', this); return false;"><span>📷</span> Img to PDF</a>
+            <a href="pdf-editor" class="nav-item" onclick="showTool('pdf-editor', this); return false;"><span>🖋️</span> PDF Editor</a>
+            <a href="pdf-merge" class="nav-item" onclick="showTool('pdf-merge', this); return false;"><span>🔗</span> Merge PDF</a>
+            <a href="pdf-split" class="nav-item" onclick="showTool('pdf-split', this); return false;"><span>✂️</span> Split PDF</a>
+            <a href="doc-editor" class="nav-item" onclick="showTool('doc-editor', this); return false;"><span>✍️</span> Doc Editor</a>
+            <a href="pdf" class="nav-item" onclick="showTool('pdf', this); return false;"><span>📷</span> Img to PDF</a>
         </div>
     </div>
     
-    <a href="#faq" class="nav-item" onclick="showTool('faq', this); return false;"><span>❓</span> FAQ</a>
+    <a href="faq" class="nav-item" onclick="showTool('faq', this); return false;"><span>❓</span> FAQ</a>
 </nav>
 </aside>
 
@@ -142,7 +142,7 @@
         </header>
 
         <div class="content-area">
-            <section id="currency" class="tool-card active">
+            <section id="currency-converter" class="tool-card active">
                 <span class="pro-badge">Live Exchange</span>
                 <h1>Currency Converter</h1>
                 <div class="input-group"><label>Amount</label><input type="number" id="currAmount" placeholder="100.00"></div>

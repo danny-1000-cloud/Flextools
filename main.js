@@ -51,7 +51,7 @@ window.onload = () => {
     // Try to find a saved tool; if none, default to 'currency'
     let activeTool = localStorage.getItem('activeTool') || 
                      window.location.hash.replace('#', '') || 
-                     'currency';
+                     'currency-converter';
 
     // Verify the tool actually exists in your HTML
     let targetCard = document.getElementById(activeTool);
@@ -59,7 +59,7 @@ window.onload = () => {
     // SAFETY CHECK: If the saved tool is missing or broken, force currency
     if (!targetCard) {
         activeTool = 'currency';
-        targetCard = document.getElementById('currency');
+        targetCard = document.getElementById('currency-converter');
     }
 
     // 3. UI RESTORATION
@@ -81,18 +81,23 @@ window.onload = () => {
 
 
 // 1. Keep your original showTool function, but add ONE explicit line at the end.
-function showTool(id, btn, isBoot = false) {
+function showTool(id, btn, isBoot = false, isRefresh = false) {
     if (!id) return;
 
-    localStorage.setItem('activeTool', id); 
-    window.location.hash = id;
+    // FIX: Only push to history if this is a click, NOT a refresh/boot
+    if (!isBoot && !isRefresh) {
+        const newPath = id === 'home' ? '/' : `/${id}`;
+        window.history.pushState({tool: id}, '', newPath);
+    }
 
     const displayTitle = id.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     document.title = `${displayTitle} | FlexTools Pro`;
 
-    document.querySelectorAll('.tool-card').forEach(card => card.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+   document.querySelectorAll('.tool-card').forEach(card => card.classList.remove('active'));
+   document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+   document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active')); // Add your specific nav class here
 
+    // 2. Add active class to the tool section itself
     const target = document.getElementById(id);
     if (target) {
         target.classList.add('active');
@@ -101,8 +106,17 @@ function showTool(id, btn, isBoot = false) {
         }
     }
 
-    if (btn) btn.classList.add('active');
+    // 3. THE FIX: If no 'btn' was passed (like during a refresh), find it by its data-target or href
+    if (btn) {
+        btn.classList.add('active');
+    } else {
+        // Look for a link that matches the tool ID
+        const autoBtn = document.querySelector(`[data-target="${id}"]`) || 
+                        document.querySelector(`a[href*="${id}"]`);
+        if (autoBtn) autoBtn.classList.add('active');
+    }
 
+    
     // 1. THE REUSE FIX: Explicitly shut the mobile menu
     if (!isBoot && window.innerWidth <= 900) {
         // If your sidebar uses a class like 'active' or 'open'
@@ -127,6 +141,15 @@ function showTool(id, btn, isBoot = false) {
         document.body.classList.remove('sidebar-open');
         document.body.style.overflow = 'auto'; // Re-enable scrolling if it was locked
     }
+
+    // Update the canonical link so Google knows this is a unique page
+        let canonical = document.querySelector('link[rel="canonical"]');
+        if (!canonical) {
+            canonical = document.createElement('link');
+            canonical.setAttribute('rel', 'canonical');
+            document.head.appendChild(canonical);
+        }
+        canonical.setAttribute('href', window.location.href);
 }
 
 
@@ -671,10 +694,25 @@ function toggleFaq(element) {
 }
 
 
-window.addEventListener('hashchange', () => {
-    const id = window.location.hash.replace('#', '');
-    if (id) {
-        const targetBtn = document.querySelector(`[onclick*="'${id}'"]`);
-        showTool(id, targetBtn, false);
+// This listens for the browser's Back/Forward buttons
+window.onpopstate = function(event) {
+    const path = window.location.pathname.replace('/', '');
+    // If path is empty, default to your home tool
+    showTool(path || 'currency-converter', null, true);
+};
+
+window.addEventListener('load', () => {
+    // 1. Grab the path (e.g., 'pdf-editor')
+    const path = window.location.pathname.replace(/^\/|\/$/g, '');
+    
+    // 2. Check if the path is a real tool ID in your HTML
+    const targetElement = document.getElementById(path);
+
+    if (path && targetElement) {
+        // Load the tool from the URL, but tell showTool NOT to push a new state
+        showTool(path, null, true, true);
+    } else {
+        // Fallback for homepage
+        showTool('currency-converter', null, true, true);
     }
 });
