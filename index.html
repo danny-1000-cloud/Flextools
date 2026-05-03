@@ -56,12 +56,21 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html-docx-js/dist/html-docx.js"></script>
+<!-- Mammoth.js for Word to HTML conversion -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script>
+    // This line tells the browser where to find the 'brain' of the PDF viewer
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+</script>
+    <script src="[https://unpkg.com/pdf-lib/dist/pdf-lib.min.js](https://unpkg.com/pdf-lib/dist/pdf-lib.min.js)"></script>
+<script src="[https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js](https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js)"></script>
     
     <link rel="canonical" href="https://flextools.pro/" />
     <link rel="stylesheet" href="style.css">
@@ -248,12 +257,45 @@
             </section>
 
             <section id="pdf-editor" class="tool-card">
-                <h1>PDF Text Overlay</h1>
-                <input type="file" id="pdfEditInput" accept="application/pdf" onchange="previewPDF()">
-                <input type="text" id="pdfTextToAdd" placeholder="Text to add..." oninput="previewPDF()">
-                <button class="btn-action" onclick="downloadEditedPDF()">Download</button>
-                <iframe id="pdfPreview" style="width:100%; height:300px; margin-top:20px;"></iframe>
-            </section>
+    <h1>PDF Text Overlay</h1>
+    <p class="tool-description">Add multiple text layers to your PDF with precision control.</p>
+
+    <div class="input-group">
+        <label style="font-weight: bold;">Step 1: Upload PDF</label>
+        <input type="file" id="pdfEditInput" accept="application/pdf" onchange="initPDFEditor()">
+        
+        <div id="pdfControls" style="display: none; margin-top: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+            <label style="font-weight: bold;">Step 2: Create Text Layer</label>
+            <input type="text" id="pdfTextToAdd" placeholder="Enter text here...">
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                <div>
+                    <label style="font-size: 0.75rem;">X (Horizontal)</label>
+                    <input type="range" id="textX" min="0" max="600" value="50" oninput="drawPreview()">
+                </div>
+                <div>
+                    <label style="font-size: 0.75rem;">Y (Vertical)</label>
+                    <input type="range" id="textY" min="0" max="800" value="50" oninput="drawPreview()">
+                </div>
+            </div>
+
+            <button class="btn-action" onclick="addTextLayer()" style="margin-top: 15px; width: 100%; background-color: #007bff;">+ Add Text to PDF</button>
+        </div>
+    </div>
+
+    <!-- LAYER MANAGER -->
+    <div id="layerContainer" style="display:none; margin-top: 15px;">
+        <p style="font-weight: bold; font-size: 0.9rem;">Active Layers:</p>
+        <ul id="layerList" style="list-style: none; padding: 0; font-size: 0.8rem;"></ul>
+    </div>
+
+    <button class="btn-action" id="pdfDownloadBtn" onclick="downloadEditedPDF()" style="display: none; margin-top: 15px; width: 100%; background-color: #28a745;">Download Final PDF</button>
+
+    <!-- LIVE PREVIEW -->
+    <div id="pdfViewContainer" style="margin-top: 20px; border: 2px solid #333; border-radius: 8px; overflow: hidden; display: none; background: #525659;">
+        <canvas id="pdfCanvas" style="width: 100%; height: auto;"></canvas>
+    </div>
+</section>
 
             <section id="pdf-merge" class="tool-card">
                 <h1>Merge PDF</h1>
@@ -268,12 +310,25 @@
                 <button class="btn-action" onclick="splitPDF()">Extract Page</button>
             </section>
 
-            <section id="doc-editor" class="tool-card">
-                <h1>Doc Editor</h1>
-                <input type="file" id="importDoc" accept=".docx" onchange="importWordFile(this)">
-                <div id="editor-container" style="height: 250px; margin: 15px 0;"></div>
-                <button class="btn-action" onclick="downloadDocAsWord()">Export Word</button>
-            </section>
+<section id="doc-editor" class="tool-card">
+    
+    <h1>Word Document Editor</h1>
+    <p class="tool-description">Upload, edit, and export .docx files with full rich-text support.</p>
+
+    <div class="input-group">
+        <label style="display: block; margin-bottom: 8px; font-weight: bold;">Step 1: Import Document</label>
+        <input type="file" id="importDoc" accept=".docx" onchange="importWordFile(this)">
+    </div>
+
+    <!-- This is the professional workspace -->
+    <div id="editor-wrapper" style="margin: 20px 0;">
+        <div id="editor-container" style="height: 400px; background: white;"></div>
+    </div>
+
+    <button class="btn-action" onclick="downloadDocAsWord()" style="width: 100%; background-color: #2b579a; color: white; font-weight: bold;">
+        Export as .DOCX
+    </button>
+</section>
 
             <section id="pdf" class="tool-card">
                 <h1>Image to PDF</h1>

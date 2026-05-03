@@ -511,6 +511,28 @@ input, select {
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* Ensure the hamburger stays on top of the menu when open */
+.menu-icon {
+    z-index: 9001; /* Must be higher than your .nav-links */
+    position: relative;
+}
+
+/* Ensure the nav drawer is slightly below the icon's layer */
+.nav-links {
+    z-index: 1000;
+}
+
+/* Optional: Turn the hamburger into an 'X' when open */
+#menu-toggle:checked ~ .menu-icon span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+#menu-toggle:checked ~ .menu-icon span:nth-child(2) {
+    opacity: 0;
+}
+#menu-toggle:checked ~ .menu-icon span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -6px);
+}
+
 /* --- MOBILE PRODUCTION LAYOUT (900px and below) --- */
 @media (max-width: 900px) {
     .top-bar{

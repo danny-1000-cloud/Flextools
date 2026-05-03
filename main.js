@@ -80,13 +80,11 @@ window.onload = () => {
 };
 
 
+// 1. Keep your original showTool function, but add ONE explicit line at the end.
 function showTool(id, btn, isBoot = false) {
     if (!id) return;
 
     localStorage.setItem('activeTool', id); 
-
-    // This updates the URL to flextools.pro/#currency
-    // Hashes (#) NEVER cause 404 errors on refresh
     window.location.hash = id;
 
     const displayTitle = id.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -105,10 +103,30 @@ function showTool(id, btn, isBoot = false) {
 
     if (btn) btn.classList.add('active');
 
+    // 1. THE REUSE FIX: Explicitly shut the mobile menu
     if (!isBoot && window.innerWidth <= 900) {
-        if (typeof toggleSidebar === 'function') toggleSidebar();
-    }
+        // If your sidebar uses a class like 'active' or 'open'
+        const sidebar = document.querySelector('.sidebar') || document.querySelector('.nav-links');
+        if (sidebar) {
+            sidebar.classList.remove('active');
+            sidebar.classList.remove('open');
+        }
 
+        // 2. THE DARKNESS FIX: Remove the overlay
+        // Check if you have a div with a class like 'overlay', 'backdrop', or 'dimmer'
+        const overlay = document.querySelector('.overlay') || document.querySelector('.sidebar-overlay');
+        if (overlay) {
+            overlay.classList.remove('active');
+            overlay.classList.remove('show');
+            // If it's controlled by style:
+            overlay.style.display = 'none';
+        }
+
+        // 3. Check if the "darkness" is actually on the <body> tag
+        document.body.classList.remove('menu-open');
+        document.body.classList.remove('sidebar-open');
+        document.body.style.overflow = 'auto'; // Re-enable scrolling if it was locked
+    }
 }
 
 
@@ -373,6 +391,127 @@ async function convertFile() {
 
 // --- PDF & DOC TOOLS ---
 
+let pdfBytes = null;
+let pdfPageImage = null;
+let textLayers = []; // Array to hold multiple text objects
+
+async function initPDFEditor() {
+    const file = document.getElementById('pdfEditInput').files[0];
+    if (!file) return;
+
+    document.getElementById('pdfControls').style.display = 'block';
+    document.getElementById('pdfViewContainer').style.display = 'block';
+    document.getElementById('pdfDownloadBtn').style.display = 'block';
+    document.getElementById('layerContainer').style.display = 'block';
+
+    pdfBytes = await file.arrayBuffer();
+    
+    // Render the PDF background
+    const loadingTask = pdfjsLib.getDocument({data: pdfBytes});
+    const pdf = await loadingTask.promise;
+    const page = await pdf.getPage(1);
+    const viewport = page.getViewport({scale: 1.5});
+    
+    const canvas = document.getElementById('pdfCanvas');
+    const context = canvas.getContext('2d');
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+
+    await page.render({canvasContext: context, viewport: viewport}).promise;
+    
+    pdfPageImage = new Image();
+    pdfPageImage.src = canvas.toDataURL();
+    pdfPageImage.onload = () => drawPreview();
+}
+
+function addTextLayer() {
+    const textInput = document.getElementById('pdfTextToAdd');
+    const x = document.getElementById('textX').value;
+    const y = document.getElementById('textY').value;
+
+    if (!textInput.value) return;
+
+    // Add to our data array
+    textLayers.push({
+        content: textInput.value,
+        x: parseInt(x),
+        y: parseInt(y)
+    });
+
+    // Update the UI list
+    const list = document.getElementById('layerList');
+    const li = document.createElement('li');
+    li.style = "background: #eee; margin-bottom: 5px; padding: 5px; border-radius: 4px; display: flex; justify-content: space-between;";
+    li.innerHTML = `<span>"${textInput.value}" at ${x}, ${y}</span> <button onclick="removeLayer(${textLayers.length - 1})" style="color: red; border: none; background: none; cursor: pointer;">Delete</button>`;
+    list.appendChild(li);
+
+    textInput.value = ""; // Clear input for next text
+    drawPreview();
+}
+
+function removeLayer(index) {
+    textLayers.splice(index, 1);
+    updateLayerListUI();
+    drawPreview();
+}
+
+function updateLayerListUI() {
+    const list = document.getElementById('layerList');
+    list.innerHTML = "";
+    textLayers.forEach((layer, i) => {
+        const li = document.createElement('li');
+        li.style = "background: #eee; margin-bottom: 5px; padding: 5px; border-radius: 4px; display: flex; justify-content: space-between;";
+        li.innerHTML = `<span>"${layer.content}"</span> <button onclick="removeLayer(${i})" style="color: red; border: none; background: none;">Delete</button>`;
+        list.appendChild(li);
+    });
+}
+
+function drawPreview() {
+    const canvas = document.getElementById('pdfCanvas');
+    const ctx = canvas.getContext('2d');
+    if (!pdfPageImage) return;
+
+    // 1. Draw Background
+    ctx.drawImage(pdfPageImage, 0, 0);
+
+    // 2. Draw Current (unsaved) text in Blue so user sees it moving
+    const currentText = document.getElementById('pdfTextToAdd').value;
+    const currX = document.getElementById('textX').value;
+    const currY = document.getElementById('textY').value;
+    
+    ctx.font = "24px Arial";
+    ctx.fillStyle = "blue";
+    ctx.fillText(currentText, currX, currY);
+
+    // 3. Draw all Saved Layers in Black
+    ctx.fillStyle = "black";
+    textLayers.forEach(layer => {
+        ctx.fillText(layer.content, layer.x, layer.y);
+    });
+}
+
+async function downloadEditedPDF() {
+    const { PDFDocument, rgb } = PDFLib;
+    const existingPdfDoc = await PDFDocument.load(pdfBytes);
+    const firstPage = existingPdfDoc.getPages()[0];
+    const { width, height } = firstPage.getSize();
+    const canvas = document.getElementById('pdfCanvas');
+
+    // Add every layer to the actual PDF
+    for (const layer of textLayers) {
+        firstPage.drawText(layer.content, {
+            x: layer.x * (width / canvas.width),
+            y: height - (layer.y * (height / canvas.height)),
+            size: 20,
+            color: rgb(0, 0, 0),
+        });
+    }
+
+    const modifiedPdfBytes = await existingPdfDoc.save();
+    const blob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
+    triggerDownload(blob, "FlexTools_Final.pdf");
+}
+
 async function mergePDFs() {
     await processTask("Merge PDF", async () => {
         const files = document.getElementById('mergeInput').files;
@@ -418,11 +557,83 @@ async function downloadPDF() {
     });
 }
 
+
+function initDocEditor() {
+    const container = document.getElementById('editor-container');
+    
+    // 1. Safety check: Does the container exist?
+    if (!container) return;
+
+    // 2. Check if a toolbar already exists inside the wrapper
+    // Quill adds a div with class "ql-toolbar" above the container
+    const existingToolbar = container.parentElement.querySelector('.ql-toolbar');
+    
+    if (existingToolbar || window.myQuillEditor) {
+        console.log("Editor already exists. Skipping to avoid double toolbar.");
+        return; 
+    }
+
+    // 3. Clear any "ghost" HTML inside the container just in case
+    container.innerHTML = "";
+
+    try {
+        window.myQuillEditor = new Quill('#editor-container', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, false] }],
+                    ['bold', 'italic', 'underline'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['clean']
+                ]
+            }
+        });
+        console.log("Doc Editor initialized successfully.");
+    } catch (err) {
+        console.error("Quill Init Error:", err);
+    }
+}
+
+// Call it on page load
+window.addEventListener('load', initDocEditor);
+
+
+// 2. Import .docx and convert to "Live" Editable Text
+async function importWordFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const arrayBuffer = await file.arrayBuffer();
+    
+    // Mammoth parses the Word file into clean HTML
+    mammoth.convertToHtml({ arrayBuffer: arrayBuffer })
+        .then(function(result) {
+            quill.clipboard.dangerouslyPasteHTML(result.value);
+        })
+        .catch(function(err) {
+            console.error(err);
+            alert("Error: Could not read Word document.");
+        });
+}
+
+// 3. Export the "Live" edits back to a real Word File
 function downloadDocAsWord() {
-    processTask("Word Export", () => {
-        const content = quill.getText();
-        triggerDownload(new Blob([content], { type: 'text/plain' }), "FlexTools_Doc.txt");
-    });
+    const content = quill.root.innerHTML;
+    
+    // Create a basic HTML document structure for the converter
+    const htmlString = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head><meta charset="utf-8"></head>
+        <body>${content}</body>
+        </html>
+    `;
+
+    // Convert the editor content to a Word Blob
+    const docxBlob = htmlDocx.asBlob(htmlString);
+    
+    // Use your existing download helper
+    triggerDownload(docxBlob, "FlexTools_Edited.docx");
 }
 
 // --- HELPERS (UNTOUCHED LOGIC) ---
@@ -458,6 +669,7 @@ function toggleFaq(element) {
         if (other !== item) other.classList.remove('active');
     });
 }
+
 
 window.addEventListener('hashchange', () => {
     const id = window.location.hash.replace('#', '');
