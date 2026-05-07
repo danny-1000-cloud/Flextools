@@ -13,7 +13,7 @@ const currencyData = {
 };
 
 window.onload = () => {
-    // 1. DATA INIT (Currency & Editor)
+    // 1. DATA INIT (Keep this part as is)
     const fromS = document.getElementById('fromCurrency');
     const toS = document.getElementById('toCurrency');
     if (fromS && toS && typeof currencyData !== 'undefined') {
@@ -28,45 +28,20 @@ window.onload = () => {
         quill = new Quill('#editor-container', { theme: 'snow' });
     }
 
-    function initRefresher() {
-    if (typeof PullToRefresh === 'undefined') return;
-
-    PullToRefresh.init({
-        mainElement: 'body', 
-        onRefresh() {
-            window.location.reload();
-        },
-        distThreshold: 60,
-        distMax: 90,
-        shouldPullToRefresh: () => !window.scrollY, // Only pull if at the very top
-        instructionsPullToRefresh: 'Pull to refresh FlexTools',
-        instructionsReleaseToRefresh: 'Release to update',
-        refreshTimeout: 500
-    });
-}
-
-// Call this inside your window.onload
-
-    // 2. SMART ROUTING WITH SAFETY FALLBACK
-    // Try to find a saved tool; if none, default to 'currency'
-    let activeTool = localStorage.getItem('activeTool') || 
-                     window.location.hash.replace('#', '') || 
-                     'currency-converter';
-
-    // Verify the tool actually exists in your HTML
-    let targetCard = document.getElementById(activeTool);
+    // 2. THE NEW ROUTING BRAIN (Place the new code here)
+    const path = window.location.pathname.replace(/^\/|\/$/g, '');
     
-    // SAFETY CHECK: If the saved tool is missing or broken, force currency
-    if (!targetCard) {
+    // Priority: Path > Saved Memory > Default
+    let activeTool = path || localStorage.getItem('activeTool') || 'currency';
+
+    // Verify the tool ID exists in your HTML
+    if (!document.getElementById(activeTool)) {
         activeTool = 'currency';
-        targetCard = document.getElementById('currency-converter');
     }
 
-    // 3. UI RESTORATION
+    // 3. UI RESTORATION (The sidebar logic you already have)
     const targetBtn = document.querySelector(`[onclick*="'${activeTool}'"]`);
-    
     if (targetBtn) {
-        // Auto-expand the folder
         const parentCategory = targetBtn.closest('.group-content');
         if (parentCategory) {
             parentCategory.classList.add('show'); 
@@ -75,10 +50,18 @@ window.onload = () => {
         }
     }
     
-    // Final Launch
+    // 4. THE LAUNCH
     showTool(activeTool, targetBtn, true); 
-};
 
+    // 5. THE REVEAL (This is crucial to match the <head> script)
+    document.documentElement.style.display = 'block';
+
+    // 6. INIT REFRESHER
+    if (typeof initRefresher === 'function') {
+        initRefresher();
+    }
+};
+  
 
 // 1. Keep your original showTool function, but add ONE explicit line at the end.
 function showTool(id, btn, isBoot = false, isRefresh = false) {
@@ -150,6 +133,7 @@ function showTool(id, btn, isBoot = false, isRefresh = false) {
             document.head.appendChild(canonical);
         }
         canonical.setAttribute('href', window.location.href);
+
 }
 
 

@@ -78,6 +78,25 @@
 
     <script>(function(s){s.dataset.zone='10909826',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
     <script>(function(s){s.dataset.zone='10903184',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+    
+   <script>
+  (function() {
+    const path = window.location.pathname.replace(/^\/|\/$/g, '');
+    
+    // 1. ADD CANONICAL (Keep the SEO benefit)
+    if (path && !path.includes('.') && path !== 'index.html') {
+        const link = document.createElement('link');
+        link.rel = 'canonical';
+        link.href = 'https://flextools.pro/' + path;
+        document.head.appendChild(link);
+
+        // 2. PREVENT FLICKER (The Human/Google Fix)
+        // Only hide the display IF we are on a sub-page (like /pdf-editor)
+        // This ensures the homepage stays instant for users
+        document.documentElement.style.display = 'none';
+    }
+  })();
+</script>
 </head>
 <body>
 
@@ -256,7 +275,7 @@
                 <button class="btn-action" onclick="resizeImage()">Image Resize</button>
             </section>
 
-            <section id="pdf-editor" class="tool-card">
+<section id="pdf-editor" class="tool-card">
     <h1>PDF Text Overlay</h1>
     <p class="tool-description">Add multiple text layers to your PDF with precision control.</p>
 
@@ -344,9 +363,7 @@
             </section>
 
             <div class="content-area">
-    <section id="file-converter" class="tool-card">
-        <h1>Format Converter</h1>
-        </section>
+
 
         <section id="faq" class="tool-card">
     <div class="tool-header">
