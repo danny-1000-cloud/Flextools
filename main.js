@@ -699,4 +699,9 @@ window.addEventListener('load', () => {
         // Fallback for homepage
         showTool('currency-converter', null, true, true);
     }
+
+    const ftYearSpan = document.getElementById("ft-current-year");
+    if (ftYearSpan) {
+        ftYearSpan.textContent = new Date().getFullYear();
+    } 
 });
