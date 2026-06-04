@@ -32,7 +32,7 @@ window.onload = () => {
     const path = window.location.pathname.replace(/^\/|\/$/g, '');
     
     // Priority: Path > Saved Memory > Default
-    let activeTool = path || localStorage.getItem('activeTool') || 'currency';
+    let activeTool = path || localStorage.getItem('activeTool') || 'home';
 
     // Verify the tool ID exists in your HTML
     if (!document.getElementById(activeTool)) {
@@ -663,8 +663,10 @@ function loadImage(file) {
 function toggleSidebar() {
     const sb = document.getElementById('sidebar');
     const ov = document.querySelector('.sidebar-overlay');
+    const btn = document.getElementById('menu-trigger');
     if (sb) sb.classList.toggle('open');
     if (ov) ov.classList.toggle('active');
+    if (btn) btn.classList.toggle('open');
 }
 
 function toggleFaq(element) {
@@ -680,9 +682,8 @@ function toggleFaq(element) {
 
 // This listens for the browser's Back/Forward buttons
 window.onpopstate = function(event) {
-    const path = window.location.pathname.replace('/', '');
-    // If path is empty, default to your home tool
-    showTool(path || 'currency-converter', null, true);
+    const path = window.location.pathname.replace(/^\/|\/$/g, '');
+    showTool(path || 'home', null, true);
 };
 
 window.addEventListener('load', () => {
@@ -693,11 +694,9 @@ window.addEventListener('load', () => {
     const targetElement = document.getElementById(path);
 
     if (path && targetElement) {
-        // Load the tool from the URL, but tell showTool NOT to push a new state
         showTool(path, null, true, true);
     } else {
-        // Fallback for homepage
-        showTool('currency-converter', null, true, true);
+        showTool('home', null, true, true);
     }
 
     const ftYearSpan = document.getElementById("ft-current-year");

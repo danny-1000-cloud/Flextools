@@ -100,7 +100,11 @@
 <body>
 
 <header class="mobile-top-bar">
-    <button class="menu-trigger" onclick="toggleSidebar()">☰</button>
+    <button class="menu-trigger" onclick="toggleSidebar()" id="menu-trigger" aria-label="Toggle menu">
+    <span class="bar"></span>
+    <span class="bar"></span>
+    <span class="bar"></span>
+    </button>
     <div class="status-pill">Secure System</div>
 </header>
 
@@ -108,16 +112,17 @@
 
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-        <div class="logo-wrap">
+        <div class="logo-wrap" onclick="showTool('home', null)" style="cursor:pointer;">
             <img src="/image/logo.png" alt="FlexTools Logo" class="main-logo">
         </div>
         <button class="mobile-close" onclick="toggleSidebar()">✕</button>
     </div>
     
     <nav class="nav-list">
+    <a href="home" class="nav-item" onclick="showTool('home', this); return false;">🏠 Home</a>
     <div class="nav-group">
         <div class="group-header" onclick="toggleCategory(this)">
-            📊 Financial & Units <span class="chevron">▼</span>
+            Financial & Units <span class="chevron">▼</span>
         </div>
         <div class="group-content">
             <a href="currency-converter" class="nav-item active" onclick="showTool('currency-converter', this); return false;"><span>💰</span> Currency Converter</a>
@@ -127,7 +132,7 @@
 
     <div class="nav-group">
         <div class="group-header" onclick="toggleCategory(this)">
-            🖼️ Image Processing <span class="chevron">▼</span>
+            Image Processing <span class="chevron">▼</span>
         </div>
         <div class="group-content">
             <a href="word" class="nav-item" onclick="showTool('word', this); return false;"><span>📝</span> Img to Word</a>
@@ -139,7 +144,7 @@
 
     <div class="nav-group">
         <div class="group-header" onclick="toggleCategory(this)">
-            📄 PDF & Docs <span class="chevron">▼</span>
+            PDF & Docs <span class="chevron">▼</span>
         </div>
         <div class="group-content">
             <a href="pdf-editor" class="nav-item" onclick="showTool('pdf-editor', this); return false;"><span>🖋️</span> PDF Editor</a>
@@ -150,7 +155,8 @@
         </div>
     </div>
     
-    <a href="faq" class="nav-item" onclick="showTool('faq', this); return false;"><span>❓</span> FAQ</a>
+    <a href="faq" class="nav-item" onclick="showTool('faq', this); return false;">FAQ</a>
+    <a href="about" class="nav-item" onclick="showTool('about', this); return false;">About Us</a>
 </nav>
 </aside>
 
@@ -159,14 +165,156 @@
             <div class="status-pill">Secure System</div>
         </header>
 
-        <div class="content-area">
-            <section id="currency-converter" class="tool-card active">
-                <span class="pro-badge">Live Exchange</span>
-                <div class="input-group"><label>Amount</label><input type="number" id="currAmount" placeholder="100.00"></div>
-                <div class="converter-grid"><div class="input-group"><label>From</label><select id="fromCurrency"></select></div><div class="input-group"><label>To</label><select id="toCurrency"></select></div></div>
-                <button class="btn-action" onclick="convertCurrency()">Check Live Rates</button>
-                <div id="currResult" class="result-box"></div>
-                <div class="ft-seo-content" style="max-width: 800px; margin: 60px auto 40px auto; padding: 0 20px; font-family: system-ui, -apple-system, sans-serif; color: #334155; line-height: 1.6;">
+<div class="content-area">
+
+  <div class="content-area">
+
+            <section id="home" class="tool-card active">
+              <div style="font-family:'Plus Jakarta Sans',sans-serif;">
+
+                <!-- HERO -->
+                <div style="text-align:center; padding:3rem 1.5rem 2rem;">
+                  <div style="display:inline-flex;align-items:center;gap:6px;background:#f1f5f9;border:0.5px solid #e2e8f0;border-radius:999px;padding:5px 14px;font-size:12px;color:#64748b;margin-bottom:1.5rem;">
+                    <span style="width:7px;height:7px;border-radius:50%;background:#1D9E75;display:inline-block;"></span>
+                   100% Free · No signup needed
+                  </div>
+                  <h1 style="font-size:32px;font-weight:800;line-height:1.15;margin:0 0 1rem;letter-spacing:-1px;color:#0f172a;">Every tool you need,<br><span style="color:#1D9E75;">right in your browser.</span></h1>
+                  <p style="font-size:15px;color:#64748b;max-width:480px;margin:0 auto 2rem;line-height:1.6;">PDF editing, image tools, currency conversion and more — all free, all private. Your files never leave your device.</p>
+                  <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:2.5rem;">
+                    <span style="display:inline-flex;align-items:center;gap:5px;background:#f1f5f9;border:0.5px solid #e2e8f0;border-radius:999px;padding:5px 12px;font-size:12px;color:#475569;">🔒 100% Private</span>
+                    <span style="display:inline-flex;align-items:center;gap:5px;background:#f1f5f9;border:0.5px solid #e2e8f0;border-radius:999px;padding:5px 12px;font-size:12px;color:#475569;">📱 Works on Mobile</span>
+                    <span style="display:inline-flex;align-items:center;gap:5px;background:#f1f5f9;border:0.5px solid #e2e8f0;border-radius:999px;padding:5px 12px;font-size:12px;color:#475569;">🚫 No Watermarks</span>
+                    <span style="display:inline-flex;align-items:center;gap:5px;background:#f1f5f9;border:0.5px solid #e2e8f0;border-radius:999px;padding:5px 12px;font-size:12px;color:#475569;">💳 No Subscription</span>
+                    <span style="display:inline-flex;align-items:center;gap:5px;background:#f1f5f9;border:0.5px solid #e2e8f0;border-radius:999px;padding:5px 12px;font-size:12px;color:#475569;"> Made For You</span>
+                  </div>
+                </div>
+
+                <!-- ALL TOOLS GRID -->
+                <p style="font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#94a3b8;text-align:center;margin-bottom:1rem;">All Tools</p>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;padding:0 0.5rem;margin-bottom:2rem;">
+
+                  <div onclick="showTool('currency-converter', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                    <div style="width:36px;height:36px;border-radius:8px;background:#E1F5EE;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">💰</div>
+                    <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Currency Converter</p>
+                    <p style="font-size:11px;color:#64748b;margin:0;">Live exchange rates</p>
+                  </div>
+
+                  <div onclick="showTool('unit-converter', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                    <div style="width:36px;height:36px;border-radius:8px;background:#E6F1FB;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">📏</div>
+                    <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Unit Converter</p>
+                    <p style="font-size:11px;color:#64748b;margin:0;">Length, weight, temp</p>
+                  </div>
+
+                  <div onclick="showTool('word', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                    <div style="width:36px;height:36px;border-radius:8px;background:#FAEEDA;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">📝</div>
+                    <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Image to Word</p>
+                    <p style="font-size:11px;color:#64748b;margin:0;">Extract text via OCR</p>
+                  </div>
+
+                  <div onclick="showTool('img-compressor', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                    <div style="width:36px;height:36px;border-radius:8px;background:#E1F5EE;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">📉</div>
+                    <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Image Compressor</p>
+                    <p style="font-size:11px;color:#64748b;margin:0;">Shrink without quality loss</p>
+                  </div>
+
+                  <div onclick="showTool('img-resizer', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                    <div style="width:36px;height:36px;border-radius:8px;background:#E6F1FB;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">📐</div>
+                    <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Image Resizer</p>
+                    <p style="font-size:11px;color:#64748b;margin:0;">Exact pixel dimensions</p>
+                  </div>
+
+                  <div onclick="showTool('pdf-editor', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                    <div style="width:36px;height:36px;border-radius:8px;background:#FAECE7;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">🖋️</div>
+                    <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">PDF Editor</p>
+                    <p style="font-size:11px;color:#64748b;margin:0;">Add text & signatures</p>
+                  </div>
+
+                  <div onclick="showTool('pdf-merge', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                    <div style="width:36px;height:36px;border-radius:8px;background:#FAECE7;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">🔗</div>
+                    <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Merge PDF</p>
+                    <p style="font-size:11px;color:#64748b;margin:0;">Combine multiple PDFs</p>
+                  </div>
+
+                  <div onclick="showTool('pdf-split', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                    <div style="width:36px;height:36px;border-radius:8px;background:#FAECE7;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">✂️</div>
+                    <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Split PDF</p>
+                    <p style="font-size:11px;color:#64748b;margin:0;">Extract specific pages</p>
+                  </div>
+
+                  <div onclick="showTool('doc-editor', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                    <div style="width:36px;height:36px;border-radius:8px;background:#FAEEDA;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">✍️</div>
+                    <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Doc Editor</p>
+                    <p style="font-size:11px;color:#64748b;margin:0;">Edit Word documents</p>
+                  </div>
+
+                  <div onclick="showTool('pdf', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                    <div style="width:36px;height:36px;border-radius:8px;background:#E1F5EE;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">📷</div>
+                    <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Image to PDF</p>
+                    <p style="font-size:11px;color:#64748b;margin:0;">Photos into clean PDFs</p>
+                  </div>
+
+                  <div onclick="showTool('file-converter', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                    <div style="width:36px;height:36px;border-radius:8px;background:#E6F1FB;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">🔄</div>
+                    <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">File Converter</p>
+                    <p style="font-size:11px;color:#64748b;margin:0;">Switch file formats</p>
+                  </div>
+
+                </div>
+
+                <!-- STATS -->
+                <hr style="border:none;border-top:0.5px solid #e2e8f0;margin:1.5rem 0;">
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 0.5rem;margin-bottom:2rem;">
+                  <div style="background:#f8fafc;border-radius:8px;padding:1rem;text-align:center;">
+                    <div style="font-size:22px;font-weight:800;color:#1D9E75;">11+</div>
+                    <div style="font-size:11px;color:#64748b;margin-top:2px;">Free Tools</div>
+                  </div>
+                  <div style="background:#f8fafc;border-radius:8px;padding:1rem;text-align:center;">
+                    <div style="font-size:22px;font-weight:800;color:#1D9E75;">0</div>
+                    <div style="font-size:11px;color:#64748b;margin-top:2px;">Files Uploaded</div>
+                  </div>
+                  <div style="background:#f8fafc;border-radius:8px;padding:1rem;text-align:center;">
+                    <div style="font-size:22px;font-weight:800;color:#1D9E75;">100%</div>
+                    <div style="font-size:11px;color:#64748b;margin-top:2px;">Free</div>
+                  </div>
+                </div>
+
+                <!-- WHY SECTION -->
+                <hr style="border:none;border-top:0.5px solid #e2e8f0;margin:1.5rem 0;">
+                <p style="font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#94a3b8;text-align:center;margin-bottom:1rem;">Why FlexTools Pro</p>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;padding:0 0.5rem 2rem;">
+                  <div style="padding:1rem;border:0.5px solid #e2e8f0;border-radius:12px;background:#fff;">
+                    <div style="font-size:20px;">🛡️</div>
+                    <p style="font-size:13px;font-weight:600;margin:8px 0 4px;color:#0f172a;">Your files stay private</p>
+                    <p style="font-size:12px;color:#64748b;line-height:1.5;margin:0;">Everything runs locally in your browser. Nothing is ever uploaded to any server.</p>
+                  </div>
+                  <div style="padding:1rem;border:0.5px solid #e2e8f0;border-radius:12px;background:#fff;">
+                    <div style="font-size:20px;">⚡</div>
+                    <p style="font-size:13px;font-weight:600;margin:8px 0 4px;color:#0f172a;">Instant, no waiting</p>
+                    <p style="font-size:12px;color:#64748b;line-height:1.5;margin:0;">No queues, no loading screens. Tools work the moment you open them.</p>
+                  </div>
+                  <div style="padding:1rem;border:0.5px solid #e2e8f0;border-radius:12px;background:#fff;">
+                    <div style="font-size:20px;">🚫</div>
+                    <p style="font-size:13px;font-weight:600;margin:8px 0 4px;color:#0f172a;">No paywalls ever</p>
+                    <p style="font-size:12px;color:#64748b;line-height:1.5;margin:0;">No subscriptions, no watermarks, no account required. Free means free.</p>
+                  </div>
+                  <div style="padding:1rem;border:0.5px solid #e2e8f0;border-radius:12px;background:#fff;">
+                    <div style="font-size:20px;">🌍</div>
+                    <p style="font-size:13px;font-weight:600;margin:8px 0 4px;color:#0f172a;">Built for All</p>
+                    <p style="font-size:12px;color:#64748b;line-height:1.5;margin:0;">Lightweight and fast even on slow connections. Works on any device.</p>
+                  </div>
+                </div>
+
+              </div>
+    </section>
+
+
+    <section id="currency-converter" class="tool-card">
+          <span class="pro-badge">Live Exchange</span>
+          <div class="input-group"><label>Amount</label><input type="number" id="currAmount" placeholder="100.00"></div>
+          <div class="converter-grid"><div class="input-group"><label>From</label><select id="fromCurrency"></select></div><div class="input-group"><label>To</label><select id="toCurrency"></select></div></div>
+          <button class="btn-action" onclick="convertCurrency()">Check Live Rates</button>
+          <div id="currResult" class="result-box"></div>
+          <div class="ft-seo-content" style="max-width: 800px; margin: 60px auto 40px auto; padding: 0 20px; font-family: system-ui, -apple-system, sans-serif; color: #334155; line-height: 1.6;">
   
   <h2 style="font-size: 24px; color: #0f172a; font-weight: 700; margin-bottom: 15px; letter-spacing: -0.5px;">
     Free Online Currency Converter with Real-Time Exchange Rates
@@ -565,88 +713,66 @@
 
                 <div class="ft-seo-content" style="max-width: 800px; margin: 60px auto 40px auto; padding: 0 20px; font-family: system-ui, -apple-system, sans-serif; color: #334155; line-height: 1.6;">
   
-  <h2 style="font-size: 24px; color: #0f172a; font-weight: 700; margin-bottom: 15px; letter-spacing: -0.5px;">
-    Free Online PDF Merger – Combine Multiple PDF Files Instantly
-  </h2>
-  
-  <p style="margin-bottom: 20px; font-size: 15px;">
-    Streamlining your documentation shouldn't require complex software. Our <strong>free online PDF merger</strong> provides a quick, secure way to combine separate documents into a single, cohesive file. Effortlessly <strong>join multiple PDF sheets, receipts, reports, or e-books</strong> together inside your browser window. Developed using highly efficient browser-native code pathways, this tool eliminates slow remote queues, merging your data instantly on both mobile layouts and desktop systems.
-  </p>
+                      <h2 style="font-size: 24px; color: #0f172a; font-weight: 700; margin-bottom: 15px; letter-spacing: -0.5px;">
+                        Free Online PDF Merger – Combine Multiple PDF Files Instantly
+                      </h2>
+                      
+                      <p style="margin-bottom: 20px; font-size: 15px;">
+                        Streamlining your documentation shouldn't require complex software. Our <strong>free online PDF merger</strong> provides a quick, secure way to combine separate documents into a single, cohesive file. Effortlessly <strong>join multiple PDF sheets, receipts, reports, or e-books</strong> together inside your browser window. Developed using highly efficient browser-native code pathways, this tool eliminates slow remote queues, merging your data instantly on both mobile layouts and desktop systems.
+                      </p>
 
-  <h3 style="font-size: 18px; color: #0f172a; font-weight: 600; margin-top: 30px; margin-bottom: 15px;">
-    Seamlessly Organize and Join Documents Without Watermarks
-  </h3>
-  
-  <p style="margin-bottom: 20px; font-size: 15px;">
-    Keeping your records organized is essential for smooth workflows. Whether you are a freelance developer assembling project invoices, an entrepreneur combining marketing reports, or a student grouping academic research modules, having a neat file structure saves time. This utility skips the annoying registrations, subscription limits, and branded watermarks that crowd traditional utility apps. By running the compiling phase client-side, you preserve the exact formatting and layout of your original documents.
-  </p>
+                      <h3 style="font-size: 18px; color: #0f172a; font-weight: 600; margin-top: 30px; margin-bottom: 15px;">
+                        Seamlessly Organize and Join Documents Without Watermarks
+                      </h3>
+                      
+                      <p style="margin-bottom: 20px; font-size: 15px;">
+                        Keeping your records organized is essential for smooth workflows. Whether you are a freelance developer assembling project invoices, an entrepreneur combining marketing reports, or a student grouping academic research modules, having a neat file structure saves time. This utility skips the annoying registrations, subscription limits, and branded watermarks that crowd traditional utility apps. By running the compiling phase client-side, you preserve the exact formatting and layout of your original documents.
+                      </p>
 
-  <h3 style="font-size: 18px; color: #0f172a; font-weight: 600; margin-top: 30px; margin-bottom: 15px;">
-    Frequently Asked Questions
-  </h3>
-  
-  <div style="display: flex; flex-direction: column; gap: 20px; font-size: 14.5px;">
-    <div>
-      <strong style="color: #0f172a; display: block; margin-bottom: 5px;">Is there a restriction on how many files I can merge at once?</strong>
-      <span>No. Because the file combining processing runs locally inside your browser instead of relying on limited cloud server bandwidth, you can merge as many pages or individual documentation assets as your device can handle with zero caps.</span>
-    </div>
-    
-    <div>
-      <strong style="color: #0f172a; display: block; margin-bottom: 5px;">Are my confidential financial or corporate files safe?</strong>
-      <span>Completely. Following the strict privacy model of FlexTools Pro, all parsing and compiling tasks are executed entirely within your local system memory sandbox. Your sensitive data, private legal records, and business assets never touch external clouds or external servers.</span>
-    </div>
-    
-    <div>
-      <strong style="color: #0f172a; display: block; margin-bottom: 5px;">Does this utility support mobile merging tasks?</strong>
-      <span>Yes. The layout framework is completely responsive, allowing you to select, structure, and merge your files directly on your smartphone browser while moving between tasks without any lagging or interface freezing.</span>
-    </div>
-  </div>
+                      <h3 style="font-size: 18px; color: #0f172a; font-weight: 600; margin-top: 30px; margin-bottom: 15px;">
+                        Frequently Asked Questions
+                      </h3>
+                      
+                      <div style="display: flex; flex-direction: column; gap: 20px; font-size: 14.5px;">
+                        <div>
+                          <strong style="color: #0f172a; display: block; margin-bottom: 5px;">Is there a restriction on how many files I can merge at once?</strong>
+                          <span>No. Because the file combining processing runs locally inside your browser instead of relying on limited cloud server bandwidth, you can merge as many pages or individual documentation assets as your device can handle with zero caps.</span>
+                        </div>
+                        
+                        <div>
+                          <strong style="color: #0f172a; display: block; margin-bottom: 5px;">Are my confidential financial or corporate files safe?</strong>
+                          <span>Completely. Following the strict privacy model of FlexTools Pro, all parsing and compiling tasks are executed entirely within your local system memory sandbox. Your sensitive data, private legal records, and business assets never touch external clouds or external servers.</span>
+                        </div>
+                        
+                        <div>
+                          <strong style="color: #0f172a; display: block; margin-bottom: 5px;">Does this utility support mobile merging tasks?</strong>
+                          <span>Yes. The layout framework is completely responsive, allowing you to select, structure, and merge your files directly on your smartphone browser while moving between tasks without any lagging or interface freezing.</span>
+                        </div>
+                      </div>
 
-</div>
-            </section>
+                    </div>
+                                </section>
 
-            <section id="pdf-split" class="tool-card">
-                <h2>Split PDF</h2>
-                <input type="file" id="splitInput" accept="application/pdf">
-                <input type="number" id="splitPage" value="1">
-                <button class="btn-action" onclick="splitPDF()">Extract Page</button>
+                                <section id="pdf-split" class="tool-card">
+                                    <h2>Split PDF</h2>
+                                    <input type="file" id="splitInput" accept="application/pdf">
+                                    <input type="number" id="splitPage" value="1">
+                                    <button class="btn-action" onclick="splitPDF()">Extract Page</button>
 
-                <div class="ft-seo-content" style="max-width: 800px; margin: 60px auto 40px auto; padding: 0 20px; font-family: system-ui, -apple-system, sans-serif; color: #334155; line-height: 1.6;">
-  
-  <h2 style="font-size: 24px; color: #0f172a; font-weight: 700; margin-bottom: 15px; letter-spacing: -0.5px;">
-    Free Online PDF Splitter – Extract Pages From PDF Files Instantly
-  </h2>
-  
-  <p style="margin-bottom: 20px; font-size: 15px;">
-    Need to isolate specific sections of a large document? Our <strong>free online PDF splitter</strong> offers a seamless way to break down your massive files into smaller, more manageable parts. Easily <strong>extract specific pages, separate chapters, or divide a PDF</strong> into individual single-page documents right in your browser. Built entirely with fast, browser-native scripts, this responsive utility processes your requests instantly without making you wait on slow remote server queues.
-  </p>
+                                    <div class="ft-seo-content" style="max-width: 800px; margin: 60px auto 40px auto; padding: 0 20px; font-family: system-ui, -apple-system, sans-serif; color: #334155; line-height: 1.6;">
+                      
+                      <h2>Free Online Image to PDF Converter – Turn Photos Into PDF Instantly</h2>
+                    <p>Need to bundle images into a clean, shareable document? Our <strong>free online image to PDF converter</strong> lets you transform JPG, PNG, and WebP photos into a properly formatted PDF file in seconds — right inside your browser. No installs, no signups, no watermarks.</p>
 
-  <h3 style="font-size: 18px; color: #0f172a; font-weight: 600; margin-top: 30px; margin-bottom: 15px;">
-    Extract Content and Divide Documents Without Limits or Watermarks
-  </h3>
-  
-  <p style="margin-bottom: 20px; font-size: 15px;">
-    Managing your file layouts should be quick and restriction-free. Whether you are a business professional extracting specific invoices from a monthly billing statement, a student saving a single chapter from a large textbook, or a developer isolating documentation logs, precision is mandatory. This utility completely cuts out forced account creation, premium page limits, and intrusive watermarks. Because the splitting engine runs client-side, the visual layout and text quality of your extracted sheets remain perfectly preserved.
-  </p>
+                    <h3>Perfect for Students, Professionals, and Everyday Tasks</h3>
+                    <p>Whether you're a student submitting scanned assignments, a freelancer sending photo evidence to a client, or someone organizing receipts and ID documents into one file, this tool handles it instantly. Because everything runs locally in your browser, your images are never uploaded to any server — they stay completely on your device throughout the entire process.</p>
 
-  <h3 style="font-size: 18px; color: #0f172a; font-weight: 600; margin-top: 30px; margin-bottom: 15px;">
-    Frequently Asked Questions
-  </h3>
-  
-  <div style="display: flex; flex-direction: column; gap: 20px; font-size: 14.5px;">
-    <div>
-      <strong style="color: #0f172a; display: block; margin-bottom: 5px;">Can I select custom page ranges to extract?</strong>
-      <span>Yes. Our interactive interface allows you to specify exact page numbers or ranges, giving you total control over how you want to divide your document or which individual sheets you want to pull out.</span>
-    </div>
-    
-    <div>
-      <strong style="color: #0f172a; display: block; margin-bottom: 5px;">Are my confidential files or private data safe?</strong>
-      <span>Absolutely. In alignment with the strict privacy architecture of FlexTools Pro, all document unpacking and page extraction take place completely inside your local browser sandbox memory. Your sensitive records, legal documentation, or company reports never travel across the network to external clouds or remote databases.</span>
-    </div>
-    
-    <div>
-      <strong style="color: #0f172a; display: block; margin-bottom: 5px;">Is there a file limit or page restriction?</strong>
-      <span>No. Because the conversion processing handles the calculations natively on your own system rather than relying on a shared, restricted remote server setup, you can split massive files with zero queues, data restrictions, or unexpected paywalls.</span>
+                    <h3>Frequently Asked Questions</h3>
+                    <p><strong>What image formats can I convert to PDF?</strong> Our converter supports JPG, JPEG, PNG, and WebP formats. Simply upload your image and download the finished PDF within seconds.</p>
+
+                    <p><strong>Will my images lose quality when converted?</strong> No. The conversion process preserves the original resolution of your image. What you upload is exactly what appears inside the PDF.</p>
+
+                    <p><strong>Is there a limit on how many images I can convert?</strong> No daily limits, no file caps. Convert as many images as you need completely free, with no account required.</p>
     </div>
   </div>
 
@@ -807,12 +933,10 @@
   </div>
 
 </div>
-            </section>
-
-            <div class="content-area">
+      </section>
 
 
-        <section id="faq" class="tool-card">
+  <section id="faq" class="tool-card">
     <div class="tool-header">
         <h2><i class="fas fa-question-circle"></i> Frequently Asked Questions</h2>
         <p>Common questions about FlexTools Pro features and privacy.</p>
@@ -851,36 +975,45 @@
     </div>
 </section>
 
-    <article class="seo-content">
-        <section class="info-section">
-            <h2>Your Professional Digital Toolkit</h2>
-            <p><strong>FlexTools Pro</strong> is designed to streamline your digital workflow. Whether you're a student or a freelance professional, our suite of browser-based utilities offers speed and security in one interface.</p>
-        </section>
+<section id="about" class="tool-card">
+  <div class="ft-seo-content" style="max-width: 800px; margin: 20px auto 40px auto; padding: 0 20px; font-family: system-ui, -apple-system, sans-serif; color: #334155; line-height: 1.8;">
 
-        <div class="features-grid">
-            <div class="feature-item">
-                <h3>💰 Financial Precision</h3>
-                <p>Convert global currencies with real-time exchange rates. Perfect for international business and travel planning.</p>
-            </div>
-            <div class="feature-item">
-                <h3>🖼️ Image Mastery</h3>
-                <p>Use our <strong>Image to Word (OCR)</strong>, <strong>Compressor</strong>, and <strong>Resizer</strong> to optimize your media for any platform.</p>
-            </div>
-            <div class="feature-item">
-                <h3>📄 Document Control</h3>
-                <p>Merge, split, and edit PDFs or Word docs without installing heavy software. Everything runs directly in your browser.</p>
-            </div>
-        </div>
+    <h1 style="font-size: 28px; color: #0f172a; font-weight: 800; margin-bottom: 20px;">About FlexTools Pro</h1>
 
-        <section class="trust-section">
-            <h2>Secure & Private</h2>
-            <p>Your privacy is paramount. Files processed on FlexTools Pro are handled locally in your browser—we never store your personal data or documents on our servers.</p>
-        </section>
-    </article>
-    </div>
-        </div>
+    <p style="margin-bottom: 20px; font-size: 15px;">FlexTools Pro was built out of a simple frustration — the best online tools were either locked behind expensive subscriptions, cluttered with aggressive ads, or required you to upload your private files to some unknown server just to do a basic task.</p>
 
-        <footer class="ft-main-footer">
+    <p style="margin-bottom: 20px; font-size: 15px;">We thought that was unnecessary. So we built something better.</p>
+
+    <h2 style="font-size: 20px; color: #0f172a; font-weight: 700; margin-top: 35px; margin-bottom: 15px;">Who We Are</h2>
+    <p style="margin-bottom: 20px; font-size: 15px;">We're a small, self-funded team based in Nigeria. We're not a big Silicon Valley company with hundreds of engineers. We're a tight group of developers and builders who care about making useful software that actually works — for everyone, not just people with credit cards and fast internet.</p>
+
+    <p style="margin-bottom: 20px; font-size: 15px;">We know what it's like to need a PDF tool at midnight before a deadline, or to convert a currency quickly for an international client invoice, or to extract text from a scanned document without paying $20 a month for software you'll use once. That's exactly who we built FlexTools Pro for.</p>
+
+    <h2 style="font-size: 20px; color: #0f172a; font-weight: 700; margin-top: 35px; margin-bottom: 15px;">Why We Built It</h2>
+    <p style="margin-bottom: 20px; font-size: 15px;">Honestly? A mix of reasons.</p>
+
+    <p style="margin-bottom: 20px; font-size: 15px;">We needed these tools ourselves. We wanted to build something real that could grow into a sustainable business. We wanted to prove that a small African team could build a product that competes globally. And most of all, we wanted people — especially across Africa and other emerging markets — to have access to professional-grade tools completely free, with no signup walls or hidden fees.</p>
+
+    <p style="margin-bottom: 20px; font-size: 15px;">All of those reasons are still true today.</p>
+
+    <h2 style="font-size: 20px; color: #0f172a; font-weight: 700; margin-top: 35px; margin-bottom: 15px;">Our Privacy Promise</h2>
+    <p style="margin-bottom: 20px; font-size: 15px;">Every tool on FlexTools Pro is built to process your files <strong>locally in your browser</strong>. That means your documents, images, and data never leave your device. We never see them, we never store them, and we never sell them. This isn't a marketing claim — it's how the tools are technically built.</p>
+
+    <p style="margin-bottom: 20px; font-size: 15px;">In a world where your data is constantly being harvested, we think that matters.</p>
+
+    <h2 style="font-size: 20px; color: #0f172a; font-weight: 700; margin-top: 35px; margin-bottom: 15px;">What's Next</h2>
+    <p style="margin-bottom: 20px; font-size: 15px;">We're actively adding more tools, improving existing ones, and listening to feedback from our users. FlexTools Pro is still growing — and we're building it one tool at a time, with care.</p>
+
+    <p style="margin-bottom: 20px; font-size: 15px;">If you have a suggestion, a tool you wish existed, or just want to say hello — we'd love to hear from you.</p>
+
+    <p style="margin-bottom: 40px; font-size: 15px;">💬 <a href="https://wa.me/2348064351312" target="_blank" style="color: #25D366; text-decoration: none; font-weight: 600;">Chat us on WhatsApp</a></p>
+
+    <p style="font-style: italic; color: #64748b; font-size: 14px;">— The FlexTools Pro Team, Nigeria 🇳🇬</p>
+
+  </div>
+</section>
+
+<footer class="ft-main-footer">
   <div class="ft-container">
     
     <div class="ft-brand-section">
@@ -910,7 +1043,7 @@
         <li><a href="/img-resizer" class="ft-link">Image Resizer</a></li>
         <li><a href="/file-converter" class="ft-link">File Converter</a></li>
         <li><a href="/currency-converter" class="ft-link">Currency Converter</a></li>
-        <li><a href="/unit-converter" class="ft-link">Currency Converter</a></li>
+        <li><a href="/unit-converter" class="ft-link">Unit Converter</a></li>
         <li><a href="/word" class="ft-link">Image To Word</a></li>
     </ul>
     </div> 
@@ -919,6 +1052,7 @@
       <h4 class="ft-heading">Legal & Docs</h4>
       <ul class="ft-list">
         <li><a href="/faq" class="ft-link">FAQ</a></li>
+        <li><a href="about" class="ft-link" onclick="showTool('about', null); return false;">About Us</a></li>
       </ul>
     </div>
 
@@ -928,11 +1062,13 @@
     <p class="ft-bottom-text">&copy; <span id="ft-current-year"></span> FlexTools Pro. All rights reserved.</p>
   </div>
 </footer>
-    
 </main>
 
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pulltorefreshjs/0.1.22/index.umd.min.js"></script>
+    <script>
+      document.getElementById('ft-current-year').textContent = new Date().getFullYear();
+    </script>
     <script src="main.js"></script>
     <script src="sw.js"></script>
     <script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }</script>
