@@ -114,14 +114,14 @@
     </div>
 </header>
 
-<div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+<div class="sidebar-overlay" onclick="toggleSidebar(true)"></div>
 
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <div class="logo-wrap" onclick="showTool('home', null)" style="cursor:pointer;">
             <img src="/image/logo.png" alt="FlexTools Logo" class="main-logo">
         </div>
-        <button class="mobile-close" onclick="toggleSidebar()">✕</button>
+        <button class="mobile-close" onclick="toggleSidebar(true)" style="background:transparent; border:1px solid #334155; color:#94a3b8; width:36px; height:36px; border-radius:8px; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center;">✕</button>
     </div>
     
     <nav class="nav-list">

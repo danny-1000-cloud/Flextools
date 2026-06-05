@@ -111,13 +111,14 @@ function showTool(id, btn, isBoot = false, isRefresh = false) {
 
         // 2. THE DARKNESS FIX: Remove the overlay
         // Check if you have a div with a class like 'overlay', 'backdrop', or 'dimmer'
-        const overlay = document.querySelector('.overlay') || document.querySelector('.sidebar-overlay');
+        const overlay = document.querySelector('.sidebar-overlay');
         if (overlay) {
             overlay.classList.remove('active');
-            overlay.classList.remove('show');
-            // If it's controlled by style:
             overlay.style.display = 'none';
         }
+        const btn = document.getElementById('menu-trigger');
+        if (btn) btn.classList.remove('open');
+        document.body.style.overflow = 'auto';
 
         // 3. Check if the "darkness" is actually on the <body> tag
         document.body.classList.remove('menu-open');
@@ -660,13 +661,24 @@ function loadImage(file) {
 }
 
 // 4. SIDEBAR TOGGLE
-function toggleSidebar() {
+function toggleSidebar(forceClose = false) {
     const sb = document.getElementById('sidebar');
     const ov = document.querySelector('.sidebar-overlay');
     const btn = document.getElementById('menu-trigger');
-    if (sb) sb.classList.toggle('open');
-    if (ov) ov.classList.toggle('active');
-    if (btn) btn.classList.toggle('open');
+
+    const isOpen = sb && sb.classList.contains('open');
+
+    if (forceClose || isOpen) {
+        if (sb) sb.classList.remove('open');
+        if (ov) { ov.classList.remove('active'); ov.style.display = 'none'; }
+        if (btn) btn.classList.remove('open');
+        document.body.style.overflow = 'auto';
+    } else {
+        if (sb) sb.classList.add('open');
+        if (ov) { ov.classList.add('active'); ov.style.display = 'block'; }
+        if (btn) btn.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
 }
 
 function toggleFaq(element) {
