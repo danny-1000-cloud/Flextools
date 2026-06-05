@@ -172,10 +172,10 @@ body > .top-bar { display: none; }
 
 /* --- CONTENT AREA --- */
 .content-area {
-    padding: 24px 32px;
+    padding: 0;
     overflow-y: auto;
     flex: 1;
-    background: #f0f4ff;
+    background: #ffffff;
 }
 
 /* Hide all tool sections by default */
@@ -185,13 +185,14 @@ body > .top-bar { display: none; }
 
 .tool-card {
     background: var(--surface);
-    border-radius: 32px;
-    padding: 50px;
-    box-shadow: var(--shadow);
+    border-radius: 0;
+    padding: 32px 40px;
+    box-shadow: none;
     max-width: 100%;
     width: 100%;
-    margin: 0 auto;
-    border: 1px solid var(--border);
+    margin: 0;
+    border: none;
+    border-bottom: 1px solid var(--border);
     display: none;
 }
 
@@ -580,11 +581,50 @@ input, select {
         display: none;
     }
 
-    .mobile-top-bar { 
-        display: flex !important; 
-        position: fixed; top: 0; left: 0; right: 0; height: 60px;
-        background: white; z-index: 1000; border-bottom: 1px solid #e2e8f0;
-        padding: 0 20px; align-items: center; justify-content: space-between;
+    .mobile-top-bar {
+        display: flex !important;
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        height: 56px;
+        background: #0f172a;
+        z-index: 1000;
+        border-bottom: 1px solid #1e293b;
+        padding: 0 16px;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .mobile-nav-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .mobile-nav-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .mobile-wa-btn {
+        background: #25D366;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 6px 12px;
+        border-radius: 999px;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .status-pill {
+        background: #1e293b;
+        color: #4ade80;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        border: 1px solid #334155;
     }
 
     .sidebar {
@@ -670,9 +710,6 @@ input, select {
         margin-top: 20px;
     }
 
-    .content-area {
-        padding: 16px !important;
-    }
 
     /* 1. THE WORKSPACE (Keep the Card look for the Tool only) */
     .tool-box {
@@ -746,11 +783,19 @@ input, select {
     line-height: 1.6;
     }
 
-    .tool-card{
+    .tool-card {
         max-width: 100% !important;
         width: 100% !important;
-        padding: 20px 16px;
-        border-radius: 16px !important;
+        padding: 24px 16px !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+    }
+
+    .content-area {
+        padding: 0 !important;
+        background: #ffffff !important;
     }
 
     .tool-header h1{

@@ -100,12 +100,18 @@
 <body>
 
 <header class="mobile-top-bar">
-    <button class="menu-trigger" onclick="toggleSidebar()" id="menu-trigger" aria-label="Toggle menu">
-    <span class="bar"></span>
-    <span class="bar"></span>
-    <span class="bar"></span>
-    </button>
-    <div class="status-pill">Secure System</div>
+    <div class="mobile-nav-left">
+        <button class="menu-trigger" onclick="toggleSidebar()" id="menu-trigger" aria-label="Toggle menu">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+        <img src="/image/logo.png" alt="FlexTools Logo" style="height:26px; width:auto;">
+    </div>
+    <div class="mobile-nav-right">
+        <div class="status-pill">🔒 Secure</div>
+        <a href="https://wa.me/2348064351312" target="_blank" class="mobile-wa-btn">💬 Help</a>
+    </div>
 </header>
 
 <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
