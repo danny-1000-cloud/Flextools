@@ -1,148 +1,164 @@
-let quill;
+/* ============================================
+   MAIN.JS — FlexTools Pro
+   Version: 2.0 | July 2026
+   ============================================ */
 
+'use strict';
 
-// --- UPDATED WORLD CURRENCY LIST (UNTOUCHED) ---
+/* ============================================
+   CURRENCY DATA
+   ============================================ */
 const currencyData = {
-    "USD": "US Dollar", "CAD": "Canadian Dollar", "BRL": "Brazilian Real", "MXN": "Mexican Peso",
-    "ARS": "Argentine Peso", "EUR": "Euro", "GBP": "British Pound", "CHF": "Swiss Franc",
-    "RUB": "Russian Ruble", "TRY": "Turkish Lira", "SEK": "Swedish Krona", "NGN": "Nigerian Naira",
-    "GHS": "Ghanaian Cedi", "ZAR": "South African Rand", "KES": "Kenyan Shilling", "EGP": "Egyptian Pound",
-    "MAD": "Moroccan Dirham", "JPY": "Japanese Yen", "CNY": "Chinese Yuan", "INR": "Indian Rupee",
-    "AED": "UAE Dirham", "SAR": "Saudi Riyal", "KRW": "South Korean Won", "SGD": "Singapore Dollar",
-    "ILS": "Israeli Shekel", "AUD": "Australian Dollar", "NZD": "New Zealand Dollar"
+    "USD": "US Dollar",        "CAD": "Canadian Dollar",   "BRL": "Brazilian Real",
+    "MXN": "Mexican Peso",     "ARS": "Argentine Peso",    "EUR": "Euro",
+    "GBP": "British Pound",    "CHF": "Swiss Franc",       "RUB": "Russian Ruble",
+    "TRY": "Turkish Lira",     "SEK": "Swedish Krona",     "NGN": "Nigerian Naira",
+    "GHS": "Ghanaian Cedi",    "ZAR": "South African Rand","KES": "Kenyan Shilling",
+    "EGP": "Egyptian Pound",   "MAD": "Moroccan Dirham",   "JPY": "Japanese Yen",
+    "CNY": "Chinese Yuan",     "INR": "Indian Rupee",      "AED": "UAE Dirham",
+    "SAR": "Saudi Riyal",      "KRW": "South Korean Won",  "SGD": "Singapore Dollar",
+    "ILS": "Israeli Shekel",   "AUD": "Australian Dollar", "NZD": "New Zealand Dollar"
 };
 
-window.onload = () => {
-    // 1. DATA INIT (Keep this part as is)
+/* ============================================
+   INIT ON LOAD
+   ============================================ */
+window.addEventListener('load', () => {
+
+    // Populate currency dropdowns
     const fromS = document.getElementById('fromCurrency');
-    const toS = document.getElementById('toCurrency');
-    if (fromS && toS && typeof currencyData !== 'undefined') {
+    const toS   = document.getElementById('toCurrency');
+    if (fromS && toS) {
         for (const [code, name] of Object.entries(currencyData)) {
-            fromS.add(new Option(name, code)); 
-            toS.add(new Option(name, code));
+            fromS.add(new Option(`${code} — ${name}`, code));
+            toS.add(new Option(`${code} — ${name}`, code));
         }
-        fromS.value = "USD"; toS.value = "NGN";
+        fromS.value = "USD";
+        toS.value   = "NGN";
     }
 
-    if (document.getElementById('editor-container') && typeof Quill !== 'undefined') {
-        quill = new Quill('#editor-container', { theme: 'snow' });
+    // Populate crypto-to-currency dropdown
+    const toCryptoSelect = document.getElementById('toCryptoCurrency');
+    if (toCryptoSelect) {
+        for (const [code, name] of Object.entries(currencyData)) {
+            toCryptoSelect.add(new Option(`${code} — ${name}`, code));
+        }
+        toCryptoSelect.value = "NGN";
     }
 
-    // 2. THE NEW ROUTING BRAIN (Place the new code here)
+    // Init doc editor
+    initDocEditor();
+
+    // Routing
     const path = window.location.pathname.replace(/^\/|\/$/g, '');
-    
-    // Priority: Path > Saved Memory > Default
-    let activeTool = path || localStorage.getItem('activeTool') || 'home';
+    const targetEl = document.getElementById(path);
 
-    // Verify the tool ID exists in your HTML
-    if (!document.getElementById(activeTool)) {
-        activeTool = 'currency';
+    if (path && targetEl) {
+        showTool(path, null, true, true);
+    } else {
+        showTool('home', null, true, true);
     }
 
-    // 3. UI RESTORATION (The sidebar logic you already have)
-    const targetBtn = document.querySelector(`[onclick*="'${activeTool}'"]`);
-    if (targetBtn) {
-        const parentCategory = targetBtn.closest('.group-content');
-        if (parentCategory) {
-            parentCategory.classList.add('show'); 
-            const chevron = parentCategory.parentElement.querySelector('.chevron');
-            if (chevron) chevron.style.transform = 'rotate(180deg)';
-        }
-    }
-    
-    // 4. THE LAUNCH
-    showTool(activeTool, targetBtn, true); 
+    // Copyright year
+    const yearEl = document.getElementById('ft-current-year');
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-    // 5. THE REVEAL (This is crucial to match the <head> script)
+    // Reveal page (anti-flicker)
     document.documentElement.style.display = 'block';
 
-    // 6. INIT REFRESHER
-    if (typeof initRefresher === 'function') {
-        initRefresher();
-    }
-};
-  
+    // Pull-to-refresh
+    if (typeof initRefresher === 'function') initRefresher();
+});
 
-// 1. Keep your original showTool function, but add ONE explicit line at the end.
+/* ============================================
+   ROUTING — showTool
+   ============================================ */
 function showTool(id, btn, isBoot = false, isRefresh = false) {
     if (!id) return;
 
-    // FIX: Only push to history if this is a click, NOT a refresh/boot
+    // Update URL (only on real clicks)
     if (!isBoot && !isRefresh) {
         const newPath = id === 'home' ? '/' : `/${id}`;
-        window.history.pushState({tool: id}, '', newPath);
+        window.history.pushState({ tool: id }, '', newPath);
     }
 
-    const displayTitle = id.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-    document.title = `${displayTitle} | FlexTools Pro`;
+    // Update page title
+    const title = id.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    document.title = `${title} | FlexTools Pro`;
 
-   document.querySelectorAll('.tool-card').forEach(card => card.classList.remove('active'));
-   document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-   document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active')); // Add your specific nav class here
+    // Hide all tool cards
+    document.querySelectorAll('.tool-card').forEach(c => c.classList.remove('active'));
 
-    // 2. Add active class to the tool section itself
+    // Remove active from all nav items
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+    // Show target section
     const target = document.getElementById(id);
     if (target) {
         target.classList.add('active');
-        if (!isBoot) {
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        if (!isBoot) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    // 3. THE FIX: If no 'btn' was passed (like during a refresh), find it by its data-target or href
+    // Highlight nav item
     if (btn) {
         btn.classList.add('active');
     } else {
-        // Look for a link that matches the tool ID
-        const autoBtn = document.querySelector(`[data-target="${id}"]`) || 
-                        document.querySelector(`a[href*="${id}"]`);
+        const autoBtn = document.querySelector(`a[href="${id}"]`) ||
+                        document.querySelector(`[onclick*="'${id}'"]`);
         if (autoBtn) autoBtn.classList.add('active');
     }
 
-    
-    // 1. THE REUSE FIX: Explicitly shut the mobile menu
+    // Close mobile sidebar on tool select
     if (!isBoot && window.innerWidth <= 900) {
-        // If your sidebar uses a class like 'active' or 'open'
-        const sidebar = document.querySelector('.sidebar') || document.querySelector('.nav-links');
-        if (sidebar) {
-            sidebar.classList.remove('active');
-            sidebar.classList.remove('open');
-        }
-
-        // 2. THE DARKNESS FIX: Remove the overlay
-        // Check if you have a div with a class like 'overlay', 'backdrop', or 'dimmer'
+        const sidebar = document.getElementById('sidebar');
         const overlay = document.querySelector('.sidebar-overlay');
-        if (overlay) {
-            overlay.classList.remove('active');
-            overlay.style.display = 'none';
-        }
-        const btn = document.getElementById('menu-trigger');
-        if (btn) btn.classList.remove('open');
+        const trigger = document.getElementById('menu-trigger');
+        if (sidebar) sidebar.classList.remove('open');
+        if (overlay) { overlay.classList.remove('active'); overlay.style.display = 'none'; }
+        if (trigger) trigger.classList.remove('open');
         document.body.style.overflow = 'auto';
-
-        // 3. Check if the "darkness" is actually on the <body> tag
-        document.body.classList.remove('menu-open');
-        document.body.classList.remove('sidebar-open');
-        document.body.style.overflow = 'auto'; // Re-enable scrolling if it was locked
     }
 
-    // Update the canonical link so Google knows this is a unique page
-        let canonical = document.querySelector('link[rel="canonical"]');
-        if (!canonical) {
-            canonical = document.createElement('link');
-            canonical.setAttribute('rel', 'canonical');
-            document.head.appendChild(canonical);
-        }
-        canonical.setAttribute('href', window.location.href);
-
+    // Update canonical
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+        canonical = document.createElement('link');
+        canonical.rel = 'canonical';
+        document.head.appendChild(canonical);
+    }
+    canonical.href = window.location.href;
 }
 
+/* ============================================
+   SIDEBAR TOGGLE
+   ============================================ */
+function toggleSidebar(forceClose = false) {
+    const sb  = document.getElementById('sidebar');
+    const ov  = document.querySelector('.sidebar-overlay');
+    const btn = document.getElementById('menu-trigger');
+    const isOpen = sb && sb.classList.contains('open');
 
+    if (forceClose || isOpen) {
+        if (sb)  sb.classList.remove('open');
+        if (ov)  { ov.classList.remove('active'); ov.style.display = 'none'; }
+        if (btn) btn.classList.remove('open');
+        document.body.style.overflow = 'auto';
+    } else {
+        if (sb)  sb.classList.add('open');
+        if (ov)  { ov.classList.add('active'); ov.style.display = 'block'; }
+        if (btn) btn.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+/* ============================================
+   ACCORDION CATEGORIES
+   ============================================ */
 function toggleCategory(header) {
     const content = header.nextElementSibling;
     const chevron = header.querySelector('.chevron');
-    
-    // 1. Close other folders
+
+    // Close all others
     document.querySelectorAll('.group-content').forEach(other => {
         if (other !== content) {
             other.classList.remove('show');
@@ -151,284 +167,409 @@ function toggleCategory(header) {
         }
     });
 
-    // 2. Toggle current folder
+    // Toggle current
     content.classList.toggle('show');
-    
-    // 3. Apply rotation (matches your version)
     if (chevron) {
         chevron.style.transform = content.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0deg)';
     }
 }
- 
 
-// --- UNIVERSAL TASK HANDLER (Manages Spinners & Done Message) ---
+/* ============================================
+   FAQ TOGGLE
+   ============================================ */
+function toggleFaq(element) {
+    const item = element.parentElement;
+    const isActive = item.classList.contains('active');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+    if (!isActive) item.classList.add('active');
+}
+
+/* ============================================
+   BROWSER BACK/FORWARD
+   ============================================ */
+window.onpopstate = function() {
+    const path = window.location.pathname.replace(/^\/|\/$/g, '');
+    showTool(path || 'home', null, true);
+};
+
+/* ============================================
+   UTILITY — TASK HANDLER
+   ============================================ */
 async function processTask(toolName, callback) {
     const btn = event.currentTarget;
-    const originalContent = btn.innerHTML;
-
+    const original = btn.innerHTML;
     try {
         btn.disabled = true;
         btn.innerHTML = `<span class="spinner"></span> Processing...`;
         await callback();
-        showStatus(`✅ ${toolName} Completed!`, "success");
-    } catch (error) {
-        console.error(error);
-        showStatus(`❌ ${toolName} Failed: ${error.message}`, "error");
+        showStatus(`✅ ${toolName} complete!`, 'success');
+    } catch (err) {
+        console.error(err);
+        showStatus(`❌ ${toolName} failed: ${err.message}`, 'error');
     } finally {
         btn.disabled = false;
-        btn.innerHTML = originalContent;
+        btn.innerHTML = original;
     }
 }
 
 function showStatus(message, type) {
-    const statusBox = document.createElement('div');
-    statusBox.className = `status-toast ${type}`;
-    statusBox.innerText = message;
-    document.body.appendChild(statusBox);
-    setTimeout(() => statusBox.remove(), 4000);
+    const toast = document.createElement('div');
+    toast.className = `status-toast ${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
 }
 
-// --- FINANCIAL TOOLS ---
-async function convertCurrency() {
-    const amt = document.getElementById('currAmount').value;
-    const from = document.getElementById('fromCurrency').value;
-    const to = document.getElementById('toCurrency').value;
-    const res = document.getElementById('currResult');
-    if (!amt) return;
-
-    try {
-        const response = await fetch(`https://open.er-api.com/v6/latest/${from}`);
-        const data = await response.json();
-        if (data.result === "success") {
-            const rate = data.rates[to];
-            const result = (amt * rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            res.style.display = "block";
-            res.innerHTML = `${amt} ${from} = <span style="color:#22c55e">${result} ${to}</span>`;
-        }
-    } catch (error) {
-        res.innerHTML = "Error fetching rates.";
-    }
+function triggerDownload(blob, filename) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
 }
 
-function convertUnits() {
-    const val = parseFloat(document.getElementById('unitValue').value);
-    const type = document.getElementById('unitType').value;
-    const resultBox = document.getElementById('unitResult');
-    let result = 0;
-    let unit = "";
-
-    if (isNaN(val)) {
-        resultBox.innerHTML = "Please enter a valid number";
-        return;
-    }
-
-    switch (type) {
-        case "mToFt":
-            result = val * 3.28084;
-            unit = "ft";
-            break;
-        case "ftToM":
-            result = val / 3.28084;
-            unit = "m";
-            break;
-        case "kgToLb":
-            result = val * 2.20462;
-            unit = "lb";
-            break;
-        case "lbToKg":
-            result = val / 2.20462;
-            unit = "kg";
-            break;
-        case "cToF":
-            result = (val * 9/5) + 32;
-            unit = "°F";
-            break;
-        case "fToC":
-            result = (val - 32) * 5/9;
-            unit = "°C";
-            break;
-        case "mbToGb":
-            result = val / 1024;
-            unit = "GB";
-            break;
-        case "gbToMb":
-            result = val * 1024;
-            unit = "MB";
-            break;
-        case "kmToMiles":
-            result = val * 0.621371;
-            unit = "miles"; 
-            break;
-        case "milesToKm":
-            result = val / 0.621371;
-            unit = "km";
-            break;
-    }
-
-    resultBox.innerHTML = `Result: ${result.toFixed(2)} ${unit}`;
-}
-
-// --- IMAGE PROCESSING TOOLS ---
-
-async function processImageToWord() {
-    await processTask("Image to Word", async () => {
-        const file = document.getElementById('wordImageInput').files[0];
-        if (!file) throw new Error("Select an image first.");
-
-        // 1. Perform OCR
-        const { data: { text } } = await Tesseract.recognize(file, 'eng');
-
-        // 2. Display the text in a preview area instead of downloading
-        const previewArea = document.getElementById('wordPreviewArea');
-        const textField = document.getElementById('wordExtractedText');
-        
-        textField.value = text; // Put text in the box
-        previewArea.style.display = 'block'; // Show the preview section
+function loadImage(file) {
+    return new Promise((res, rej) => {
+        const img = new Image();
+        img.onload = () => res(img);
+        img.onerror = rej;
+        img.src = URL.createObjectURL(file);
     });
 }
 
-// 3. New helper to download ONLY when the user is ready
+/* ============================================
+   CURRENCY CONVERTER
+   ============================================ */
+async function convertCurrency() {
+    const amt  = document.getElementById('currAmount').value;
+    const from = document.getElementById('fromCurrency').value;
+    const to   = document.getElementById('toCurrency').value;
+    const res  = document.getElementById('currResult');
+    if (!amt || !from || !to) return;
+
+    res.innerHTML = `<span class="spinner"></span> Fetching rates...`;
+    res.style.display = 'flex';
+
+    try {
+        const r    = await fetch(`https://open.er-api.com/v6/latest/${from}`);
+        const data = await r.json();
+        if (data.result === 'success') {
+            const rate   = data.rates[to];
+            const result = (parseFloat(amt) * rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            res.innerHTML = `${amt} ${from} = <span style="color:#22c55e; margin-left:6px;">${result} ${to}</span>`;
+            res.classList.add('has-result');
+        } else {
+            res.innerHTML = 'Could not fetch rates. Try again.';
+        }
+    } catch {
+        res.innerHTML = 'Network error. Check your connection.';
+    }
+}
+
+/* ============================================
+   CRYPTO CONVERTER
+   ============================================ */
+async function convertCrypto() {
+    const amt  = document.getElementById('cryptoAmount').value;
+    const from = document.getElementById('fromCrypto').value;
+    const to   = document.getElementById('toCryptoCurrency').value.toLowerCase();
+    const res  = document.getElementById('cryptoResult');
+    if (!amt) return;
+
+    res.innerHTML = `<span class="spinner"></span> Fetching crypto rates...`;
+    res.style.display = 'flex';
+
+    try {
+        const r    = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${from}&vs_currencies=${to}`);
+        const data = await r.json();
+        if (data[from] && data[from][to] !== undefined) {
+            const rate   = data[from][to];
+            const result = (parseFloat(amt) * rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            res.innerHTML = `${amt} ${from.toUpperCase()} = <span style="color:#22c55e; margin-left:6px;">${result} ${to.toUpperCase()}</span>`;
+            res.classList.add('has-result');
+        } else {
+            res.innerHTML = 'Could not fetch crypto rates. Try again later.';
+        }
+    } catch {
+        res.innerHTML = 'Network error. Check your connection.';
+    }
+}
+
+/* ============================================
+   UNIT CONVERTER
+   ============================================ */
+function convertUnits() {
+    const val       = parseFloat(document.getElementById('unitValue').value);
+    const type      = document.getElementById('unitType').value;
+    const resultBox = document.getElementById('unitResult');
+
+    if (isNaN(val)) { resultBox.innerHTML = 'Please enter a valid number.'; return; }
+
+    const conversions = {
+        mToFt:     [val * 3.28084,  'ft'],
+        ftToM:     [val / 3.28084,  'm'],
+        kgToLb:    [val * 2.20462,  'lb'],
+        lbToKg:    [val / 2.20462,  'kg'],
+        cToF:      [(val * 9/5) + 32, '°F'],
+        fToC:      [(val - 32) * 5/9, '°C'],
+        mbToGb:    [val / 1024,     'GB'],
+        gbToMb:    [val * 1024,     'MB'],
+        kmToMiles: [val * 0.621371, 'miles'],
+        milesToKm: [val / 0.621371, 'km']
+    };
+
+    const [result, unit] = conversions[type] || [0, ''];
+    resultBox.innerHTML = `<small>Result</small>${result.toFixed(4)} ${unit}`;
+    resultBox.classList.add('has-result');
+}
+
+/* ============================================
+   VAT CALCULATOR
+   ============================================ */
+function updateVatRate() {
+    const sel  = document.getElementById('vatCountry');
+    const rate = document.getElementById('vatRate');
+    if (sel && rate) rate.value = sel.value;
+}
+
+function calculateVAT() {
+    const amount    = parseFloat(document.getElementById('vatAmount').value);
+    const rate      = parseFloat(document.getElementById('vatRate').value);
+    const action    = document.getElementById('vatAction').value;
+    const resultBox = document.getElementById('vatResult');
+
+    if (isNaN(amount) || isNaN(rate)) { resultBox.innerHTML = 'Please enter a valid amount and VAT rate.'; return; }
+
+    const fmt = n => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    if (action === 'add') {
+        const vatAmt = amount * (rate / 100);
+        const total  = amount + vatAmt;
+        resultBox.innerHTML = `<small>VAT Amount (${rate}%)</small>${fmt(vatAmt)}<div style="font-size:0.85rem;color:#64748b;margin-top:8px;font-weight:600;">Total (Inclusive): ${fmt(total)}</div>`;
+    } else {
+        const base   = amount / (1 + rate / 100);
+        const vatAmt = amount - base;
+        resultBox.innerHTML = `<small>VAT Amount (${rate}%)</small>${fmt(vatAmt)}<div style="font-size:0.85rem;color:#64748b;margin-top:8px;font-weight:600;">Base Price (Exclusive): ${fmt(base)}</div>`;
+    }
+    resultBox.classList.add('has-result');
+}
+
+/* ============================================
+   PERCENTAGE CALCULATOR
+   ============================================ */
+function calculatePercentage() {
+    const type      = document.getElementById('percentType').value;
+    const x         = parseFloat(document.getElementById('percentX').value);
+    const y         = parseFloat(document.getElementById('percentY').value);
+    const resultBox = document.getElementById('percentResult');
+
+    if (isNaN(x) || isNaN(y)) { resultBox.innerHTML = 'Please enter valid numbers.'; return; }
+
+    const fmt = n => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    const ops = {
+        basic:       [(x / 100) * y,          `${x}% of ${y} =`,         false],
+        findPercent: [(x / y) * 100,           `${x} is this % of ${y}:`, true],
+        increase:    [y + (y * (x / 100)),     `${y} increased by ${x}% =`, false],
+        decrease:    [y - (y * (x / 100)),     `${y} decreased by ${x}% =`, false]
+    };
+
+    const [result, label, isPercent] = ops[type];
+    resultBox.innerHTML = `<small>${label}</small>${fmt(result)}${isPercent ? '%' : ''}`;
+    resultBox.classList.add('has-result');
+}
+
+/* ============================================
+   BMI CALCULATOR
+   ============================================ */
+function calculateBMI() {
+    const weight    = parseFloat(document.getElementById('bmiWeight').value);
+    const heightCm  = parseFloat(document.getElementById('bmiHeight').value);
+    const resultBox = document.getElementById('bmiResult');
+
+    if (isNaN(weight) || isNaN(heightCm) || heightCm <= 0) {
+        resultBox.innerHTML = 'Please enter valid weight and height.'; return;
+    }
+
+    const bmi = weight / Math.pow(heightCm / 100, 2);
+    const categories = [
+        [18.5, 'Underweight',    '#f59e0b'],
+        [25,   'Healthy Weight', '#22c55e'],
+        [30,   'Overweight',     '#f97316'],
+        [Infinity, 'Obese',      '#ef4444']
+    ];
+    const [, category, color] = categories.find(([limit]) => bmi < limit);
+
+    resultBox.innerHTML = `<small>Your BMI</small>${bmi.toFixed(1)}<div style="font-size:0.85rem;color:${color};margin-top:8px;font-weight:700;">Category: ${category}</div>`;
+    resultBox.classList.add('has-result');
+}
+
+/* ============================================
+   INCOME TAX CALCULATOR
+   ============================================ */
+function calculateIncomeTax() {
+    const country   = document.getElementById('taxCountry').value;
+    const salary    = parseFloat(document.getElementById('taxSalary').value);
+    const resultBox = document.getElementById('taxResult');
+
+    if (isNaN(salary) || salary <= 0) { resultBox.innerHTML = 'Please enter a valid salary.'; return; }
+
+    const brackets = {
+        nigeria:     [[300000,0.07],[300000,0.11],[500000,0.15],[500000,0.19],[1600000,0.21],[Infinity,0.24]],
+        ghana:       [[4824,0],[1320,0.05],[1560,0.10],[36000,0.175],[196740,0.25],[Infinity,0.30]],
+        kenya:       [[288000,0.10],[100000,0.25],[Infinity,0.30]],
+        southafrica: [[237100,0.18],[133500,0.26],[184200,0.31],[Infinity,0.36]],
+        uk:          [[12570,0],[37700,0.20],[99730,0.40],[Infinity,0.45]],
+        usa:         [[11600,0.10],[35550,0.12],[53375,0.22],[Infinity,0.24]]
+    };
+
+    let tax = 0, remaining = salary;
+    for (const [limit, rate] of brackets[country]) {
+        if (remaining <= 0) break;
+        const taxable = Math.min(remaining, limit);
+        tax += taxable * rate;
+        remaining -= taxable;
+    }
+
+    const takeHome    = salary - tax;
+    const effectiveRate = ((tax / salary) * 100).toFixed(1);
+    const fmt = n => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    resultBox.innerHTML = `<small>Estimated Annual Tax</small>${fmt(tax)}<div style="font-size:0.85rem;color:#64748b;margin-top:8px;font-weight:600;">Take-Home: ${fmt(takeHome)} · Effective Rate: ${effectiveRate}%</div>`;
+    resultBox.classList.add('has-result');
+}
+
+/* ============================================
+   IMAGE TO WORD (OCR)
+   ============================================ */
+async function processImageToWord() {
+    await processTask('Image to Word', async () => {
+        const file = document.getElementById('wordImageInput').files[0];
+        if (!file) throw new Error('Please select an image first.');
+        const { data: { text } } = await Tesseract.recognize(file, 'eng');
+        document.getElementById('wordExtractedText').value = text;
+        document.getElementById('wordPreviewArea').style.display = 'block';
+    });
+}
+
 function downloadProcessedWord() {
     const text = document.getElementById('wordExtractedText').value;
-    triggerDownload(new Blob([text], { type: 'application/msword' }), "FlexTools_OCR.doc");
+    triggerDownload(new Blob([text], { type: 'application/msword' }), 'FlexTools_OCR.doc');
 }
 
 function copyToClipboard() {
     const text = document.getElementById('wordExtractedText');
     text.select();
     document.execCommand('copy');
-    alert('Text copied to clipboard!');
+    showStatus('✅ Text copied to clipboard!', 'success');
 }
 
-
+/* ============================================
+   IMAGE COMPRESSOR
+   ============================================ */
 let currentSourceImg = null;
-let isProcessing = false;
+let isProcessing     = false;
 
-/** 
- * Step 1: Initial load 
- */
 async function initCompressor() {
     const input = document.getElementById('compressInput');
     if (!input || !input.files[0]) return;
-
-    // Use the professional loader you already have in FlexTools Pro
     currentSourceImg = await loadImage(input.files[0]);
-    
-    // Reveal the hidden container
     document.getElementById('compressPreviewArea').style.display = 'block';
-    
-    compressImage(); 
+    compressImage();
 }
 
-/** 
- * Step 2: High-speed live preview 
- */
 function compressImage() {
     const pct = document.getElementById('compressQuality').value;
-    document.getElementById('qualityValue').innerText = pct + "%";
-
+    document.getElementById('qualityValue').textContent = pct + '%';
     if (!currentSourceImg || isProcessing) return;
 
-    // Tell the browser to update when the screen is ready (Prevents lag)
     requestAnimationFrame(() => {
         isProcessing = true;
-
         const canvas = document.getElementById('previewCanvas');
-        const ctx = canvas.getContext('2d');
-
-        // Match resolution to image
-        canvas.width = currentSourceImg.width;
+        const ctx    = canvas.getContext('2d');
+        canvas.width  = currentSourceImg.width;
         canvas.height = currentSourceImg.height;
-
-        // Instant GPU-based draw
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(currentSourceImg, 0, 0);
-
-        // Instant size estimation (fast math, no heavy blob creation)
-        const estimatedSize = (currentSourceImg.src.length * (pct / 100) / 1024).toFixed(2);
-        document.getElementById('sizeComparison').innerText = `Estimated Size: ~${estimatedSize} KB`;
-
+        const estimatedKB = (currentSourceImg.src.length * (pct / 100) / 1024).toFixed(1);
+        document.getElementById('sizeComparison').textContent = `Estimated size: ~${estimatedKB} KB`;
         isProcessing = false;
     });
 }
 
-/** 
- * Step 3: Final heavy-lifting only on download 
- */
 async function downloadCompressedImage() {
-    const pct = document.getElementById('compressQuality').value;
-    const offscreenCanvas = document.createElement('canvas');
-    offscreenCanvas.width = currentSourceImg.width;
-    offscreenCanvas.height = currentSourceImg.height;
-    const ctx = offscreenCanvas.getContext('2d');
-    ctx.drawImage(currentSourceImg, 0, 0);
-
-    // Only create the heavy file when user clicks the button
-    offscreenCanvas.toBlob((blob) => {
-        triggerDownload(blob, "FlexTools_Compressed.jpg");
-    }, 'image/jpeg', pct / 100);
+    const pct    = document.getElementById('compressQuality').value;
+    const canvas = document.createElement('canvas');
+    canvas.width  = currentSourceImg.width;
+    canvas.height = currentSourceImg.height;
+    canvas.getContext('2d').drawImage(currentSourceImg, 0, 0);
+    canvas.toBlob(blob => triggerDownload(blob, 'FlexTools_Compressed.jpg'), 'image/jpeg', pct / 100);
 }
 
+/* ============================================
+   IMAGE RESIZER
+   ============================================ */
 async function resizeImage() {
-    await processTask("Resize", async () => {
-        const file = document.getElementById('resizerInput').files[0];
+    await processTask('Image Resize', async () => {
+        const file  = document.getElementById('resizerInput').files[0];
         const width = parseInt(document.getElementById('resizeWidth').value);
-        if (!file || !width) throw new Error("Missing file or width.");
-        const img = await loadImage(file);
+        if (!file || !width) throw new Error('Please select a file and enter a width.');
+        const img    = await loadImage(file);
         const canvas = document.createElement('canvas');
-        const scale = width / img.width;
-        canvas.width = width;
+        const scale  = width / img.width;
+        canvas.width  = width;
         canvas.height = img.height * scale;
         canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-        canvas.toBlob(b => triggerDownload(b, "resized.jpg"), 'image/jpeg');
+        canvas.toBlob(b => triggerDownload(b, 'FlexTools_Resized.jpg'), 'image/jpeg');
     });
 }
 
+/* ============================================
+   FILE FORMAT CONVERTER
+   ============================================ */
 async function convertFile() {
-    await processTask("Format Conversion", async () => {
-        const file = document.getElementById('fileConvInput').files[0];
+    await processTask('File Conversion', async () => {
+        const file   = document.getElementById('fileConvInput').files[0];
         const format = document.getElementById('fileToFormat').value;
-        if (!file) throw new Error("No file selected.");
-        const img = await loadImage(file);
+        if (!file) throw new Error('Please select a file.');
+        const img    = await loadImage(file);
         const canvas = document.createElement('canvas');
-        canvas.width = img.width; canvas.height = img.height;
+        canvas.width  = img.width;
+        canvas.height = img.height;
         canvas.getContext('2d').drawImage(img, 0, 0);
-        canvas.toBlob(b => triggerDownload(b, `converted.${format.split('/')[1]}`), format);
+        const ext = format.split('/')[1];
+        canvas.toBlob(b => triggerDownload(b, `FlexTools_Converted.${ext}`), format);
     });
 }
 
-// --- PDF & DOC TOOLS ---
-
-let pdfBytes = null;
+/* ============================================
+   PDF EDITOR
+   ============================================ */
+let pdfBytes     = null;
 let pdfPageImage = null;
-let textLayers = []; // Array to hold multiple text objects
+let textLayers   = [];
 
 async function initPDFEditor() {
     const file = document.getElementById('pdfEditInput').files[0];
     if (!file) return;
 
-    document.getElementById('pdfControls').style.display = 'block';
-    document.getElementById('pdfViewContainer').style.display = 'block';
-    document.getElementById('pdfDownloadBtn').style.display = 'block';
-    document.getElementById('layerContainer').style.display = 'block';
+    ['pdfControls','pdfViewContainer','pdfDownloadBtn','layerContainer'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'block';
+    });
 
     pdfBytes = await file.arrayBuffer();
-    
-    // Render the PDF background
-    const loadingTask = pdfjsLib.getDocument({data: pdfBytes});
-    const pdf = await loadingTask.promise;
-    const page = await pdf.getPage(1);
-    const viewport = page.getViewport({scale: 1.5});
-    
-    const canvas = document.getElementById('pdfCanvas');
-    const context = canvas.getContext('2d');
-    canvas.height = viewport.height;
-    canvas.width = viewport.width;
+    const pdf      = await pdfjsLib.getDocument({ data: pdfBytes }).promise;
+    const page     = await pdf.getPage(1);
+    const viewport = page.getViewport({ scale: 1.5 });
+    const canvas   = document.getElementById('pdfCanvas');
+    const ctx      = canvas.getContext('2d');
+    canvas.height  = viewport.height;
+    canvas.width   = viewport.width;
+    await page.render({ canvasContext: ctx, viewport }).promise;
 
-    await page.render({canvasContext: context, viewport: viewport}).promise;
-    
-    pdfPageImage = new Image();
-    pdfPageImage.src = canvas.toDataURL();
+    pdfPageImage       = new Image();
+    pdfPageImage.src   = canvas.toDataURL();
     pdfPageImage.onload = () => drawPreview();
 }
 
@@ -436,283 +577,247 @@ function addTextLayer() {
     const textInput = document.getElementById('pdfTextToAdd');
     const x = document.getElementById('textX').value;
     const y = document.getElementById('textY').value;
+    if (!textInput.value.trim()) return;
 
-    if (!textInput.value) return;
+    textLayers.push({ content: textInput.value.trim(), x: parseInt(x), y: parseInt(y) });
 
-    // Add to our data array
-    textLayers.push({
-        content: textInput.value,
-        x: parseInt(x),
-        y: parseInt(y)
-    });
-
-    // Update the UI list
     const list = document.getElementById('layerList');
-    const li = document.createElement('li');
-    li.style = "background: #eee; margin-bottom: 5px; padding: 5px; border-radius: 4px; display: flex; justify-content: space-between;";
-    li.innerHTML = `<span>"${textInput.value}" at ${x}, ${y}</span> <button onclick="removeLayer(${textLayers.length - 1})" style="color: red; border: none; background: none; cursor: pointer;">Delete</button>`;
+    const li   = document.createElement('li');
+    li.style.cssText = 'background:#f1f5f9;margin-bottom:5px;padding:8px 12px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;';
+    li.innerHTML = `<span>"${textInput.value}" at (${x}, ${y})</span><button onclick="removeLayer(${textLayers.length - 1})" style="color:#ef4444;border:none;background:none;cursor:pointer;font-weight:700;">✕</button>`;
     list.appendChild(li);
 
-    textInput.value = ""; // Clear input for next text
+    textInput.value = '';
     drawPreview();
 }
 
 function removeLayer(index) {
     textLayers.splice(index, 1);
-    updateLayerListUI();
-    drawPreview();
-}
-
-function updateLayerListUI() {
     const list = document.getElementById('layerList');
-    list.innerHTML = "";
+    list.innerHTML = '';
     textLayers.forEach((layer, i) => {
         const li = document.createElement('li');
-        li.style = "background: #eee; margin-bottom: 5px; padding: 5px; border-radius: 4px; display: flex; justify-content: space-between;";
-        li.innerHTML = `<span>"${layer.content}"</span> <button onclick="removeLayer(${i})" style="color: red; border: none; background: none;">Delete</button>`;
+        li.style.cssText = 'background:#f1f5f9;margin-bottom:5px;padding:8px 12px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;';
+        li.innerHTML = `<span>"${layer.content}"</span><button onclick="removeLayer(${i})" style="color:#ef4444;border:none;background:none;cursor:pointer;font-weight:700;">✕</button>`;
         list.appendChild(li);
     });
+    drawPreview();
 }
 
 function drawPreview() {
     const canvas = document.getElementById('pdfCanvas');
-    const ctx = canvas.getContext('2d');
+    const ctx    = canvas.getContext('2d');
     if (!pdfPageImage) return;
-
-    // 1. Draw Background
     ctx.drawImage(pdfPageImage, 0, 0);
-
-    // 2. Draw Current (unsaved) text in Blue so user sees it moving
+    ctx.font      = '22px Arial';
+    ctx.fillStyle = '#3b82f6';
     const currentText = document.getElementById('pdfTextToAdd').value;
     const currX = document.getElementById('textX').value;
     const currY = document.getElementById('textY').value;
-    
-    ctx.font = "24px Arial";
-    ctx.fillStyle = "blue";
     ctx.fillText(currentText, currX, currY);
-
-    // 3. Draw all Saved Layers in Black
-    ctx.fillStyle = "black";
-    textLayers.forEach(layer => {
-        ctx.fillText(layer.content, layer.x, layer.y);
-    });
+    ctx.fillStyle = '#0f172a';
+    textLayers.forEach(l => ctx.fillText(l.content, l.x, l.y));
 }
 
 async function downloadEditedPDF() {
     const { PDFDocument, rgb } = PDFLib;
-    const existingPdfDoc = await PDFDocument.load(pdfBytes);
-    const firstPage = existingPdfDoc.getPages()[0];
-    const { width, height } = firstPage.getSize();
-    const canvas = document.getElementById('pdfCanvas');
+    const doc       = await PDFDocument.load(pdfBytes);
+    const page      = doc.getPages()[0];
+    const { width, height } = page.getSize();
+    const canvas    = document.getElementById('pdfCanvas');
 
-    // Add every layer to the actual PDF
     for (const layer of textLayers) {
-        firstPage.drawText(layer.content, {
+        page.drawText(layer.content, {
             x: layer.x * (width / canvas.width),
             y: height - (layer.y * (height / canvas.height)),
-            size: 20,
-            color: rgb(0, 0, 0),
+            size: 18,
+            color: rgb(0, 0, 0)
         });
     }
 
-    const modifiedPdfBytes = await existingPdfDoc.save();
-    const blob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
-    triggerDownload(blob, "FlexTools_Final.pdf");
+    const bytes = await doc.save();
+    triggerDownload(new Blob([bytes], { type: 'application/pdf' }), 'FlexTools_Edited.pdf');
 }
 
+/* ============================================
+   MERGE PDF
+   ============================================ */
 async function mergePDFs() {
-    await processTask("Merge PDF", async () => {
+    await processTask('Merge PDF', async () => {
         const files = document.getElementById('mergeInput').files;
-        if (files.length < 2) throw new Error("Select 2+ PDFs");
-        const mergedPdf = await PDFLib.PDFDocument.create();
-        for (let f of files) {
-            const b = await f.arrayBuffer();
-            const p = await PDFLib.PDFDocument.load(b);
-            const pages = await mergedPdf.copyPages(p, p.getPageIndices());
-            pages.forEach(pg => mergedPdf.addPage(pg));
+        if (files.length < 2) throw new Error('Please select at least 2 PDF files.');
+        const merged = await PDFLib.PDFDocument.create();
+        for (const file of files) {
+            const bytes = await file.arrayBuffer();
+            const pdf   = await PDFLib.PDFDocument.load(bytes);
+            const pages = await merged.copyPages(pdf, pdf.getPageIndices());
+            pages.forEach(p => merged.addPage(p));
         }
-        const pdfBytes = await mergedPdf.save();
-        triggerDownload(new Blob([pdfBytes], { type: 'application/pdf' }), "Merged.pdf");
+        const bytes = await merged.save();
+        triggerDownload(new Blob([bytes], { type: 'application/pdf' }), 'FlexTools_Merged.pdf');
     });
 }
 
+/* ============================================
+   SPLIT PDF
+   ============================================ */
 async function splitPDF() {
-    await processTask("Split PDF", async () => {
-        const file = document.getElementById('splitInput').files[0];
+    await processTask('Split PDF', async () => {
+        const file    = document.getElementById('splitInput').files[0];
         const pageNum = parseInt(document.getElementById('splitPage').value) - 1;
-        if (!file) throw new Error("No PDF selected.");
-        const bytes = await file.arrayBuffer();
-        const pdfDoc = await PDFLib.PDFDocument.load(bytes);
+        if (!file) throw new Error('Please select a PDF file.');
+        const bytes  = await file.arrayBuffer();
+        const src    = await PDFLib.PDFDocument.load(bytes);
         const newPdf = await PDFLib.PDFDocument.create();
-        const [page] = await newPdf.copyPages(pdfDoc, [pageNum]);
+        const [page] = await newPdf.copyPages(src, [pageNum]);
         newPdf.addPage(page);
-        const pdfBytes = await newPdf.save();
-        triggerDownload(new Blob([pdfBytes]), "Split_Page.pdf");
+        const out = await newPdf.save();
+        triggerDownload(new Blob([out], { type: 'application/pdf' }), 'FlexTools_Page.pdf');
     });
 }
 
+/* ============================================
+   PDF TO JPG
+   ============================================ */
+async function convertPDFtoJPG() {
+    await processTask('PDF to JPG', async () => {
+        const file    = document.getElementById('pdfToJpgInput').files[0];
+        const pageNum = parseInt(document.getElementById('pdfToJpgPage').value);
+        if (!file) throw new Error('Please select a PDF file.');
+
+        const bytes       = await file.arrayBuffer();
+        const pdf         = await pdfjsLib.getDocument({ data: bytes }).promise;
+        const page        = await pdf.getPage(pageNum);
+        const viewport    = page.getViewport({ scale: 1.5 });
+        const canvas      = document.getElementById('pdfToJpgCanvas');
+        const ctx         = canvas.getContext('2d');
+        canvas.width      = viewport.width;
+        canvas.height     = viewport.height;
+        await page.render({ canvasContext: ctx, viewport }).promise;
+
+        document.getElementById('pdfToJpgResult').style.display = 'block';
+        showStatus('✅ Page rendered. Click Download to save.', 'success');
+    });
+}
+
+function downloadPDFasJPG() {
+    const canvas = document.getElementById('pdfToJpgCanvas');
+    canvas.toBlob(blob => triggerDownload(blob, 'FlexTools_Page.jpg'), 'image/jpeg', 0.92);
+}
+
+/* ============================================
+   PDF PASSWORD PROTECT
+   ============================================ */
+async function protectPDF() {
+    const file    = document.getElementById('pdfProtectInput').files[0];
+    const pass    = document.getElementById('pdfPassword').value;
+    const confirm = document.getElementById('pdfPasswordConfirm').value;
+    const res     = document.getElementById('pdfProtectResult');
+
+    if (!file)              { showStatus('❌ Please select a PDF file.', 'error'); return; }
+    if (!pass)              { showStatus('❌ Please enter a password.', 'error'); return; }
+    if (pass !== confirm)   { showStatus('❌ Passwords do not match.', 'error'); return; }
+
+    res.style.display = 'flex';
+    res.innerHTML = `<span class="spinner"></span> Encrypting PDF...`;
+
+    try {
+        const bytes  = await file.arrayBuffer();
+        const doc    = await PDFLib.PDFDocument.load(bytes);
+        const output = await doc.save({
+            userPassword:  pass,
+            ownerPassword: pass,
+            permissions: {
+                printing:       'highResolution',
+                modifying:       false,
+                copying:         false,
+                annotating:      false,
+                fillingForms:    false,
+                contentAccessibility: false,
+                documentAssembly:     false
+            }
+        });
+        triggerDownload(new Blob([output], { type: 'application/pdf' }), 'FlexTools_Protected.pdf');
+        res.innerHTML = '🔐 PDF protected and downloaded successfully!';
+        res.classList.add('has-result');
+    } catch (err) {
+        console.error(err);
+        res.innerHTML = '❌ Failed to protect PDF. Please try a different file.';
+        showStatus('❌ PDF protection failed.', 'error');
+    }
+}
+
+/* ============================================
+   IMAGE TO PDF
+   ============================================ */
 async function downloadPDF() {
-    await processTask("Image to PDF", async () => {
+    await processTask('Image to PDF', async () => {
         const file = document.getElementById('pdfImageInput').files[0];
-        if (!file) throw new Error("No image selected.");
+        if (!file) throw new Error('Please select an image file.');
         const { jsPDF } = window.jspdf;
-        const imgData = await new Promise(res => {
-            const r = new FileReader(); r.onload = e => res(e.target.result); r.readAsDataURL(file);
+        const imgData = await new Promise((res, rej) => {
+            const r = new FileReader();
+            r.onload  = e => res(e.target.result);
+            r.onerror = rej;
+            r.readAsDataURL(file);
         });
         const doc = new jsPDF();
         doc.addImage(imgData, 'JPEG', 10, 10, 190, 0);
-        doc.save("Export.pdf");
+        doc.save('FlexTools_Image.pdf');
     });
 }
 
+/* ============================================
+   DOC EDITOR
+   ============================================ */
+let quill = null;
 
 function initDocEditor() {
     const container = document.getElementById('editor-container');
-    
-    // 1. Safety check: Does the container exist?
     if (!container) return;
-
-    // 2. Check if a toolbar already exists inside the wrapper
-    // Quill adds a div with class "ql-toolbar" above the container
     const existingToolbar = container.parentElement.querySelector('.ql-toolbar');
-    
-    if (existingToolbar || window.myQuillEditor) {
-        console.log("Editor already exists. Skipping to avoid double toolbar.");
-        return; 
-    }
-
-    // 3. Clear any "ghost" HTML inside the container just in case
-    container.innerHTML = "";
+    if (existingToolbar || window.myQuillEditor) return;
+    container.innerHTML = '';
 
     try {
         window.myQuillEditor = new Quill('#editor-container', {
             theme: 'snow',
             modules: {
                 toolbar: [
-                    [{ 'header': [1, 2, false] }],
-                    ['bold', 'italic', 'underline'],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ header: [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ list: 'ordered' }, { list: 'bullet' }],
+                    [{ align: [] }],
                     ['clean']
                 ]
             }
         });
-        console.log("Doc Editor initialized successfully.");
+        quill = window.myQuillEditor;
     } catch (err) {
-        console.error("Quill Init Error:", err);
+        console.error('Quill init error:', err);
     }
 }
 
-// Call it on page load
-window.addEventListener('load', initDocEditor);
-
-
-// 2. Import .docx and convert to "Live" Editable Text
 async function importWordFile(input) {
     const file = input.files[0];
     if (!file) return;
-
-    const arrayBuffer = await file.arrayBuffer();
-    
-    // Mammoth parses the Word file into clean HTML
-    mammoth.convertToHtml({ arrayBuffer: arrayBuffer })
-        .then(function(result) {
-            quill.clipboard.dangerouslyPasteHTML(result.value);
+    const buffer = await file.arrayBuffer();
+    mammoth.convertToHtml({ arrayBuffer: buffer })
+        .then(result => {
+            const editor = window.myQuillEditor || quill;
+            if (editor) editor.clipboard.dangerouslyPasteHTML(result.value);
         })
-        .catch(function(err) {
+        .catch(err => {
             console.error(err);
-            alert("Error: Could not read Word document.");
+            showStatus('❌ Could not read Word document.', 'error');
         });
 }
 
-// 3. Export the "Live" edits back to a real Word File
 function downloadDocAsWord() {
-    const content = quill.root.innerHTML;
-    
-    // Create a basic HTML document structure for the converter
-    const htmlString = `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head><meta charset="utf-8"></head>
-        <body>${content}</body>
-        </html>
-    `;
-
-    // Convert the editor content to a Word Blob
-    const docxBlob = htmlDocx.asBlob(htmlString);
-    
-    // Use your existing download helper
-    triggerDownload(docxBlob, "FlexTools_Edited.docx");
+    const editor  = window.myQuillEditor || quill;
+    if (!editor)  { showStatus('❌ Editor not ready.', 'error'); return; }
+    const content = editor.root.innerHTML;
+    const html    = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"></head><body>${content}</body></html>`;
+    const blob    = htmlDocx.asBlob(html);
+    triggerDownload(blob, 'FlexTools_Document.docx');
 }
-
-// --- HELPERS (UNTOUCHED LOGIC) ---
-function triggerDownload(blob, filename) {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    a.click();
-}
-
-function loadImage(file) {
-    return new Promise(res => {
-        const img = new Image();
-        img.src = URL.createObjectURL(file);
-        img.onload = () => res(img);
-    });
-}
-
-// 4. SIDEBAR TOGGLE
-function toggleSidebar(forceClose = false) {
-    const sb = document.getElementById('sidebar');
-    const ov = document.querySelector('.sidebar-overlay');
-    const btn = document.getElementById('menu-trigger');
-
-    const isOpen = sb && sb.classList.contains('open');
-
-    if (forceClose || isOpen) {
-        if (sb) sb.classList.remove('open');
-        if (ov) { ov.classList.remove('active'); ov.style.display = 'none'; }
-        if (btn) btn.classList.remove('open');
-        document.body.style.overflow = 'auto';
-    } else {
-        if (sb) sb.classList.add('open');
-        if (ov) { ov.classList.add('active'); ov.style.display = 'block'; }
-        if (btn) btn.classList.add('open');
-        document.body.style.overflow = 'hidden';
-    }
-}
-
-function toggleFaq(element) {
-    const item = element.parentElement;
-    item.classList.toggle('active');
-    
-    // Optional: Close other FAQs when one opens
-    document.querySelectorAll('.faq-item').forEach(other => {
-        if (other !== item) other.classList.remove('active');
-    });
-}
-
-
-// This listens for the browser's Back/Forward buttons
-window.onpopstate = function(event) {
-    const path = window.location.pathname.replace(/^\/|\/$/g, '');
-    showTool(path || 'home', null, true);
-};
-
-window.addEventListener('load', () => {
-    // 1. Grab the path (e.g., 'pdf-editor')
-    const path = window.location.pathname.replace(/^\/|\/$/g, '');
-    
-    // 2. Check if the path is a real tool ID in your HTML
-    const targetElement = document.getElementById(path);
-
-    if (path && targetElement) {
-        showTool(path, null, true, true);
-    } else {
-        showTool('home', null, true, true);
-    }
-
-    const ftYearSpan = document.getElementById("ft-current-year");
-    if (ftYearSpan) {
-        ftYearSpan.textContent = new Date().getFullYear();
-    } 
-});
