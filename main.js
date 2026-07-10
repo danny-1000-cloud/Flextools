@@ -412,30 +412,121 @@ function calculateIncomeTax() {
     const salary    = parseFloat(document.getElementById('taxSalary').value);
     const resultBox = document.getElementById('taxResult');
 
-    if (isNaN(salary) || salary <= 0) { resultBox.innerHTML = 'Please enter a valid salary.'; return; }
+    if (isNaN(salary) || salary <= 0) {
+        resultBox.innerHTML = 'Please enter a valid salary.';
+        return;
+    }
 
+    // Tax brackets per country
+    // Format: [limit, rate] — limit is max income in this bracket
     const brackets = {
+        // AFRICA
         nigeria:     [[300000,0.07],[300000,0.11],[500000,0.15],[500000,0.19],[1600000,0.21],[Infinity,0.24]],
         ghana:       [[4824,0],[1320,0.05],[1560,0.10],[36000,0.175],[196740,0.25],[Infinity,0.30]],
         kenya:       [[288000,0.10],[100000,0.25],[Infinity,0.30]],
         southafrica: [[237100,0.18],[133500,0.26],[184200,0.31],[Infinity,0.36]],
+        ethiopia:    [[7200,0],[7800,0.10],[16800,0.15],[28800,0.20],[42000,0.25],[Infinity,0.35]],
+        tanzania:    [[2040000,0],[4320000,0.08],[6480000,0.20],[8640000,0.25],[Infinity,0.30]],
+        uganda:      [[2820000,0],[5040000,0.10],[Infinity,0.30]],
+        rwanda:      [[360000,0],[1200000,0.20],[Infinity,0.30]],
+        egypt:       [[15000,0],[15000,0.10],[30000,0.15],[30000,0.20],[Infinity,0.25]],
+        morocco:     [[30000,0],[50000,0.10],[60000,0.20],[80000,0.30],[180000,0.34],[Infinity,0.38]],
+        senegal:     [[630000,0],[1500000,0.20],[4000000,0.30],[Infinity,0.40]],
+        cameroon:    [[2000000,0],[3000000,0.11],[5000000,0.165],[Infinity,0.385]],
+
+        // EUROPE
         uk:          [[12570,0],[37700,0.20],[99730,0.40],[Infinity,0.45]],
-        usa:         [[11600,0.10],[35550,0.12],[53375,0.22],[Infinity,0.24]]
+        germany:     [[10908,0],[52882,0.14],[277825,0.42],[Infinity,0.45]],
+        france:      [[10777,0],[27478,0.11],[78570,0.30],[168994,0.41],[Infinity,0.45]],
+        netherlands: [[37149,0.0915],[73031,0.3693],[Infinity,0.495]],
+        spain:       [[12450,0.19],[7750,0.24],[15000,0.30],[24800,0.37],[Infinity,0.45]],
+        italy:       [[15000,0.23],[13000,0.25],[27000,0.35],[Infinity,0.43]],
+        sweden:      [[614000,0.32],[Infinity,0.52]],
+        norway:      [[198349,0.221],[Infinity,0.476]],
+        denmark:     [[Infinity,0.37]],
+        ireland:     [[40000,0.20],[Infinity,0.40]],
+        portugal:    [[7479,0.1325],[5137,0.18],[5025,0.23],[7073,0.26],[31502,0.3288],[Infinity,0.48]],
+        poland:      [[120000,0.12],[Infinity,0.32]],
+
+        // AMERICAS
+        usa:         [[11600,0.10],[35550,0.12],[53375,0.22],[100125,0.24],[89075,0.32],[185950,0.35],[Infinity,0.37]],
+        canada:      [[53359,0.15],[53360,0.205],[64533,0.26],[70246,0.29],[Infinity,0.33]],
+        brazil:      [[22847.76,0],[33919.80,0.075],[45012.60,0.15],[55976.16,0.225],[Infinity,0.275]],
+        mexico:      [[8952.49,0.0192],[75984.55,0.064],[Infinity,0.35]],
+        argentina:   [[173834.61,0.05],[173834.61,0.09],[260751.91,0.12],[Infinity,0.35]],
+        colombia:    [[41654000,0],[Infinity,0.39]],
+
+        // ASIA PACIFIC
+        india:       [[250000,0],[250000,0.05],[500000,0.20],[Infinity,0.30]],
+        australia:   [[18200,0],[26800,0.19],[80000,0.325],[105000,0.37],[Infinity,0.45]],
+        newzealand:  [[14000,0.105],[34000,0.175],[48000,0.30],[70000,0.33],[Infinity,0.39]],
+        singapore:   [[20000,0],[10000,0.02],[10000,0.035],[40000,0.07],[40000,0.115],[40000,0.15],[40000,0.18],[Infinity,0.22]],
+        pakistan:    [[600000,0],[400000,0.05],[700000,0.10],[700000,0.15],[2600000,0.20],[Infinity,0.25]],
+        bangladesh:  [[300000,0],[100000,0.05],[300000,0.10],[400000,0.15],[Infinity,0.20]],
+        philippines: [[250000,0],[150000,0.15],[500000,0.20],[500000,0.25],[3600000,0.30],[Infinity,0.35]],
+        indonesia:   [[60000000,0.05],[190000000,0.15],[250000000,0.25],[Infinity,0.30]],
+
+        // MIDDLE EAST
+        uae:         [[Infinity,0]], // No income tax
+        saudiarabia: [[Infinity,0]], // No income tax
+        israel:      [[75480,0.10],[13560,0.14],[59760,0.20],[93840,0.31],[133560,0.35],[Infinity,0.47]],
+        turkey:      [[110000,0.15],[170000,0.20],[880000,0.27],[2000000,0.35],[Infinity,0.40]]
     };
 
-    let tax = 0, remaining = salary;
-    for (const [limit, rate] of brackets[country]) {
+    const countryBrackets = brackets[country];
+    if (!countryBrackets) {
+        resultBox.innerHTML = 'Tax data not available for this country yet.';
+        return;
+    }
+
+    let tax = 0;
+    let remaining = salary;
+
+    for (const [limit, rate] of countryBrackets) {
         if (remaining <= 0) break;
         const taxable = Math.min(remaining, limit);
         tax += taxable * rate;
         remaining -= taxable;
     }
 
-    const takeHome    = salary - tax;
-    const effectiveRate = ((tax / salary) * 100).toFixed(1);
-    const fmt = n => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const takeHome     = salary - tax;
+    const effectiveRate = salary > 0 ? ((tax / salary) * 100).toFixed(1) : 0;
+    const fmt = n => n.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
 
-    resultBox.innerHTML = `<small>Estimated Annual Tax</small>${fmt(tax)}<div style="font-size:0.85rem;color:#64748b;margin-top:8px;font-weight:600;">Take-Home: ${fmt(takeHome)} · Effective Rate: ${effectiveRate}%</div>`;
+    // Special message for zero tax countries
+    const zeroTaxCountries = ['uae', 'saudiarabia'];
+    if (zeroTaxCountries.includes(country)) {
+        resultBox.innerHTML = `
+            <small>Estimated Annual Tax</small>
+            ${fmt(0)}
+            <div style="font-size:0.85rem;color:#16a34a;margin-top:8px;font-weight:600;">
+                ✅ This country has no personal income tax.
+                Take-Home: ${fmt(salary)} (100% of salary)
+            </div>
+            <div style="font-size:0.75rem;color:#94a3b8;margin-top:6px;">
+                Note: This is an estimate. Actual tax may vary based on 
+                individual allowances and reliefs.
+            </div>
+        `;
+        resultBox.classList.add('has-result');
+        return;
+    }
+
+    resultBox.innerHTML = `
+        <small>Estimated Annual Tax</small>
+        ${fmt(tax)}
+        <div style="font-size:0.85rem;color:#64748b;margin-top:8px;font-weight:600;">
+            Take-Home: ${fmt(takeHome)} · Effective Rate: ${effectiveRate}%
+        </div>
+        <div style="font-size:0.75rem;color:#94a3b8;margin-top:6px;">
+            Note: This is an estimate based on standard tax bands. 
+            Actual tax may vary based on allowances, reliefs and 
+            deductions specific to your situation.
+        </div>
+    `;
     resultBox.classList.add('has-result');
 }
 

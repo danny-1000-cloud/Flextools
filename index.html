@@ -551,21 +551,125 @@
             <div class="input-group">
                 <label>Country / VAT Rate</label>
                 <select id="vatCountry" onchange="updateVatRate()">
-                    <option value="7.5">Nigeria — 7.5%</option>
-                    <option value="15">Ghana — 15%</option>
-                    <option value="15">South Africa — 15%</option>
-                    <option value="16">Kenya — 16%</option>
-                    <option value="20">United Kingdom — 20%</option>
-                    <option value="19">Germany — 19%</option>
-                    <option value="20">France — 20%</option>
-                    <option value="21">Spain — 21%</option>
-                    <option value="22">Italy — 22%</option>
-                    <option value="10">Canada GST — 10%</option>
-                    <option value="10">Australia GST — 10%</option>
-                    <option value="18">India GST — 18%</option>
-                    <option value="5">UAE — 5%</option>
-                    <option value="15">Egypt — 15%</option>
-                    <option value="0">Custom Rate</option>
+                    <optgroup label="🌍 Africa">
+                        <option value="7.5">Nigeria — 7.5%</option>
+                        <option value="15">Ghana — 15%</option>
+                        <option value="15">South Africa — 15%</option>
+                        <option value="16">Kenya — 16%</option>
+                        <option value="15">Egypt — 15%</option>
+                        <option value="20">Morocco — 20%</option>
+                        <option value="18">Tanzania — 18%</option>
+                        <option value="18">Uganda — 18%</option>
+                        <option value="18">Rwanda — 18%</option>
+                        <option value="18">Zambia — 16%</option>
+                        <option value="15">Botswana — 14%</option>
+                        <option value="15">Namibia — 15%</option>
+                        <option value="15">Cameroon — 19.25%</option>
+                        <option value="18">Senegal — 18%</option>
+                        <option value="18">Ivory Coast — 18%</option>
+                        <option value="18">Ethiopia — 15%</option>
+                        <option value="16">Angola — 14%</option>
+                        <option value="18">Mozambique — 17%</option>
+                        <option value="15">Tunisia — 19%</option>
+                        <option value="19">Algeria — 19%</option>
+                    </optgroup>
+                    <optgroup label="🌍 Middle East">
+                        <option value="5">UAE — 5%</option>
+                        <option value="15">Saudi Arabia — 15%</option>
+                        <option value="16">Jordan — 16%</option>
+                        <option value="11">Lebanon — 11%</option>
+                        <option value="10">Qatar — 10%</option>
+                        <option value="5">Bahrain — 10%</option>
+                        <option value="5">Kuwait — 0% (No VAT)</option>
+                        <option value="5">Oman — 5%</option>
+                        <option value="17">Israel — 17%</option>
+                        <option value="18">Turkey — 20%</option>
+                        <option value="10">Iraq — 10%</option>
+                        <option value="10">Iran — 10%</option>
+                    </optgroup>
+                    <optgroup label="🌍 Europe">
+                        <option value="20">United Kingdom — 20%</option>
+                        <option value="19">Germany — 19%</option>
+                        <option value="20">France — 20%</option>
+                        <option value="21">Spain — 21%</option>
+                        <option value="22">Italy — 22%</option>
+                        <option value="21">Netherlands — 21%</option>
+                        <option value="21">Belgium — 21%</option>
+                        <option value="23">Portugal — 23%</option>
+                        <option value="24">Greece — 24%</option>
+                        <option value="25">Sweden — 25%</option>
+                        <option value="25">Denmark — 25%</option>
+                        <option value="24">Finland — 24%</option>
+                        <option value="25">Norway — 25%</option>
+                        <option value="23">Poland — 23%</option>
+                        <option value="21">Czech Republic — 21%</option>
+                        <option value="27">Hungary — 27%</option>
+                        <option value="20">Austria — 20%</option>
+                        <option value="7.7">Switzerland — 8.1%</option>
+                        <option value="20">Romania — 19%</option>
+                        <option value="20">Ukraine — 20%</option>
+                        <option value="20">Russia — 20%</option>
+                        <option value="21">Slovakia — 20%</option>
+                        <option value="22">Croatia — 25%</option>
+                        <option value="20">Bulgaria — 20%</option>
+                        <option value="20">Serbia — 20%</option>
+                        <option value="18">Lithuania — 21%</option>
+                        <option value="20">Latvia — 21%</option>
+                        <option value="20">Estonia — 22%</option>
+                        <option value="25">Iceland — 24%</option>
+                        <option value="21">Ireland — 23%</option>
+                        <option value="18">Luxembourg — 17%</option>
+                        <option value="18">Malta — 18%</option>
+                        <option value="18">Cyprus — 19%</option>
+                        <option value="22">Slovenia — 22%</option>
+                    </optgroup>
+                    <optgroup label="🌎 Americas">
+                        <option value="5">Canada GST — 5%</option>
+                        <option value="0">United States — 0% (No Federal VAT)</option>
+                        <option value="16">Mexico — 16%</option>
+                        <option value="12">Brazil — 12% (avg)</option>
+                        <option value="21">Argentina — 21%</option>
+                        <option value="19">Colombia — 19%</option>
+                        <option value="18">Peru — 18%</option>
+                        <option value="12">Chile — 19%</option>
+                        <option value="12">Ecuador — 12%</option>
+                        <option value="22">Uruguay — 22%</option>
+                        <option value="10">Paraguay — 10%</option>
+                        <option value="13">Bolivia — 13%</option>
+                        <option value="16">Venezuela — 16%</option>
+                        <option value="13">Costa Rica — 13%</option>
+                        <option value="15">Guatemala — 12%</option>
+                        <option value="15">Honduras — 15%</option>
+                        <option value="15">El Salvador — 13%</option>
+                        <option value="15">Nicaragua — 15%</option>
+                        <option value="7">Panama — 7%</option>
+                        <option value="16.5">Dominican Republic — 18%</option>
+                        <option value="16">Jamaica — 15%</option>
+                        <option value="15">Trinidad and Tobago — 12.5%</option>
+                    </optgroup>
+                    <optgroup label="🌏 Asia Pacific">
+                        <option value="18">India GST — 18%</option>
+                        <option value="10">Australia GST — 10%</option>
+                        <option value="15">New Zealand GST — 15%</option>
+                        <option value="10">Japan — 10%</option>
+                        <option value="10">China — 13%</option>
+                        <option value="10">South Korea — 10%</option>
+                        <option value="9">Singapore — 9%</option>
+                        <option value="10">Indonesia — 11%</option>
+                        <option value="12">Philippines — 12%</option>
+                        <option value="7">Thailand — 7%</option>
+                        <option value="10">Vietnam — 10%</option>
+                        <option value="6">Malaysia — 6%</option>
+                        <option value="12">Pakistan — 17%</option>
+                        <option value="13">Bangladesh — 15%</option>
+                        <option value="13">Sri Lanka — 18%</option>
+                        <option value="13">Nepal — 13%</option>
+                        <option value="10">Cambodia — 10%</option>
+                        <option value="10">Myanmar — 5%</option>
+                        <option value="10">Taiwan — 5%</option>
+                        <option value="12">Hong Kong — 0% (No VAT)</option>
+                        <option value="0">Custom Rate — Enter Below</option>
+                    </optgroup>
                 </select>
             </div>
             <div class="input-group"><label>VAT Rate (%)</label><input type="number" id="vatRate" value="7.5" step="0.1"></div>
@@ -651,12 +755,58 @@
             <div class="input-group">
                 <label>Country</label>
                 <select id="taxCountry">
-                    <option value="nigeria">Nigeria</option>
-                    <option value="ghana">Ghana</option>
-                    <option value="kenya">Kenya</option>
-                    <option value="southafrica">South Africa</option>
-                    <option value="uk">United Kingdom</option>
-                    <option value="usa">United States</option>
+                    <optgroup label="🌍 Africa">
+                        <option value="nigeria">Nigeria</option>
+                        <option value="ghana">Ghana</option>
+                        <option value="kenya">Kenya</option>
+                        <option value="southafrica">South Africa</option>
+                        <option value="ethiopia">Ethiopia</option>
+                        <option value="tanzania">Tanzania</option>
+                        <option value="uganda">Uganda</option>
+                        <option value="rwanda">Rwanda</option>
+                        <option value="egypt">Egypt</option>
+                        <option value="morocco">Morocco</option>
+                        <option value="senegal">Senegal</option>
+                        <option value="cameroon">Cameroon</option>
+                    </optgroup>
+                    <optgroup label="🌍 Europe">
+                        <option value="uk">United Kingdom</option>
+                        <option value="germany">Germany</option>
+                        <option value="france">France</option>
+                        <option value="netherlands">Netherlands</option>
+                        <option value="spain">Spain</option>
+                        <option value="italy">Italy</option>
+                        <option value="sweden">Sweden</option>
+                        <option value="norway">Norway</option>
+                        <option value="denmark">Denmark</option>
+                        <option value="ireland">Ireland</option>
+                        <option value="portugal">Portugal</option>
+                        <option value="poland">Poland</option>
+                    </optgroup>
+                    <optgroup label="🌎 Americas">
+                        <option value="usa">United States</option>
+                        <option value="canada">Canada</option>
+                        <option value="brazil">Brazil</option>
+                        <option value="mexico">Mexico</option>
+                        <option value="argentina">Argentina</option>
+                        <option value="colombia">Colombia</option>
+                    </optgroup>
+                    <optgroup label="🌏 Asia Pacific">
+                        <option value="india">India</option>
+                        <option value="australia">Australia</option>
+                        <option value="newzealand">New Zealand</option>
+                        <option value="singapore">Singapore</option>
+                        <option value="pakistan">Pakistan</option>
+                        <option value="bangladesh">Bangladesh</option>
+                        <option value="philippines">Philippines</option>
+                        <option value="indonesia">Indonesia</option>
+                    </optgroup>
+                    <optgroup label="🌍 Middle East">
+                        <option value="uae">UAE</option>
+                        <option value="saudiarabia">Saudi Arabia</option>
+                        <option value="israel">Israel</option>
+                        <option value="turkey">Turkey</option>
+                    </optgroup>
                 </select>
             </div>
             <div class="input-group"><label>Annual Gross Salary</label><input type="number" id="taxSalary" placeholder="3,000,000"></div>
