@@ -1,8 +1,25 @@
 {
-  "rewrites": [
+  "version": 2,
+  "headers": [
     {
-      "source": "/((?!api|static|.*\\..*).*)",
-      "destination": "/index.html"
+      "source": "/sw.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache" }
+      ]
     }
+  ],
+  "routes": [
+    { "src": "/image/(.*)", "dest": "/image/$1" },
+    { "src": "/style.css", "dest": "/style.css" },
+    { "src": "/main.js", "dest": "/main.js" },
+    { "src": "/sw.js", "dest": "/sw.js" },
+    { "src": "/sitemap.xml", "dest": "/sitemap.xml" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

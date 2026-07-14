@@ -90,6 +90,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <!-- JSZip for real AES encryption -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- JSZip Utils -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip-utils/0.1.0/jszip-utils.min.js"></script>
     <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';</script>
 
     <!-- Monetag -->
@@ -107,11 +111,13 @@
         const path = window.location.pathname.replace(/^\/|\/$/g, '');
         if (path && !path.includes('.') && path !== 'index.html') {
             const link = document.createElement('link');
-            link.rel = 'canonical';
+            link.rel  = 'canonical';
             link.href = 'https://flextools.pro/' + path;
             document.head.appendChild(link);
-            document.documentElement.style.display = 'none';
         }
+        // Add a class to hide only the content area (not sidebar) 
+        // until routing decides which tool to show
+        document.documentElement.classList.add('ft-booting');
     })();
     </script>
 </head>
@@ -149,19 +155,20 @@
     <nav class="nav-list">
         <a href="home" class="nav-item" onclick="showTool('home', this); return false;">🏠 Home</a>
 
-        <!-- Calculators & Converters -->
+         <!-- PDF & Documents -->
         <div class="nav-group">
             <div class="group-header" onclick="toggleCategory(this)">
-                Calculators & Converters <span class="chevron">▼</span>
+                PDF & Documents <span class="chevron">▼</span>
             </div>
             <div class="group-content">
-                <a href="currency-converter" class="nav-item" onclick="showTool('currency-converter', this); return false;"><span>💰</span> Currency Converter</a>
-                <a href="crypto-converter" class="nav-item" onclick="showTool('crypto-converter', this); return false;"><span>₿</span> Crypto Converter</a>
-                <a href="unit-converter" class="nav-item" onclick="showTool('unit-converter', this); return false;"><span>📏</span> Unit Converter</a>
-                <a href="vat-calculator" class="nav-item" onclick="showTool('vat-calculator', this); return false;"><span>🧾</span> VAT Calculator</a>
-                <a href="percentage-calculator" class="nav-item" onclick="showTool('percentage-calculator', this); return false;"><span>％</span> Percentage Calculator</a>
-                <a href="bmi-calculator" class="nav-item" onclick="showTool('bmi-calculator', this); return false;"><span>⚖️</span> BMI Calculator</a>
-                <a href="tax-calculator" class="nav-item" onclick="showTool('tax-calculator', this); return false;"><span>💼</span> Income Tax Calculator</a>
+                <a href="pdf-editor" class="nav-item" onclick="showTool('pdf-editor', this); return false;"><span>🖋️</span> PDF Editor</a>
+                <a href="pdf-merge" class="nav-item" onclick="showTool('pdf-merge', this); return false;"><span>🔗</span> Merge PDF</a>
+                <a href="pdf-split" class="nav-item" onclick="showTool('pdf-split', this); return false;"><span>✂️</span> Split PDF</a>
+                <a href="pdf-to-jpg" class="nav-item" onclick="showTool('pdf-to-jpg', this); return false;"><span>🖼️</span> PDF to JPG</a>
+                <a href="pdf-protect" class="nav-item" onclick="showTool('pdf-protect', this); return false;"><span>🔐</span> PDF Password</a>
+                <a href="pdf-unlock" class="nav-item" onclick="showTool('pdf-unlock', this); return false;"><span>🔓</span> PDF Unlock</a>
+                <a href="doc-editor" class="nav-item" onclick="showTool('doc-editor', this); return false;"><span>✍️</span> Doc Editor</a>
+                <a href="pdf" class="nav-item" onclick="showTool('pdf', this); return false;"><span>📷</span> Image to PDF</a>
             </div>
         </div>
 
@@ -178,19 +185,19 @@
             </div>
         </div>
 
-        <!-- PDF & Documents -->
+        <!-- Calculators & Converters -->
         <div class="nav-group">
             <div class="group-header" onclick="toggleCategory(this)">
-                PDF & Documents <span class="chevron">▼</span>
+                Calculators & Converters <span class="chevron">▼</span>
             </div>
             <div class="group-content">
-                <a href="pdf-editor" class="nav-item" onclick="showTool('pdf-editor', this); return false;"><span>🖋️</span> PDF Editor</a>
-                <a href="pdf-merge" class="nav-item" onclick="showTool('pdf-merge', this); return false;"><span>🔗</span> Merge PDF</a>
-                <a href="pdf-split" class="nav-item" onclick="showTool('pdf-split', this); return false;"><span>✂️</span> Split PDF</a>
-                <a href="pdf-to-jpg" class="nav-item" onclick="showTool('pdf-to-jpg', this); return false;"><span>🖼️</span> PDF to JPG</a>
-                <a href="pdf-protect" class="nav-item" onclick="showTool('pdf-protect', this); return false;"><span>🔐</span> PDF Password</a>
-                <a href="doc-editor" class="nav-item" onclick="showTool('doc-editor', this); return false;"><span>✍️</span> Doc Editor</a>
-                <a href="pdf" class="nav-item" onclick="showTool('pdf', this); return false;"><span>📷</span> Image to PDF</a>
+                <a href="currency-converter" class="nav-item" onclick="showTool('currency-converter', this); return false;"><span>💰</span> Currency Converter</a>
+                <a href="crypto-converter" class="nav-item" onclick="showTool('crypto-converter', this); return false;"><span>₿</span> Crypto Converter</a>
+                <a href="unit-converter" class="nav-item" onclick="showTool('unit-converter', this); return false;"><span>📏</span> Unit Converter</a>
+                <a href="vat-calculator" class="nav-item" onclick="showTool('vat-calculator', this); return false;"><span>🧾</span> VAT Calculator</a>
+                <a href="percentage-calculator" class="nav-item" onclick="showTool('percentage-calculator', this); return false;"><span>％</span> Percentage Calculator</a>
+                <a href="bmi-calculator" class="nav-item" onclick="showTool('bmi-calculator', this); return false;"><span>⚖️</span> BMI Calculator</a>
+                <a href="tax-calculator" class="nav-item" onclick="showTool('tax-calculator', this); return false;"><span>💼</span> Income Tax Calculator</a>
             </div>
         </div>
 
@@ -221,7 +228,7 @@
                         No limits. No uploads.<br><span style="color:#6366f1;">Just free powerful tools that work.</span>
                     </h1>
                     <p style="font-size:15px;color:#64748b;max-width:500px;margin:0 auto 1.5rem;line-height:1.6;">
-                        Unlike Other Webtool's 2 tasks per day limit — FlexTools Pro runs everything locally in your browser. Unlimited. Private. Forever free.
+                        Unlike Other Webtool's 2 tasks per day limit — FlexTools Pro runs everything locally in your browser. Unlimited. Private. 100% Free.
                     </p>
                     <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:2.5rem;">
                         <span style="display:inline-flex;align-items:center;gap:5px;background:#f1f5f9;border:0.5px solid #e2e8f0;border-radius:999px;padding:5px 12px;font-size:12px;color:#475569;">🔒 Files Never Uploaded</span>
@@ -231,51 +238,91 @@
                         <span style="display:inline-flex;align-items:center;gap:5px;background:#f1f5f9;border:0.5px solid #e2e8f0;border-radius:999px;padding:5px 12px;font-size:12px;color:#475569;">🚫 No Watermarks</span>
                     </div>
                 </div>
-
                 
                     <div data-mndbanid="545c191e-6a97-455a-a696-54b09a225a71"></div>
 
-                <!-- COMPARISON TABLE -->
-                <div style="background:#f8fafc;border-radius:16px;padding:24px;margin:0 0.5rem 2.5rem;">
-                    <p style="font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#94a3b8;margin-bottom:1rem;">How We Compare</p>
-                    <div style="overflow-x:auto;">
-                        <table style="width:100%;border-collapse:collapse;font-size:13px;">
-                            <tr style="background:#0f172a;color:#fff;">
-                                <td style="padding:10px 12px;border-radius:8px 0 0 0;font-weight:600;">Feature</td>
-                                <td style="padding:10px 12px;text-align:center;font-weight:700;color:#a5b4fc;">FlexTools Pro</td>
-                                <td style="padding:10px 12px;text-align:center;font-weight:600;">Other Pdf tools</td>
-                                <td style="padding:10px 12px;text-align:center;font-weight:600;border-radius:0 8px 0 0;">Most AI's</td>
-                            </tr>
-                            <tr style="border-bottom:1px solid #f1f5f9;">
-                                <td style="padding:10px 12px;color:#334155;">Daily Task Limit</td>
-                                <td style="padding:10px 12px;text-align:center;color:#16a34a;font-weight:700;">None ✅</td>
-                                <td style="padding:10px 12px;text-align:center;color:#dc2626;">2 per day ❌</td>
-                                <td style="padding:10px 12px;text-align:center;color:#f59e0b;">Limited ⚠️</td>
-                            </tr>
-                            <tr style="border-bottom:1px solid #f1f5f9;background:#fafafa;">
-                                <td style="padding:10px 12px;color:#334155;">File Uploads to Server</td>
-                                <td style="padding:10px 12px;text-align:center;color:#16a34a;font-weight:700;">Never ✅</td>
-                                <td style="padding:10px 12px;text-align:center;color:#dc2626;">Yes ❌</td>
-                                <td style="padding:10px 12px;text-align:center;color:#dc2626;">Yes ❌</td>
-                            </tr>
-                            <tr style="border-bottom:1px solid #f1f5f9;">
-                                <td style="padding:10px 12px;color:#334155;">Signup Required</td>
-                                <td style="padding:10px 12px;text-align:center;color:#16a34a;font-weight:700;">Never ✅</td>
-                                <td style="padding:10px 12px;text-align:center;color:#dc2626;">Yes ❌</td>
-                                <td style="padding:10px 12px;text-align:center;color:#f59e0b;">Optional ⚠️</td>
-                            </tr>
-                            <tr style="border-bottom:1px solid #f1f5f9;background:#fafafa;">
-                                <td style="padding:10px 12px;color:#334155;">Works on Slow Mobile</td>
-                                <td style="padding:10px 12px;text-align:center;color:#16a34a;font-weight:700;">Yes ✅</td>
-                                <td style="padding:10px 12px;text-align:center;color:#dc2626;">No ❌</td>
-                                <td style="padding:10px 12px;text-align:center;color:#dc2626;">No ❌</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:10px 12px;color:#334155;">Calculators & Converters</td>
-                                <td style="padding:10px 12px;text-align:center;color:#16a34a;font-weight:700;">7 Tools ✅</td> 
-                            </tr>
-                        </table>
+                    <!-- PDF & DOCUMENTS -->
+                <p style="font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#94a3b8;text-align:left;margin:0 0 1rem 0.5rem;">PDF & Documents</p>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;padding:0 0.5rem;margin-bottom:2.5rem;">
+
+                    <div onclick="showTool('pdf-editor', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                        <div style="width:36px;height:36px;border-radius:8px;background:#FAECE7;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">🖋️</div>
+                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">PDF Editor</p>
+                        <p style="font-size:11px;color:#64748b;margin:0;">Add text, Images, Erase Text, Image & signatures</p>
                     </div>
+
+                    <div onclick="showTool('pdf-merge', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                        <div style="width:36px;height:36px;border-radius:8px;background:#FAECE7;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">🔗</div>
+                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Merge PDF</p>
+                        <p style="font-size:11px;color:#64748b;margin:0;">Combine multiple PDFs</p>
+                    </div>
+
+                    <div onclick="showTool('pdf-split', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                        <div style="width:36px;height:36px;border-radius:8px;background:#FAECE7;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">✂️</div>
+                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Split PDF</p>
+                        <p style="font-size:11px;color:#64748b;margin:0;">Extract specific pages</p>
+                    </div>
+
+                    <div onclick="showTool('pdf-to-jpg', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                        <div style="width:36px;height:36px;border-radius:8px;background:#FAECE7;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">🖼️</div>
+                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">PDF to JPG</p>
+                        <p style="font-size:11px;color:#64748b;margin:0;">Convert pages to images</p>
+                    </div>
+
+                    <div onclick="showTool('pdf-protect', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                        <div style="width:36px;height:36px;border-radius:8px;background:#FAECE7;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">🔐</div>
+                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">PDF Password</p>
+                        <p style="font-size:11px;color:#64748b;margin:0;">Protect your PDF</p>
+                    </div>
+
+                    <div onclick="showTool('pdf-unlock', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                        <div style="width:36px;height:36px;border-radius:8px;background:#FAECE7;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">🔓</div>
+                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">PDF Unlock</p>
+                        <p style="font-size:11px;color:#64748b;margin:0;">Remove PDF password</p>
+                    </div>
+
+                    <div onclick="showTool('doc-editor', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                        <div style="width:36px;height:36px;border-radius:8px;background:#FAECE7;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">✍️</div>
+                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Doc Editor</p>
+                        <p style="font-size:11px;color:#64748b;margin:0;">Edit, Scan and Upload Word documents</p>
+                    </div>
+
+                    <div onclick="showTool('pdf', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                        <div style="width:36px;height:36px;border-radius:8px;background:#FAECE7;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">📷</div>
+                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Image to PDF</p>
+                        <p style="font-size:11px;color:#64748b;margin:0;">Photos into clean PDFs</p>
+                    </div>
+
+                </div>
+
+                <!-- IMAGE TOOLS -->
+                <p style="font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#94a3b8;text-align:left;margin:0 0 1rem 0.5rem;">Image Tools</p>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;padding:0 0.5rem;margin-bottom:2.5rem;">
+
+                    <div onclick="showTool('word', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                        <div style="width:36px;height:36px;border-radius:8px;background:#FAEEDA;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">📝</div>
+                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Image to Word</p>
+                        <p style="font-size:11px;color:#64748b;margin:0;">Extract text via OCR</p>
+                    </div>
+
+                    <div onclick="showTool('img-compressor', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                        <div style="width:36px;height:36px;border-radius:8px;background:#FAEEDA;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">📉</div>
+                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Image Compressor</p>
+                        <p style="font-size:11px;color:#64748b;margin:0;">Shrink without quality loss</p>
+                    </div>
+
+                    <div onclick="showTool('img-resizer', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                        <div style="width:36px;height:36px;border-radius:8px;background:#FAEEDA;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">📐</div>
+                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Image Resizer</p>
+                        <p style="font-size:11px;color:#64748b;margin:0;">Exact pixel dimensions</p>
+                    </div>
+
+                    <div onclick="showTool('file-converter', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                        <div style="width:36px;height:36px;border-radius:8px;background:#FAEEDA;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">🔄</div>
+                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">File Converter</p>
+                        <p style="font-size:11px;color:#64748b;margin:0;">PNG, JPG, WebP</p>
+                    </div>
+
                 </div>
 
                 <!-- CALCULATORS & CONVERTERS -->
@@ -325,84 +372,7 @@
                     </div>
 
                 </div>
-
-                <!-- IMAGE TOOLS -->
-                <p style="font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#94a3b8;text-align:left;margin:0 0 1rem 0.5rem;">Image Tools</p>
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;padding:0 0.5rem;margin-bottom:2.5rem;">
-
-                    <div onclick="showTool('word', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
-                        <div style="width:36px;height:36px;border-radius:8px;background:#FAEEDA;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">📝</div>
-                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Image to Word</p>
-                        <p style="font-size:11px;color:#64748b;margin:0;">Extract text via OCR</p>
-                    </div>
-
-                    <div onclick="showTool('img-compressor', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
-                        <div style="width:36px;height:36px;border-radius:8px;background:#FAEEDA;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">📉</div>
-                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Image Compressor</p>
-                        <p style="font-size:11px;color:#64748b;margin:0;">Shrink without quality loss</p>
-                    </div>
-
-                    <div onclick="showTool('img-resizer', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
-                        <div style="width:36px;height:36px;border-radius:8px;background:#FAEEDA;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">📐</div>
-                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Image Resizer</p>
-                        <p style="font-size:11px;color:#64748b;margin:0;">Exact pixel dimensions</p>
-                    </div>
-
-                    <div onclick="showTool('file-converter', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
-                        <div style="width:36px;height:36px;border-radius:8px;background:#FAEEDA;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">🔄</div>
-                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">File Converter</p>
-                        <p style="font-size:11px;color:#64748b;margin:0;">PNG, JPG, WebP</p>
-                    </div>
-
-                </div>
-
-                <!-- PDF & DOCUMENTS -->
-                <p style="font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#94a3b8;text-align:left;margin:0 0 1rem 0.5rem;">PDF & Documents</p>
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;padding:0 0.5rem;margin-bottom:2.5rem;">
-
-                    <div onclick="showTool('pdf-editor', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
-                        <div style="width:36px;height:36px;border-radius:8px;background:#FAECE7;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">🖋️</div>
-                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">PDF Editor</p>
-                        <p style="font-size:11px;color:#64748b;margin:0;">Add text & signatures</p>
-                    </div>
-
-                    <div onclick="showTool('pdf-merge', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
-                        <div style="width:36px;height:36px;border-radius:8px;background:#FAECE7;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">🔗</div>
-                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Merge PDF</p>
-                        <p style="font-size:11px;color:#64748b;margin:0;">Combine multiple PDFs</p>
-                    </div>
-
-                    <div onclick="showTool('pdf-split', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
-                        <div style="width:36px;height:36px;border-radius:8px;background:#FAECE7;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">✂️</div>
-                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Split PDF</p>
-                        <p style="font-size:11px;color:#64748b;margin:0;">Extract specific pages</p>
-                    </div>
-
-                    <div onclick="showTool('pdf-to-jpg', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
-                        <div style="width:36px;height:36px;border-radius:8px;background:#FAECE7;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">🖼️</div>
-                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">PDF to JPG</p>
-                        <p style="font-size:11px;color:#64748b;margin:0;">Convert pages to images</p>
-                    </div>
-
-                    <div onclick="showTool('pdf-protect', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
-                        <div style="width:36px;height:36px;border-radius:8px;background:#FAECE7;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">🔐</div>
-                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">PDF Password</p>
-                        <p style="font-size:11px;color:#64748b;margin:0;">Protect your PDF</p>
-                    </div>
-
-                    <div onclick="showTool('doc-editor', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
-                        <div style="width:36px;height:36px;border-radius:8px;background:#FAECE7;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">✍️</div>
-                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Doc Editor</p>
-                        <p style="font-size:11px;color:#64748b;margin:0;">Edit Word documents</p>
-                    </div>
-
-                    <div onclick="showTool('pdf', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
-                        <div style="width:36px;height:36px;border-radius:8px;background:#FAECE7;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">📷</div>
-                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Image to PDF</p>
-                        <p style="font-size:11px;color:#64748b;margin:0;">Photos into clean PDFs</p>
-                    </div>
-
-                </div>
+                
 
                 <!-- STATS -->
                 <hr style="border:none;border-top:0.5px solid #e2e8f0;margin:1.5rem 0;">
@@ -483,14 +453,84 @@
                 <div class="input-group">
                     <label>From Crypto</label>
                     <select id="fromCrypto">
-                        <option value="bitcoin">Bitcoin (BTC)</option>
-                        <option value="ethereum">Ethereum (ETH)</option>
-                        <option value="tether">Tether (USDT)</option>
-                        <option value="binancecoin">BNB</option>
-                        <option value="solana">Solana (SOL)</option>
-                        <option value="ripple">XRP</option>
-                        <option value="dogecoin">Dogecoin (DOGE)</option>
-                        <option value="usd-coin">USD Coin (USDC)</option>
+                        <optgroup label="🏆 Top Cryptocurrencies">
+                            <option value="bitcoin">Bitcoin (BTC)</option>
+                            <option value="ethereum">Ethereum (ETH)</option>
+                            <option value="tether">Tether (USDT)</option>
+                            <option value="binancecoin">BNB</option>
+                            <option value="solana">Solana (SOL)</option>
+                            <option value="ripple">XRP</option>
+                            <option value="usd-coin">USD Coin (USDC)</option>
+                            <option value="staked-ether">Lido Staked ETH</option>
+                            <option value="cardano">Cardano (ADA)</option>
+                            <option value="avalanche-2">Avalanche (AVAX)</option>
+                            <option value="dogecoin">Dogecoin (DOGE)</option>
+                            <option value="tron">TRON (TRX)</option>
+                            <option value="chainlink">Chainlink (LINK)</option>
+                            <option value="polkadot">Polkadot (DOT)</option>
+                            <option value="matic-network">Polygon (MATIC)</option>
+                            <option value="shiba-inu">Shiba Inu (SHIB)</option>
+                            <option value="dai">Dai (DAI)</option>
+                            <option value="litecoin">Litecoin (LTC)</option>
+                            <option value="bitcoin-cash">Bitcoin Cash (BCH)</option>
+                            <option value="stellar">Stellar (XLM)</option>
+                        </optgroup>
+                        <optgroup label="📈 DeFi Tokens">
+                            <option value="uniswap">Uniswap (UNI)</option>
+                            <option value="aave">Aave (AAVE)</option>
+                            <option value="compound-governance-token">Compound (COMP)</option>
+                            <option value="maker">Maker (MKR)</option>
+                            <option value="pancakeswap-token">PancakeSwap (CAKE)</option>
+                            <option value="curve-dao-token">Curve (CRV)</option>
+                            <option value="sushi">SushiSwap (SUSHI)</option>
+                            <option value="yearn-finance">Yearn Finance (YFI)</option>
+                            <option value="synthetix-network-token">Synthetix (SNX)</option>
+                            <option value="1inch">1inch (1INCH)</option>
+                        </optgroup>
+                        <optgroup label="🎮 Gaming & NFT">
+                            <option value="the-sandbox">The Sandbox (SAND)</option>
+                            <option value="decentraland">Decentraland (MANA)</option>
+                            <option value="axie-infinity">Axie Infinity (AXS)</option>
+                            <option value="enjincoin">Enjin Coin (ENJ)</option>
+                            <option value="gala">Gala (GALA)</option>
+                            <option value="illuvium">Illuvium (ILV)</option>
+                            <option value="stepn">STEPN (GMT)</option>
+                        </optgroup>
+                        <optgroup label="🔗 Layer 2 & Infrastructure">
+                            <option value="optimism">Optimism (OP)</option>
+                            <option value="arbitrum">Arbitrum (ARB)</option>
+                            <option value="immutable-x">Immutable X (IMX)</option>
+                            <option value="loopring">Loopring (LRC)</option>
+                            <option value="ethereum-name-service">ENS (ENS)</option>
+                            <option value="filecoin">Filecoin (FIL)</option>
+                            <option value="theta-token">Theta Network (THETA)</option>
+                            <option value="hedera-hashgraph">Hedera (HBAR)</option>
+                            <option value="internet-computer">Internet Computer (ICP)</option>
+                            <option value="near">NEAR Protocol (NEAR)</option>
+                            <option value="flow">Flow (FLOW)</option>
+                            <option value="aptos">Aptos (APT)</option>
+                            <option value="sui">Sui (SUI)</option>
+                        </optgroup>
+                        <optgroup label="💰 Stablecoins">
+                            <option value="tether">Tether (USDT)</option>
+                            <option value="usd-coin">USD Coin (USDC)</option>
+                            <option value="dai">Dai (DAI)</option>
+                            <option value="binance-usd">Binance USD (BUSD)</option>
+                            <option value="frax">Frax (FRAX)</option>
+                            <option value="true-usd">TrueUSD (TUSD)</option>
+                            <option value="paxos-standard">Pax Dollar (USDP)</option>
+                            <option value="gemini-dollar">Gemini Dollar (GUSD)</option>
+                        </optgroup>
+                        <optgroup label="🌍 African Favourite Cryptos">
+                            <option value="bitcoin">Bitcoin (BTC)</option>
+                            <option value="tether">Tether (USDT)</option>
+                            <option value="ethereum">Ethereum (ETH)</option>
+                            <option value="binancecoin">BNB</option>
+                            <option value="solana">Solana (SOL)</option>
+                            <option value="ripple">XRP</option>
+                            <option value="dogecoin">Dogecoin (DOGE)</option>
+                            <option value="cardano">Cardano (ADA)</option>
+                        </optgroup>
                     </select>
                 </div>
                 <div class="input-group"><label>To Currency</label><select id="toCryptoCurrency"></select></div>
@@ -938,42 +978,195 @@
         </section>
 
         <!-- ==================== PDF EDITOR ==================== -->
-        <section id="pdf-editor" class="tool-card">
-            <h2>PDF Editor</h2>
-            <p class="tool-description">Add text layers and signatures to any PDF. No uploads, no watermarks.</p>
-            <div class="input-group">
-                <label style="font-weight:bold;">Step 1: Upload PDF</label>
-                <input type="file" id="pdfEditInput" accept="application/pdf" onchange="initPDFEditor()">
-                <div id="pdfControls" style="display:none; margin-top:15px; background:#f8f9fa; padding:15px; border-radius:8px;">
-                    <label style="font-weight:bold;">Step 2: Add Text</label>
-                    <input type="text" id="pdfTextToAdd" placeholder="Enter text here...">
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
-                        <div><label style="font-size:0.75rem;">X Position</label><input type="range" id="textX" min="0" max="600" value="50" oninput="drawPreview()"></div>
-                        <div><label style="font-size:0.75rem;">Y Position</label><input type="range" id="textY" min="0" max="800" value="50" oninput="drawPreview()"></div>
-                    </div>
-                    <button class="btn-action" onclick="addTextLayer()" style="margin-top:15px; background:#6366f1;">+ Add Text Layer</button>
+    <section id="pdf-editor" class="tool-card">
+    <h2>PDF Editor</h2>
+    <p class="tool-description">Add text, draw, highlight, sign and erase content on any PDF — free, private, no uploads.</p>
+
+    <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#4338ca;line-height:1.7;">
+        ℹ️ This editor adds content <strong>on top of</strong> your PDF — text, drawings, highlights, images and signatures. To edit existing typed text in a Word document use the
+        <strong onclick="showTool('doc-editor',null)" style="cursor:pointer;text-decoration:underline;">Doc Editor</strong>.
+    </div>
+
+    <div class="input-group">
+        <label style="font-weight:bold;">Step 1: Upload PDF</label>
+        <input type="file" id="pdfEditInput" accept="application/pdf" onchange="initPDFEditor()">
+        <p id="pdfPageInfo" style="font-size:12px;color:#6366f1;margin-top:6px;display:none;"></p>
+    </div>
+
+    <!-- PAGE NAVIGATION -->
+    <div id="pdfPageNav" style="display:none;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <button onclick="changePDFPage(-1)"
+                style="padding:8px 16px;border:1.5px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-weight:700;font-size:14px;">← Prev</button>
+            <span id="pdfPageLabel" style="font-size:13px;font-weight:700;color:#475569;"></span>
+            <button onclick="changePDFPage(1)"
+                style="padding:8px 16px;border:1.5px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-weight:700;font-size:14px;">Next →</button>
+        </div>
+    </div>
+
+    <div id="pdfControls" style="display:none;">
+
+        <!-- TOOLBAR -->
+        <div style="display:flex;flex-wrap:wrap;gap:6px;padding:12px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;margin-bottom:14px;">
+            <button class="pdf-tool-btn active" id="toolText"      onclick="selectPDFTool('text')"      style="display:flex;align-items:center;gap:5px;padding:8px 12px;border:1.5px solid #6366f1;background:#eef2ff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#4f46e5;">✏️ Text</button>
+            <button class="pdf-tool-btn"        id="toolDraw"      onclick="selectPDFTool('draw')"      style="display:flex;align-items:center;gap:5px;padding:8px 12px;border:1.5px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#475569;">🖊️ Draw</button>
+            <button class="pdf-tool-btn"        id="toolHighlight" onclick="selectPDFTool('highlight')" style="display:flex;align-items:center;gap:5px;padding:8px 12px;border:1.5px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#475569;">🖍️ Highlight</button>
+            <button class="pdf-tool-btn"        id="toolSign"      onclick="selectPDFTool('sign')"      style="display:flex;align-items:center;gap:5px;padding:8px 12px;border:1.5px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#475569;">✍️ Sign</button>
+            <button class="pdf-tool-btn"        id="toolEraser"    onclick="selectPDFTool('eraser')"    style="display:flex;align-items:center;gap:5px;padding:8px 12px;border:1.5px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#475569;">🧹 Erase</button>
+            <button class="pdf-tool-btn"        id="toolImage"     onclick="selectPDFTool('image')"     style="display:flex;align-items:center;gap:5px;padding:8px 12px;border:1.5px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#475569;">🖼️ Image</button>
+            <button onclick="undoPDFAction()"   style="display:flex;align-items:center;gap:5px;padding:8px 12px;border:1.5px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#475569;">↩️ Undo</button>
+            <button onclick="clearAllPDFEdits()" style="display:flex;align-items:center;gap:5px;padding:8px 12px;border:1.5px solid #fecaca;background:#fff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#dc2626;">🗑️ Clear</button>
+        </div>
+
+        <!-- TEXT OPTIONS -->
+        <div id="textOptions" style="background:#f8fafc;padding:14px;border-radius:12px;border:1px solid #e2e8f0;margin-bottom:14px;">
+            <div style="display:grid;grid-template-columns:1fr auto auto auto auto;gap:8px;align-items:end;flex-wrap:wrap;">
+                <div>
+                    <label style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px;">Text</label>
+                    <input type="text" id="pdfTextToAdd" placeholder="Type your text...">
+                </div>
+                <div>
+                    <label style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:5px;">Font</label>
+                    <select id="pdfFontFamily" style="width:110px;">
+                        <option value="Arial">Arial</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Courier New">Courier New</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Verdana">Verdana</option>
+                        <option value="Helvetica">Helvetica</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:5px;">Size</label>
+                    <select id="pdfFontSize" style="width:75px;">
+                        <option value="10">10</option>
+                        <option value="12">12</option>
+                        <option value="14">14</option>
+                        <option value="16">16</option>
+                        <option value="18">18</option>
+                        <option value="20" selected>20</option>
+                        <option value="24">24</option>
+                        <option value="28">28</option>
+                        <option value="32">32</option>
+                        <option value="36">36</option>
+                        <option value="48">48</option>
+                        <option value="64">64</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:5px;">Colour</label>
+                    <input type="color" id="pdfTextColor" value="#000000" style="width:44px;height:40px;padding:2px;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;">
+                </div>
+                <div>
+                    <label style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:5px;">Bold</label>
+                    <button id="pdfBoldBtn" onclick="togglePDFBold()" style="width:44px;height:40px;border:1.5px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-weight:900;font-size:15px;color:#475569;">B</button>
                 </div>
             </div>
-            <div id="layerContainer" style="display:none; margin-top:15px;">
-                <p style="font-weight:bold; font-size:0.9rem;">Active Layers:</p>
-                <ul id="layerList" style="list-style:none; padding:0; font-size:0.8rem;"></ul>
-            </div>
-            <button class="btn-action" id="pdfDownloadBtn" onclick="downloadEditedPDF()" style="display:none; margin-top:15px; background:#28a745;">Download Final PDF</button>
-            <div id="pdfViewContainer" style="margin-top:20px; border:2px solid #333; border-radius:8px; overflow:hidden; display:none; background:#525659;">
-                <canvas id="pdfCanvas" style="width:100%; height:auto;"></canvas>
-            </div>
-            <div data-mndbanid="545c191e-6a97-455a-a696-54b09a225a71"></div>
-            <div class="ft-seo-content">
-                <h2>Free Online PDF Editor — Add Text and Sign PDFs Without Software</h2>
-                <p>Edit any PDF directly in your browser — add text, fill forms, and sign documents with no watermarks, no uploads, and no subscription. Your files never leave your device.</p>
-                <h3>Frequently Asked Questions</h3>
-                <div class="faq-seo">
-                    <div><strong>Is it safe to use with sensitive documents?</strong><span>Yes. Everything processes locally in your browser sandbox. Your files are never sent to any server.</span></div>
-                    <div><strong>Can I sign on mobile?</strong><span>Yes. The tool is fully optimised for mobile touchscreens.</span></div>
-                    <div><strong>Any file size limits?</strong><span>No. Process documents of any size, completely free.</span></div>
+            <p style="font-size:12px;color:#94a3b8;margin-top:10px;">💡 Click anywhere on the PDF below to place your text</p>
+        </div>
+
+        <!-- DRAW OPTIONS -->
+        <div id="drawOptions" style="display:none;background:#f8fafc;padding:14px;border-radius:12px;border:1px solid #e2e8f0;margin-bottom:14px;">
+            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+                <div>
+                    <label style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:5px;">Colour</label>
+                    <input type="color" id="drawColor" value="#000000" style="width:44px;height:40px;padding:2px;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;">
+                </div>
+                <div style="flex:1;">
+                    <label style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:5px;">Brush Size — <span id="drawSizeLabel">3px</span></label>
+                    <input type="range" id="drawSize" min="1" max="20" value="3" oninput="document.getElementById('drawSizeLabel').textContent=this.value+'px'" style="width:100%;">
                 </div>
             </div>
-        </section>
+            <p style="font-size:12px;color:#94a3b8;margin-top:10px;">💡 Click and drag on the PDF below to draw</p>
+        </div>
+
+        <!-- HIGHLIGHT OPTIONS -->
+        <div id="highlightOptions" style="display:none;background:#f8fafc;padding:14px;border-radius:12px;border:1px solid #e2e8f0;margin-bottom:14px;">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                <label style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;">Highlight Colour:</label>
+                <div style="display:flex;gap:8px;">
+                    <button onclick="setHighlightColor('#FFE500')" style="width:32px;height:32px;background:#FFE500;border:2px solid #ccc;border-radius:6px;cursor:pointer;" title="Yellow"></button>
+                    <button onclick="setHighlightColor('#90EE90')" style="width:32px;height:32px;background:#90EE90;border:2px solid #ccc;border-radius:6px;cursor:pointer;" title="Green"></button>
+                    <button onclick="setHighlightColor('#ADD8E6')" style="width:32px;height:32px;background:#ADD8E6;border:2px solid #ccc;border-radius:6px;cursor:pointer;" title="Blue"></button>
+                    <button onclick="setHighlightColor('#FFB6C1')" style="width:32px;height:32px;background:#FFB6C1;border:2px solid #ccc;border-radius:6px;cursor:pointer;" title="Pink"></button>
+                    <button onclick="setHighlightColor('#FFA500')" style="width:32px;height:32px;background:#FFA500;border:2px solid #ccc;border-radius:6px;cursor:pointer;" title="Orange"></button>
+                </div>
+                <div style="flex:1;">
+                    <label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:5px;">Size — <span id="highlightSizeLabel">20px</span></label>
+                    <input type="range" id="highlightSize" min="10" max="60" value="20" oninput="document.getElementById('highlightSizeLabel').textContent=this.value+'px'" style="width:100%;">
+                </div>
+            </div>
+            <p style="font-size:12px;color:#94a3b8;margin-top:10px;">💡 Click and drag to highlight text on the PDF</p>
+        </div>
+
+        <!-- SIGN OPTIONS -->
+        <div id="signOptions" style="display:none;background:#f8fafc;padding:14px;border-radius:12px;border:1px solid #e2e8f0;margin-bottom:14px;">
+            <label style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:8px;">Draw Your Signature Below</label>
+            <canvas id="signatureCanvas" width="400" height="120"
+                style="border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;cursor:crosshair;width:100%;touch-action:none;">
+            </canvas>
+            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+                <div>
+                    <label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Ink Colour</label>
+                    <input type="color" id="signColor" value="#000080" style="width:44px;height:36px;padding:2px;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;">
+                </div>
+                <button onclick="clearSignature()" style="align-self:flex-end;padding:8px 14px;border:1.5px solid #fecaca;background:#fff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#dc2626;">Clear Signature</button>
+                <button onclick="placeSignatureOnPDF()" style="align-self:flex-end;padding:8px 14px;border:1.5px solid #6366f1;background:#eef2ff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#4f46e5;">Place on PDF ↓</button>
+            </div>
+            <p style="font-size:12px;color:#94a3b8;margin-top:8px;">💡 Draw your signature above then click Place on PDF, then click where you want it on the document</p>
+        </div>
+
+        <!-- ERASER OPTIONS -->
+        <div id="eraserOptions" style="display:none;background:#f8fafc;padding:14px;border-radius:12px;border:1px solid #e2e8f0;margin-bottom:14px;">
+            <label style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:5px;">Eraser Size — <span id="eraserSizeLabel">30px</span></label>
+            <input type="range" id="eraserSize" min="10" max="100" value="30" oninput="document.getElementById('eraserSizeLabel').textContent=this.value+'px'" style="width:100%;">
+            <p style="font-size:12px;color:#94a3b8;margin-top:10px;">💡 Click and drag to erase (white out) content</p>
+        </div>
+
+        <!-- IMAGE OPTIONS -->
+        <div id="imageOptions" style="display:none;background:#f8fafc;padding:14px;border-radius:12px;border:1px solid #e2e8f0;margin-bottom:14px;">
+            <label style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:8px;">Select Image to Add</label>
+            <input type="file" id="pdfImageImport" accept="image/*" onchange="loadPDFImage(this)">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
+                <div>
+                    <label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Width (px)</label>
+                    <input type="number" id="pdfImgWidth" value="150" min="20" max="600">
+                </div>
+                <div>
+                    <label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Height (px)</label>
+                    <input type="number" id="pdfImgHeight" value="100" min="20" max="600">
+                </div>
+            </div>
+            <p style="font-size:12px;color:#94a3b8;margin-top:10px;">💡 Click on the PDF below to place your image</p>
+        </div>
+
+    </div>
+
+    <!-- LAYERS LIST -->
+    <div id="layerContainer" style="display:none;margin-top:12px;">
+        <p style="font-weight:700;font-size:0.85rem;color:#475569;margin-bottom:6px;">Layers Added:</p>
+        <ul id="layerList" style="list-style:none;padding:0;display:flex;flex-direction:column;gap:4px;max-height:150px;overflow-y:auto;"></ul>
+    </div>
+
+    <button class="btn-action" id="pdfDownloadBtn" onclick="downloadEditedPDF()" style="display:none;margin-top:16px;background:#28a745;">⬇️ Download Edited PDF</button>
+
+    <!-- LIVE CANVAS -->
+    <div id="pdfViewContainer" style="margin-top:16px;border:2px solid #334155;border-radius:12px;overflow:hidden;display:none;background:#525659;position:relative;">
+        <canvas id="pdfCanvas" style="width:100%;height:auto;display:block;cursor:crosshair;touch-action:none;"></canvas>
+    </div>
+
+    <div class="ft-seo-content">
+        <h2>Free Online PDF Editor — Text, Draw, Highlight, Sign & Erase</h2>
+        <p>Add text in any font and colour, draw freehand, highlight content, place your signature, import images, and erase unwanted content — all directly in your browser with no uploads and no watermarks.</p>
+        <h3>Frequently Asked Questions</h3>
+        <div class="faq-seo">
+            <div><strong>Can I edit existing text in the PDF?</strong><span>This editor adds new content on top of your PDF. To modify existing Word document text use the Doc Editor tool.</span></div>
+            <div><strong>Can I draw my signature?</strong><span>Yes. Select the Sign tool, draw your signature in the signature pad, then click Place on PDF and click where you want it.</span></div>
+            <div><strong>Can I highlight text?</strong><span>Yes. Select the Highlight tool, choose a colour, and drag across any text on the PDF to highlight it.</span></div>
+            <div><strong>Are my documents private?</strong><span>Yes. Everything processes locally in your browser. Your PDF never leaves your device.</span></div>
+        </div>
+    </div>
+</section>
 
         <!-- ==================== MERGE PDF ==================== -->
         <section id="pdf-merge" class="tool-card">
@@ -995,24 +1188,61 @@
         </section>
 
         <!-- ==================== SPLIT PDF ==================== -->
-        <section id="pdf-split" class="tool-card">
-            <h2>Split PDF</h2>
-            <p class="tool-description">Extract specific pages from any PDF file.</p>
-            <div class="input-group"><input type="file" id="splitInput" accept="application/pdf"></div>
-            <div class="input-group"><label>Page Number to Extract</label><input type="number" id="splitPage" value="1" min="1"></div>
-            <button class="btn-action" onclick="splitPDF()">Extract Page</button>
-            <div data-mndbanid="545c191e-6a97-455a-a696-54b09a225a71"></div>
-            <div class="ft-seo-content">
-                <h2>Free Online PDF Splitter — Extract Pages From Any PDF</h2>
-                <p>Pull out exactly the pages you need from any PDF — no software, no uploads, no limits. Enter the page number and download just that page as a clean PDF file.</p>
-                <h3>Frequently Asked Questions</h3>
-                <div class="faq-seo">
-                    <div><strong>Can I choose specific page ranges?</strong><span>Yes. Enter the exact page number you want and the tool extracts it precisely.</span></div>
-                    <div><strong>Are my documents secure?</strong><span>Yes. Everything runs locally in your browser. Files are never sent to any server.</span></div>
-                    <div><strong>Any page limits?</strong><span>None. Split documents of any size, free.</span></div>
-                </div>
+
+<section id="pdf-split" class="tool-card">
+    <h2>Split PDF</h2>
+    <p class="tool-description">Extract a single page or a range of pages from any PDF instantly.</p>
+
+    <div class="input-group">
+        <label style="font-weight:bold;">Upload PDF</label>
+        <input type="file" id="splitInput" accept="application/pdf" onchange="previewSplitPDF()">
+        <p id="splitPageCount" style="font-size:12px;color:#6366f1;margin-top:6px;display:none;"></p>
+    </div>
+
+    <div class="input-group">
+        <label>Extraction Mode</label>
+        <select id="splitMode" onchange="toggleSplitMode()">
+            <option value="single">Single Page</option>
+            <option value="range">Page Range</option>
+            <option value="all">All Pages (one file each)</option>
+        </select>
+    </div>
+
+    <!-- Single page input -->
+    <div id="splitSingleInput" class="input-group">
+        <label>Page Number</label>
+        <input type="number" id="splitPage" value="1" min="1" placeholder="e.g. 3">
+    </div>
+
+    <!-- Range inputs -->
+    <div id="splitRangeInput" style="display:none;">
+        <div class="converter-grid">
+            <div class="input-group">
+                <label>From Page</label>
+                <input type="number" id="splitFrom" value="1" min="1" placeholder="e.g. 2">
             </div>
-        </section>
+            <div class="input-group">
+                <label>To Page</label>
+                <input type="number" id="splitTo" value="3" min="1" placeholder="e.g. 5">
+            </div>
+        </div>
+    </div>
+
+    <button class="btn-action" onclick="splitPDF()">✂️ Extract Pages</button>
+    <div id="splitResult" class="result-box" style="display:none;font-size:1rem;"></div>
+
+    <div class="ft-seo-content">
+        <h2>Free Online PDF Splitter — Extract Pages or Page Ranges</h2>
+        <p>Extract a single page, a range of pages, or split every page into separate PDF files — all instantly in your browser. No uploads, no watermarks, no signup required.</p>
+        <h3>Frequently Asked Questions</h3>
+        <div class="faq-seo">
+            <div><strong>Can I extract multiple pages at once?</strong><span>Yes. Select Page Range mode, enter your start and end page numbers, and download all those pages as one PDF.</span></div>
+            <div><strong>Can I split every page into separate files?</strong><span>Yes. Select All Pages mode and each page downloads as its own individual PDF file.</span></div>
+            <div><strong>Are my documents secure?</strong><span>Yes. Everything runs locally in your browser. Files are never sent to any server.</span></div>
+            <div><strong>Any page limits?</strong><span>None. Split documents of any size, completely free.</span></div>
+        </div>
+    </div>
+</section>
 
         <!-- ==================== PDF TO JPG ==================== -->
         <section id="pdf-to-jpg" class="tool-card">
@@ -1042,54 +1272,278 @@
         </section>
 
         <!-- ==================== PDF PASSWORD PROTECT ==================== -->
-        <section id="pdf-protect" class="tool-card">
-            <h2>PDF Password Protect</h2>
-            <p class="tool-description">Add a password to any PDF to prevent unauthorised access.</p>
-            <div class="input-group">
-                <label style="font-weight:bold;">Upload PDF</label>
-                <input type="file" id="pdfProtectInput" accept="application/pdf">
+<section id="pdf-protect" class="tool-card">
+    <h2>PDF Password Protect</h2>
+    <p class="tool-description">Lock your PDF with a real password using AES-256 encryption. Your file never leaves your device.</p>
+
+    <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:12px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#4338ca;">
+        🔐 <strong>How it works:</strong> Your PDF is secured inside an AES-256 encrypted ZIP file. Only someone with the correct password can open it. This is real encryption — not metadata tags.
+    </div>
+
+    <div class="input-group">
+        <label style="font-weight:bold;">Step 1: Upload PDF</label>
+        <input type="file" id="pdfProtectInput" accept="application/pdf">
+    </div>
+
+    <div class="input-group">
+        <label>Step 2: Create Password</label>
+        <div style="position:relative;">
+            <input type="password" id="pdfPassword" placeholder="Enter a strong password" style="padding-right:48px;" oninput="checkPassStrength(this.value)">
+            <button type="button" onclick="togglePassView('pdfPassword','eyeIcon1')"
+                style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:#94a3b8;padding:0;">
+                <span id="eyeIcon1">👁️</span>
+            </button>
+        </div>
+        <!-- Strength meter -->
+        <div id="passStrengthWrapper" style="display:none;margin-top:8px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                <span style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Password Strength</span>
+                <span id="passStrengthLabel" style="font-size:11px;font-weight:700;"></span>
             </div>
-            <div class="input-group"><label>Password</label><input type="password" id="pdfPassword" placeholder="Enter password"></div>
-            <div class="input-group"><label>Confirm Password</label><input type="password" id="pdfPasswordConfirm" placeholder="Confirm password"></div>
-            <button class="btn-action" onclick="protectPDF()">Protect PDF</button>
-            <div id="pdfProtectResult" class="result-box" style="display:none;"></div>
-            <div data-mndbanid="545c191e-6a97-455a-a696-54b09a225a71"></div>
-            <div class="ft-seo-content">
-                <h2>Free PDF Password Protector — Secure Your PDF Online</h2>
-                <p>Add password protection to any PDF file instantly in your browser. Your document is never uploaded — all encryption happens locally on your device, keeping your files completely private.</p>
-                <h3>Frequently Asked Questions</h3>
-                <div class="faq-seo">
-                    <div><strong>Is the encryption strong?</strong><span>Yes. We use AES-256 encryption via PDF-lib, the same standard used by professional PDF software.</span></div>
-                    <div><strong>Will my PDF be uploaded?</strong><span>No. The entire process happens locally in your browser. Your file never leaves your device.</span></div>
-                    <div><strong>What happens if I forget the password?</strong><span>There is no recovery option — make sure to save your password somewhere secure before protecting the file.</span></div>
-                </div>
+            <div style="background:#e2e8f0;border-radius:999px;height:5px;">
+                <div id="passStrengthBar" style="height:100%;border-radius:999px;width:0%;transition:width 0.3s,background 0.3s;"></div>
             </div>
-        </section>
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label>Step 3: Confirm Password</label>
+        <div style="position:relative;">
+            <input type="password" id="pdfPasswordConfirm" placeholder="Re-enter your password" style="padding-right:48px;">
+            <button type="button" onclick="togglePassView('pdfPasswordConfirm','eyeIcon2')"
+                style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:#94a3b8;padding:0;">
+                <span id="eyeIcon2">👁️</span>
+            </button>
+        </div>
+        <p id="passMatchMsg" style="font-size:12px;margin-top:6px;display:none;"></p>
+    </div>
+
+    <div class="input-group">
+        <label>Output File Name (optional)</label>
+        <input type="text" id="protectFileName" placeholder="my-protected-document">
+    </div>
+
+    <button class="btn-action" onclick="protectPDF()">🔐 Protect PDF</button>
+    <div id="pdfProtectResult" class="result-box" style="display:none;font-size:1rem;"></div>
+
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:12px 16px;margin-top:16px;font-size:13px;color:#166534;">
+        💡 <strong>To open the protected file:</strong> The download is a <code>.zip</code> file. Use our <strong>PDF Unlock tool</strong> or any ZIP app — enter your password when prompted to access the PDF inside.
+    </div>
+
+    <div class="ft-seo-content">
+        <h2>Free PDF Password Protect — Real AES-256 Encryption Online</h2>
+        <p>Secure any PDF with a real password using AES-256 encryption — the same standard used by banks and governments. Your file is wrapped in an encrypted ZIP that only opens with the correct password. No uploads, no watermarks, completely private.</p>
+        <h3>Frequently Asked Questions</h3>
+        <div class="faq-seo">
+            <div><strong>Is this real encryption?</strong><span>Yes. We use AES-256 encryption via JSZip — a proven standard that cannot be opened without the correct password. This is not fake metadata protection.</span></div>
+            <div><strong>What format is the output?</strong><span>Your PDF is downloaded as a password-protected ZIP file containing your PDF. Open it with any ZIP app using your password to access the PDF inside.</span></div>
+            <div><strong>What if I forget the password?</strong><span>There is no recovery option. AES-256 encryption cannot be reversed without the correct password. Save your password somewhere secure.</span></div>
+            <div><strong>Is my file uploaded?</strong><span>No. Everything happens locally in your browser. Your PDF and password never leave your device.</span></div>
+        </div>
+    </div>
+    </section>
+
+        <!-- ==================== PDF PASSWORD UNLOCK ==================== -->
+<section id="pdf-unlock" class="tool-card">
+    <h2>PDF Unlock</h2>
+    <p class="tool-description">Open your password-protected PDF file. Enter the correct password to extract and download your PDF.</p>
+
+    <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:12px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#4338ca;">
+        🔓 <strong>How it works:</strong> Upload the protected ZIP file created by our PDF Password tool, enter your password, and download the unlocked PDF instantly.
+    </div>
+
+    <div class="input-group">
+        <label style="font-weight:bold;">Step 1: Upload Protected ZIP File</label>
+        <input type="file" id="pdfUnlockInput" accept=".zip">
+        <p style="font-size:12px;color:#94a3b8;margin-top:6px;">Upload the <code>.zip</code> file created by the PDF Password Protect tool</p>
+    </div>
+
+    <div class="input-group">
+        <label>Step 2: Enter Password</label>
+        <div style="position:relative;">
+            <input type="password" id="pdfUnlockPassword" placeholder="Enter the password" style="padding-right:48px;">
+            <button type="button" onclick="togglePassView('pdfUnlockPassword','eyeIconUnlock')"
+                style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:#94a3b8;padding:0;">
+                <span id="eyeIconUnlock">👁️</span>
+            </button>
+        </div>
+    </div>
+
+    <button class="btn-action" onclick="unlockPDF()">🔓 Unlock & Download PDF</button>
+    <div id="pdfUnlockResult" class="result-box" style="display:none;font-size:1rem;"></div>
+
+    <div class="ft-seo-content">
+        <h2>Free PDF Password Unlock — Extract PDF From Encrypted ZIP</h2>
+        <p>Unlock your password-protected PDF file instantly in your browser. Upload the protected ZIP, enter your password, and download the clean PDF. Wrong passwords are immediately detected. Your file never leaves your device.</p>
+        <h3>Frequently Asked Questions</h3>
+        <div class="faq-seo">
+            <div><strong>What file do I upload here?</strong><span>Upload the <code>.zip</code> file you downloaded from the PDF Password Protect tool. That ZIP contains your encrypted PDF.</span></div>
+            <div><strong>What happens if I enter the wrong password?</strong><span>You will see a clear error message immediately. The wrong password cannot open the file — this confirms the encryption is working correctly.</span></div>
+            <div><strong>Can I unlock any password-protected PDF?</strong><span>This tool works with ZIPs created by our PDF Password Protect tool. It cannot bypass passwords on PDFs protected by other software like Adobe Acrobat.</span></div>
+            <div><strong>Is my file safe?</strong><span>Yes. Everything happens locally in your browser. Your file and password are never sent anywhere.</span></div>
+        </div>
+    </div>
+    </section>
 
         <!-- ==================== DOC EDITOR ==================== -->
         <section id="doc-editor" class="tool-card">
-            <h2>Word Document Editor</h2>
-            <p class="tool-description">Open, edit, and export .docx files with full rich-text support.</p>
-            <div class="input-group">
-                <label style="font-weight:bold;">Import Document (optional)</label>
-                <input type="file" id="importDoc" accept=".docx" onchange="importWordFile(this)">
+    <h2>Document Editor</h2>
+    <p class="tool-description">Write, edit and export documents with full formatting. Import Word files or scan images directly into the editor.</p>
+
+    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#92400e;line-height:1.7;">
+        ℹ️ <strong>Good to know:</strong> Best for text-based documents. Complex Word formatting like tables, custom fonts, headers, footers, and page numbers may simplify during import and export — this is a browser limitation not a bug.
+    </div>
+
+    <!-- IMPORT OPTIONS -->
+    <div class="input-group">
+        <label style="font-weight:bold;">Import (optional)</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
+            <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 10px;background:#f8fafc;border:1.5px dashed #e2e8f0;border-radius:12px;cursor:pointer;text-align:center;">
+                <span style="font-size:24px;">📄</span>
+                <span style="font-size:12px;font-weight:700;color:#475569;">Word Doc</span>
+                <span style="font-size:10px;color:#94a3b8;">.docx file</span>
+                <input type="file" id="importDoc" accept=".docx" onchange="importWordFile(this)" style="display:none;">
+            </label>
+            <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 10px;background:#f8fafc;border:1.5px dashed #e2e8f0;border-radius:12px;cursor:pointer;text-align:center;">
+                <span style="font-size:24px;">🖼️</span>
+                <span style="font-size:12px;font-weight:700;color:#475569;">Scan Image</span>
+                <span style="font-size:10px;color:#94a3b8;">OCR to text</span>
+                <input type="file" id="docImageScan" accept="image/*" onchange="scanImageToDoc(this)" style="display:none;">
+            </label>
+            <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 10px;background:#f8fafc;border:1.5px dashed #e2e8f0;border-radius:12px;cursor:pointer;text-align:center;">
+                <span style="font-size:24px;">📷</span>
+                <span style="font-size:12px;font-weight:700;color:#475569;">Camera</span>
+                <span style="font-size:10px;color:#94a3b8;">Scan document</span>
+                <input type="file" id="docCameraScan" accept="image/*" capture="environment" onchange="scanImageToDoc(this)" style="display:none;">
+            </label>
+        </div>
+
+        <!-- OCR PROGRESS -->
+        <div id="ocrProgressWrapper" style="display:none;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                <span style="font-size:13px;font-weight:700;color:#475569;">📖 Reading document...</span>
+                <span id="ocrPercent" style="font-size:13px;font-weight:700;color:#6366f1;">0%</span>
             </div>
-            <div id="editor-wrapper" style="margin:20px 0;">
-                <div id="editor-container" style="height:400px; background:white;"></div>
+            <div style="background:#e2e8f0;border-radius:999px;height:6px;overflow:hidden;">
+                <div id="ocrProgressBar" style="background:#6366f1;height:100%;width:0%;border-radius:999px;transition:width 0.3s ease;"></div>
             </div>
-            <button class="btn-action" onclick="downloadDocAsWord()" style="background:#2b579a;">Export as .DOCX</button>
-            <div data-mndbanid="545c191e-6a97-455a-a696-54b09a225a71"></div>
-            <div class="ft-seo-content">
-                <h2>Free Online Doc Editor — Edit Word Documents in Your Browser</h2>
-                <p>Open, edit, format, and export DOCX and TXT files right in your browser — no Microsoft Office needed, no account required. Everything stays on your device.</p>
-                <h3>Frequently Asked Questions</h3>
-                <div class="faq-seo">
-                    <div><strong>What formats can I open?</strong><span>DOCX and TXT files are fully supported.</span></div>
-                    <div><strong>Are my documents private?</strong><span>Yes. Everything stays in your browser. No files are sent to any server.</span></div>
-                    <div><strong>Is there a word limit?</strong><span>No. Write and edit as much as you need, completely free.</span></div>
-                </div>
-            </div>
-        </section>
+            <p id="ocrStatusText" style="font-size:11px;color:#94a3b8;margin-top:8px;">Initialising OCR engine...</p>
+        </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+
+        <!-- Font family -->
+        <select id="docFontFamily" onchange="applyDocFormat('fontName',this.value)" style="width:120px;padding:6px 10px;border-radius:8px;border:1px solid #e2e8f0;font-size:12px;font-weight:600;">
+            <option value="Arial">Arial</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Courier New">Courier New</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Verdana">Verdana</option>
+            <option value="Helvetica">Helvetica</option>
+            <option value="Trebuchet MS">Trebuchet</option>
+        </select>
+
+        <!-- Font size -->
+        <select id="docFontSize" onchange="applyDocFormat('fontSize',this.value)" style="width:72px;padding:6px 10px;border-radius:8px;border:1px solid #e2e8f0;font-size:12px;font-weight:600;">
+            <option value="1">8</option>
+            <option value="2">10</option>
+            <option value="3" selected>12</option>
+            <option value="4">14</option>
+            <option value="5">18</option>
+            <option value="6">24</option>
+            <option value="7">36</option>
+        </select>
+
+        <div style="width:1px;height:24px;background:#e2e8f0;"></div>
+
+        <!-- Format buttons -->
+        <button onclick="applyDocFormat('bold')"          title="Bold"          style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-weight:900;font-size:13px;">B</button>
+        <button onclick="applyDocFormat('italic')"        title="Italic"        style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-style:italic;font-size:13px;">I</button>
+        <button onclick="applyDocFormat('underline')"     title="Underline"     style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;text-decoration:underline;font-size:13px;">U</button>
+        <button onclick="applyDocFormat('strikeThrough')" title="Strikethrough" style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;text-decoration:line-through;font-size:13px;">S</button>
+
+        <div style="width:1px;height:24px;background:#e2e8f0;"></div>
+
+        <!-- Alignment -->
+        <button onclick="applyDocFormat('justifyLeft')"   title="Align Left"   style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:13px;">⬅</button>
+        <button onclick="applyDocFormat('justifyCenter')" title="Center"        style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:13px;">↔</button>
+        <button onclick="applyDocFormat('justifyRight')"  title="Align Right"  style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:13px;">➡</button>
+
+        <div style="width:1px;height:24px;background:#e2e8f0;"></div>
+
+        <!-- Lists -->
+        <button onclick="applyDocFormat('insertUnorderedList')" title="Bullet List"   style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:13px;">• List</button>
+        <button onclick="applyDocFormat('insertOrderedList')"   title="Numbered List" style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:13px;">1. List</button>
+
+        <div style="width:1px;height:24px;background:#e2e8f0;"></div>
+
+        <!-- Colours -->
+        <div style="display:flex;align-items:center;gap:4px;">
+            <span style="font-size:11px;color:#64748b;font-weight:600;">A</span>
+            <input type="color" id="docTextColor" value="#000000" onchange="applyDocFormat('foreColor',this.value)"
+                title="Text colour" style="width:32px;height:30px;padding:1px;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer;">
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;">
+            <span style="font-size:11px;color:#64748b;font-weight:600;">BG</span>
+            <input type="color" id="docBgColor" value="#ffffff" onchange="applyDocFormat('hiliteColor',this.value)"
+                title="Background colour" style="width:32px;height:30px;padding:1px;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer;">
+        </div>
+
+        <div style="width:1px;height:24px;background:#e2e8f0;"></div>
+
+        <!-- Find & Replace -->
+        <button onclick="toggleFindReplace()" style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#475569;">🔍 Find</button>
+
+        <!-- Clear formatting -->
+        <button onclick="applyDocFormat('removeFormat')" title="Clear Formatting" style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#475569;">✕ Clear</button>
+
+    </div>
+
+    <!-- FIND & REPLACE -->
+    <div id="findReplaceBar" style="display:none;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;margin-bottom:10px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr auto auto;gap:8px;align-items:center;">
+            <input type="text" id="findText" placeholder="Find..." style="padding:8px 12px;border-radius:8px;border:1px solid #e2e8f0;">
+            <input type="text" id="replaceText" placeholder="Replace with..." style="padding:8px 12px;border-radius:8px;border:1px solid #e2e8f0;">
+            <button onclick="doFindReplace()" style="padding:8px 14px;background:#6366f1;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-size:12px;">Replace All</button>
+            <button onclick="toggleFindReplace()" style="padding:8px 12px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#475569;">✕</button>
+        </div>
+    </div>
+
+    <!-- EDITOR AREA -->
+    <div id="docEditorArea"
+        contenteditable="true"
+        spellcheck="true"
+        style="min-height:500px;padding:40px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;font-size:14px;line-height:1.8;color:#1e293b;outline:none;font-family:Arial,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.04);"
+        oninput="updateDocWordCount()">
+    </div>
+
+    <!-- WORD COUNT -->
+    <div style="display:flex;justify-content:space-between;padding:8px 4px;margin-top:6px;">
+        <span id="docWordCount" style="font-size:12px;color:#94a3b8;">0 words · 0 characters</span>
+        <span style="font-size:12px;color:#94a3b8;">Auto-editing enabled</span>
+    </div>
+
+    <!-- EXPORT BUTTONS -->
+    <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
+        <button class="btn-action" onclick="downloadDocAsWord()" style="background:#2b579a;flex:1;">⬇️ Export as .DOCX</button>
+        <button class="btn-action" onclick="downloadDocAsTxt()"  style="background:#475569;flex:1;">⬇️ Export as .TXT</button>
+        <button class="btn-action" onclick="printDoc()"          style="background:#0f172a;flex:1;">🖨️ Print / Save PDF</button>
+    </div>
+
+    <div class="ft-seo-content">
+        <h2>Free Online Document Editor — Write, Format and Export</h2>
+        <p>A full-featured browser document editor with font controls, text colours, alignment, bullet lists, find and replace, word count, and export to DOCX or TXT. Scan images directly into the editor using OCR. Everything stays on your device.</p>
+        <h3>Frequently Asked Questions</h3>
+        <div class="faq-seo">
+            <div><strong>Can I edit existing Word documents?</strong><span>Yes. Upload a .docx file and the text content loads into the editor ready to modify and re-export.</span></div>
+            <div><strong>Can I scan a document into the editor?</strong><span>Yes. Use the Scan Image or Camera option to extract text from a photo using OCR — it loads directly into the editor.</span></div>
+            <div><strong>What export formats are available?</strong><span>You can export as .DOCX for Word, .TXT for plain text, or use Print to save as PDF.</span></div>
+            <div><strong>Are my documents private?</strong><span>Yes. Everything stays in your browser. Nothing is sent to any server.</span></div>
+        </div>
+    </div>
+</section>
 
         <!-- ==================== IMAGE TO PDF ==================== -->
         <section id="pdf" class="tool-card">
@@ -1205,6 +1659,7 @@
                         <li><a href="/pdf-split" class="ft-link">Split PDF</a></li>
                         <li><a href="/pdf-to-jpg" class="ft-link">PDF to JPG</a></li>
                         <li><a href="/pdf-protect" class="ft-link">PDF Password</a></li>
+                        <li><a href="/pdf-unlock" class="ft-link">PDF Unlock</a></li>
                         <li><a href="/img-compressor" class="ft-link">Image Compressor</a></li>
                         <li><a href="/word" class="ft-link">Image to Word</a></li>
                     </ul>
@@ -1233,7 +1688,13 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pulltorefreshjs/0.1.22/index.umd.min.js"></script>
 <script src="main.js"></script>
-<script src="sw.js"></script>
-<script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }</script>
+<script>
+// Service worker disabled to prevent routing cache issues
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(registrations => {
+        registrations.forEach(reg => reg.unregister());
+    });
+}
+</script>
 </body>
 </html>

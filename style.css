@@ -605,6 +605,12 @@ input[type="file"] {
 .mobile-top-bar { display: none; }
 .sidebar-overlay { display: none; }
 
+/* Prevent home-section flicker on load/refresh —
+   only hides the content area, sidebar stays fully visible */
+.ft-booting .content-area {
+    visibility: hidden;
+}
+
 /* ============================================
    RESPONSIVE — TABLET & MOBILE (≤900px)
    ============================================ */
