@@ -1878,3 +1878,39 @@ async function unlockPDF() {
         showStatus('❌ Unlock failed.', 'error');
     }
 }
+
+/* ============================================
+   NEWSLETTER FORM SUBMISSION
+   ============================================ */
+document.addEventListener('submit', async (e) => {
+    if (e.target.id !== 'newsletterForm') return;
+    e.preventDefault();
+
+    const form = e.target;
+    const msg  = document.getElementById('newsletterMsg');
+    const formData = new FormData(form);
+
+    msg.style.display = 'block';
+    msg.style.color = '#64748b';
+    msg.textContent = 'Submitting...';
+
+    try {
+        const response = await fetch('https://api.web3forms.com/submit', {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            msg.style.color = '#16a34a';
+            msg.textContent = '✅ Thanks! You\'re on the list.';
+            form.reset();
+        } else {
+            msg.style.color = '#dc2626';
+            msg.textContent = '❌ Something went wrong. Try again.';
+        }
+    } catch (err) {
+        msg.style.color = '#dc2626';
+        msg.textContent = '❌ Network error. Try again.';
+    }
+});  
