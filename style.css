@@ -599,6 +599,29 @@ input[type="file"] {
     color: #64748b;
 }
 
+/* Click-to-edit text overlay */
+.pdf-text-span {
+    position: absolute;
+    cursor: text;
+    pointer-events: auto;
+    background: transparent;
+    outline: 1px dashed transparent;
+    transition: background 0.15s, outline-color 0.15s;
+    white-space: pre;
+}
+
+.pdf-text-span:hover {
+    background: rgba(99, 102, 241, 0.12);
+    outline: 1px dashed #6366f1;
+}
+
+.pdf-text-span-editing {
+    background: #fff !important;
+    outline: 2px solid #6366f1 !important;
+    color: #0f172a;
+    z-index: 5;
+}
+
 /* ============================================
    MOBILE TOP BAR (hidden on desktop)
    ============================================ */

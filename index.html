@@ -95,6 +95,7 @@
     <!-- JSZip Utils -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip-utils/0.1.0/jszip-utils.min.js"></script>
     <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <!-- Monetag -->
     <meta name="monetag" content="e28588e256665aae3e861b6b69ad9c39">
@@ -169,6 +170,9 @@
                 <a href="pdf-unlock" class="nav-item" onclick="showTool('pdf-unlock', this); return false;"><span>🔓</span> PDF Unlock</a>
                 <a href="doc-editor" class="nav-item" onclick="showTool('doc-editor', this); return false;"><span>✍️</span> Doc Editor</a>
                 <a href="pdf" class="nav-item" onclick="showTool('pdf', this); return false;"><span>📷</span> Image to PDF</a>
+                <a href="doc-to-pdf" class="nav-item" onclick="showTool('doc-to-pdf', this); return false;"><span>📄</span> Word to PDF</a>
+                <a href="pdf-to-doc" class="nav-item" onclick="showTool('pdf-to-doc', this); return false;"><span>📝</span> PDF to Word</a>
+                <a href="pdf-watermark" class="nav-item" onclick="showTool('pdf-watermark', this); return false;"><span>💧</span> PDF Watermark</a>
             </div>
         </div>
 
@@ -182,6 +186,7 @@
                 <a href="img-compressor" class="nav-item" onclick="showTool('img-compressor', this); return false;"><span>📉</span> Image Compressor</a>
                 <a href="img-resizer" class="nav-item" onclick="showTool('img-resizer', this); return false;"><span>📐</span> Image Resizer</a>
                 <a href="file-converter" class="nav-item" onclick="showTool('file-converter', this); return false;"><span>🔄</span> File Converter</a>
+                <a href="pdf-organize" class="nav-item" onclick="showTool('pdf-organize', this); return false;"><span>🔃</span> Rotate/Reorder PDF</a>
             </div>
         </div>
 
@@ -304,6 +309,24 @@
                         <p style="font-size:11px;color:#64748b;margin:0;">Photos into clean PDFs</p>
                     </div>
 
+                    <div onclick="showTool('doc-to-pdf', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                        <div style="width:36px;height:36px;border-radius:8px;background:#FAECE7;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">📄</div>
+                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Word to PDF</p>
+                        <p style="font-size:11px;color:#64748b;margin:0;">Convert .docx to PDF</p>
+                    </div>
+
+                    <div onclick="showTool('pdf-to-doc', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                        <div style="width:36px;height:36px;border-radius:8px;background:#FAECE7;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">📝</div>
+                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">PDF to Word</p>
+                        <p style="font-size:11px;color:#64748b;margin:0;">Extract editable text</p>
+                    </div>
+
+                    <div onclick="showTool('pdf-watermark', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                        <div style="width:36px;height:36px;border-radius:8px;background:#FAECE7;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">💧</div>
+                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">PDF Watermark</p>
+                        <p style="font-size:11px;color:#64748b;margin:0;">Add text or image watermark</p>
+                    </div>
+
                 </div>
 
                 <!-- IMAGE TOOLS -->
@@ -332,6 +355,12 @@
                         <div style="width:36px;height:36px;border-radius:8px;background:#FAEEDA;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">🔄</div>
                         <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">File Converter</p>
                         <p style="font-size:11px;color:#64748b;margin:0;">PNG, JPG, WebP</p>
+                    </div>
+
+                    <div onclick="showTool('pdf-organize', null)" style="background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;">
+                        <div style="width:36px;height:36px;border-radius:8px;background:#FAECE7;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;">🔃</div>
+                        <p style="font-size:13px;font-weight:600;margin:0 0 3px;color:#0f172a;">Rotate/Reorder PDF</p>
+                        <p style="font-size:11px;color:#64748b;margin:0;">Rotate and rearrange pages</p>
                     </div>
 
                 </div>
@@ -989,13 +1018,13 @@
         </section>
 
         <!-- ==================== PDF EDITOR ==================== -->
-    <section id="pdf-editor" class="tool-card">
+        <!-- ==================== PDF EDITOR ==================== -->
+<section id="pdf-editor" class="tool-card">
     <h2>PDF Editor</h2>
-    <p class="tool-description">Add text, draw, highlight, sign and erase content on any PDF — free, private, no uploads.</p>
+    <p class="tool-description">Add text, draw, highlight, sign, erase, and click-to-edit existing text — free, private, no uploads.</p>
 
     <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#4338ca;line-height:1.7;">
-        ℹ️ This editor adds content <strong>on top of</strong> your PDF — text, drawings, highlights, images and signatures. To edit existing typed text in a Word document use the
-        <strong onclick="showTool('doc-editor',null)" style="cursor:pointer;text-decoration:underline;">Doc Editor</strong>.
+        ℹ️ Use <strong>Text</strong> to add new content, or <strong>Click to Edit Text</strong> to directly modify existing PDF text — just like editing a Word document. Works best on regular text-based PDFs (not scanned images).
     </div>
 
     <div class="input-group">
@@ -1020,6 +1049,7 @@
         <!-- TOOLBAR -->
         <div style="display:flex;flex-wrap:wrap;gap:6px;padding:12px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;margin-bottom:14px;">
             <button class="pdf-tool-btn active" id="toolText"      onclick="selectPDFTool('text')"      style="display:flex;align-items:center;gap:5px;padding:8px 12px;border:1.5px solid #6366f1;background:#eef2ff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#4f46e5;">✏️ Text</button>
+            <button class="pdf-tool-btn"        id="toolEditText"  onclick="selectPDFTool('edittext')"  style="display:flex;align-items:center;gap:5px;padding:8px 12px;border:1.5px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#475569;">🖱️ Click to Edit Text</button>
             <button class="pdf-tool-btn"        id="toolDraw"      onclick="selectPDFTool('draw')"      style="display:flex;align-items:center;gap:5px;padding:8px 12px;border:1.5px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#475569;">🖊️ Draw</button>
             <button class="pdf-tool-btn"        id="toolHighlight" onclick="selectPDFTool('highlight')" style="display:flex;align-items:center;gap:5px;padding:8px 12px;border:1.5px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#475569;">🖍️ Highlight</button>
             <button class="pdf-tool-btn"        id="toolSign"      onclick="selectPDFTool('sign')"      style="display:flex;align-items:center;gap:5px;padding:8px 12px;border:1.5px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#475569;">✍️ Sign</button>
@@ -1029,27 +1059,38 @@
             <button onclick="clearAllPDFEdits()" style="display:flex;align-items:center;gap:5px;padding:8px 12px;border:1.5px solid #fecaca;background:#fff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#dc2626;">🗑️ Clear</button>
         </div>
 
-        <!-- TEXT OPTIONS -->
+        <!-- TEXT OPTIONS (mobile-fixed version) -->
         <div id="textOptions" style="background:#f8fafc;padding:14px;border-radius:12px;border:1px solid #e2e8f0;margin-bottom:14px;">
-            <div style="display:grid;grid-template-columns:1fr auto auto auto auto;gap:8px;align-items:end;flex-wrap:wrap;">
-                <div>
-                    <label style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px;">Text</label>
-                    <input type="text" id="pdfTextToAdd" placeholder="Type your text...">
-                </div>
+
+            <label style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">Text to Add</label>
+            <textarea id="pdfTextToAdd" rows="2" placeholder="Type your text here..."
+                style="width:100%;padding:12px 14px;font-size:16px;border:1.5px solid #cbd5e1;border-radius:10px;resize:none;font-family:inherit;box-sizing:border-box;"></textarea>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-top:10px;">
                 <div>
                     <label style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:5px;">Font</label>
-                    <select id="pdfFontFamily" style="width:110px;">
-                        <option value="Arial">Arial</option>
-                        <option value="Times New Roman">Times New Roman</option>
-                        <option value="Courier New">Courier New</option>
-                        <option value="Georgia">Georgia</option>
-                        <option value="Verdana">Verdana</option>
-                        <option value="Helvetica">Helvetica</option>
+                    <select id="pdfFontFamily" style="width:130px;">
+                        <optgroup label="Latin">
+                            <option value="Arial">Arial</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                            <option value="Courier New">Courier New</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Verdana">Verdana</option>
+                        </optgroup>
+                        <optgroup label="Other Scripts (auto-detected)">
+                            <option value="Noto Sans Arabic">Arabic</option>
+                            <option value="Noto Sans Hebrew">Hebrew</option>
+                            <option value="Noto Sans Devanagari">Hindi</option>
+                            <option value="Noto Sans SC">Chinese</option>
+                            <option value="Noto Sans JP">Japanese</option>
+                            <option value="Noto Sans KR">Korean</option>
+                            <option value="Noto Sans Thai">Thai</option>
+                        </optgroup>
                     </select>
                 </div>
                 <div>
                     <label style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:5px;">Size</label>
-                    <select id="pdfFontSize" style="width:75px;">
+                    <select id="pdfFontSize" style="width:100%;">
                         <option value="10">10</option>
                         <option value="12">12</option>
                         <option value="14">14</option>
@@ -1066,14 +1107,29 @@
                 </div>
                 <div>
                     <label style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:5px;">Colour</label>
-                    <input type="color" id="pdfTextColor" value="#000000" style="width:44px;height:40px;padding:2px;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;">
+                    <input type="color" id="pdfTextColor" value="#000000" style="width:100%;height:38px;padding:2px;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;">
                 </div>
                 <div>
                     <label style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:5px;">Bold</label>
-                    <button id="pdfBoldBtn" onclick="togglePDFBold()" style="width:44px;height:40px;border:1.5px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-weight:900;font-size:15px;color:#475569;">B</button>
+                    <button id="pdfBoldBtn" onclick="togglePDFBold()" style="width:100%;height:38px;border:1.5px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-weight:900;font-size:15px;color:#475569;">B</button>
                 </div>
             </div>
-            <p style="font-size:12px;color:#94a3b8;margin-top:10px;">💡 Click anywhere on the PDF below to place your text</p>
+
+            <button id="pdfPlaceTextBtn" onclick="armTextPlacement()"
+                style="width:100%;margin-top:12px;padding:12px;background:#6366f1;color:#fff;border:none;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;">
+                📍 Tap here, then tap on the PDF to place your text
+            </button>
+
+            <p id="textPlacementHint" style="display:none;font-size:12px;color:#16a34a;font-weight:600;margin-top:8px;text-align:center;">
+                ✅ Ready — now tap anywhere on the PDF below to place your text
+            </p>
+        </div>
+
+        <!-- CLICK TO EDIT TEXT OPTIONS -->
+        <div id="edittextOptions" style="display:none;background:#f8fafc;padding:14px;border-radius:12px;border:1px solid #e2e8f0;margin-bottom:14px;">
+            <p style="font-size:13px;color:#475569;line-height:1.6;margin:0;">
+                💡 Existing text on this page is now outlined when you hover. Click any text to edit it directly — just like editing in a Word document. Works best on regular text-based PDFs (not scanned images).
+            </p>
         </div>
 
         <!-- DRAW OPTIONS -->
@@ -1135,22 +1191,35 @@
         </div>
 
         <!-- IMAGE OPTIONS -->
-        <div id="imageOptions" style="display:none;background:#f8fafc;padding:14px;border-radius:12px;border:1px solid #e2e8f0;margin-bottom:14px;">
-            <label style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:8px;">Select Image to Add</label>
-            <input type="file" id="pdfImageImport" accept="image/*" onchange="loadPDFImage(this)">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
-                <div>
-                    <label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Width (px)</label>
-                    <input type="number" id="pdfImgWidth" value="150" min="20" max="600">
-                </div>
-                <div>
-                    <label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Height (px)</label>
-                    <input type="number" id="pdfImgHeight" value="100" min="20" max="600">
-                </div>
-            </div>
-            <p style="font-size:12px;color:#94a3b8;margin-top:10px;">💡 Click on the PDF below to place your image</p>
-        </div>
+        <!-- IMAGE OPTIONS -->
+<div id="imageOptions" style="display:none;background:#f8fafc;padding:14px;border-radius:12px;border:1px solid #e2e8f0;margin-bottom:14px;">
+    <label style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:8px;">Select Image to Add</label>
+    <input type="file" id="pdfImageImport" accept="image/*" onchange="loadPDFImage(this)">
 
+    <!-- Live preview thumbnail -->
+    <div id="pdfImagePreviewWrapper" style="display:none;margin-top:12px;text-align:center;">
+        <img id="pdfImagePreviewThumb" style="max-width:120px;max-height:120px;border-radius:8px;border:1px solid #e2e8f0;">
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;margin-top:12px;">
+        <div style="flex:1;">
+            <label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Width (px)</label>
+            <input type="number" id="pdfImgWidth" value="150" min="20" max="600" oninput="onPDFImgSizeChange('width')">
+        </div>
+        <button onclick="togglePDFImgAspectLock()" id="pdfImgLockBtn" title="Lock aspect ratio"
+            style="margin-top:18px;width:38px;height:38px;border:1.5px solid #6366f1;background:#eef2ff;border-radius:8px;cursor:pointer;font-size:16px;">🔗</button>
+        <div style="flex:1;">
+            <label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Height (px)</label>
+            <input type="number" id="pdfImgHeight" value="100" min="20" max="600" oninput="onPDFImgSizeChange('height')">
+        </div>
+    </div>
+
+    <div style="margin-top:10px;">
+        <label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:5px;">Quick Resize — <span id="pdfImgScaleLabel">100%</span></label>
+        <input type="range" id="pdfImgScaleSlider" min="10" max="200" value="100" oninput="onPDFImgScaleSlider(this.value)" style="width:100%;">
+    </div>
+
+    <p style="font-size:12px;color:#94a3b8;margin-top:10px;">💡 Click on the PDF below to place your image at this size</p>
     </div>
 
     <!-- LAYERS LIST -->
@@ -1161,17 +1230,18 @@
 
     <button class="btn-action" id="pdfDownloadBtn" onclick="downloadEditedPDF()" style="display:none;margin-top:16px;background:#28a745;">⬇️ Download Edited PDF</button>
 
-    <!-- LIVE CANVAS -->
+    <!-- LIVE CANVAS + CLICK-TO-EDIT TEXT OVERLAY -->
     <div id="pdfViewContainer" style="margin-top:16px;border:2px solid #334155;border-radius:12px;overflow:hidden;display:none;background:#525659;position:relative;">
         <canvas id="pdfCanvas" style="width:100%;height:auto;display:block;cursor:crosshair;touch-action:none;"></canvas>
+        <div id="pdfTextOverlay" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;"></div>
     </div>
 
     <div class="ft-seo-content">
-        <h2>Free Online PDF Editor — Text, Draw, Highlight, Sign & Erase</h2>
-        <p>Add text in any font and colour, draw freehand, highlight content, place your signature, import images, and erase unwanted content — all directly in your browser with no uploads and no watermarks.</p>
+        <h2>Free Online PDF Editor — Text, Draw, Highlight, Sign, Erase & Click-to-Edit</h2>
+        <p>Add text in any font and colour, draw freehand, highlight content, place your signature, import images, erase unwanted content, and directly click-to-edit existing PDF text — all in your browser with no uploads and no watermarks.</p>
         <h3>Frequently Asked Questions</h3>
         <div class="faq-seo">
-            <div><strong>Can I edit existing text in the PDF?</strong><span>This editor adds new content on top of your PDF. To modify existing Word document text use the Doc Editor tool.</span></div>
+            <div><strong>Can I edit existing text in the PDF directly?</strong><span>Yes. Use the "Click to Edit Text" tool — hover over any existing text to see it outlined, then click to edit it in place, just like editing a Word document. Works best on regular text-based PDFs.</span></div>
             <div><strong>Can I draw my signature?</strong><span>Yes. Select the Sign tool, draw your signature in the signature pad, then click Place on PDF and click where you want it.</span></div>
             <div><strong>Can I highlight text?</strong><span>Yes. Select the Highlight tool, choose a colour, and drag across any text on the PDF to highlight it.</span></div>
             <div><strong>Are my documents private?</strong><span>Yes. Everything processes locally in your browser. Your PDF never leaves your device.</span></div>
@@ -1574,6 +1644,158 @@
                 </div>
             </div>
         </section>
+
+        <!-- ==================== DOC TO PDF ==================== -->
+<section id="doc-to-pdf" class="tool-card">
+    <h2>Word to PDF Converter</h2>
+    <p class="tool-description">Convert a .docx Word document into a clean PDF file, free and private.</p>
+
+    <div class="input-group">
+        <label style="font-weight:bold;">Upload Word Document (.docx)</label>
+        <input type="file" id="docToPdfInput" accept=".docx">
+    </div>
+
+    <button class="btn-action" onclick="convertDocToPDF()">📄 Convert to PDF</button>
+    <div id="docToPdfResult" class="result-box" style="display:none;font-size:1rem;"></div>
+
+    <!-- Hidden render container used to build the PDF -->
+    <div id="docToPdfRenderArea" style="position:absolute; left:-9999px; top:-9999px; width:794px; padding:40px; background:#fff; font-family:Arial, sans-serif; font-size:14px; line-height:1.6; color:#000;"></div>
+
+    <div class="ft-seo-content">
+        <h2>Free Word to PDF Converter — Convert .docx to PDF Online</h2>
+        <p>Upload any Word document and convert it into a properly formatted PDF, entirely in your browser. No uploads to any server, no signup, no watermark.</p>
+        <h3>Frequently Asked Questions</h3>
+        <div class="faq-seo">
+            <div><strong>Does formatting stay the same?</strong><span>Basic formatting — headings, bold, italics, lists, and paragraphs — is preserved. Highly complex layouts like multi-column pages or embedded tables may render more simply.</span></div>
+            <div><strong>Is my document uploaded anywhere?</strong><span>No. The conversion happens entirely in your browser using your device's processing power.</span></div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== PDF TO DOC ==================== -->
+<section id="pdf-to-doc" class="tool-card">
+    <h2>PDF to Word Converter</h2>
+    <p class="tool-description">Extract the text from a PDF into an editable Word document.</p>
+
+    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#92400e;line-height:1.7;">
+        ℹ️ <strong>Good to know:</strong> This extracts real text from the PDF into an editable .docx file. It preserves paragraphs and basic structure, but complex layouts (tables, columns, exact positioning) are simplified — this is a browser processing limitation. For scanned/image PDFs with no real text layer, use <strong onclick="showTool('word',null)" style="cursor:pointer;text-decoration:underline;">Image to Word (OCR)</strong> instead.
+    </div>
+
+    <div class="input-group">
+        <label style="font-weight:bold;">Upload PDF</label>
+        <input type="file" id="pdfToDocInput" accept="application/pdf">
+    </div>
+
+    <button class="btn-action" onclick="convertPDFtoDoc()">📝 Convert to Word</button>
+    <div id="pdfToDocResult" class="result-box" style="display:none;font-size:1rem;"></div>
+
+    <div class="ft-seo-content">
+        <h2>Free PDF to Word Converter — Extract Editable Text From PDF</h2>
+        <p>Convert a text-based PDF into an editable .docx Word document. All text is extracted and rebuilt as clean paragraphs, ready to edit in Microsoft Word or Google Docs. Runs entirely in your browser.</p>
+        <h3>Frequently Asked Questions</h3>
+        <div class="faq-seo">
+            <div><strong>Will tables and columns look the same?</strong><span>Complex layouts are simplified into plain paragraphs. This tool focuses on getting your text back in editable form rather than exact visual layout.</span></div>
+            <div><strong>What about scanned PDFs?</strong><span>Scanned or photographed PDFs have no real text layer to extract. Use the Image to Word OCR tool for those instead.</span></div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== PDF WATERMARK ==================== -->
+<section id="pdf-watermark" class="tool-card">
+    <h2>PDF Watermark</h2>
+    <p class="tool-description">Add a text or image watermark across every page of your PDF.</p>
+
+    <div class="input-group">
+        <label style="font-weight:bold;">Step 1: Upload PDF</label>
+        <input type="file" id="watermarkPdfInput" accept="application/pdf">
+    </div>
+
+    <div class="input-group">
+        <label>Watermark Type</label>
+        <select id="watermarkType" onchange="toggleWatermarkType()">
+            <option value="text">Text Watermark</option>
+            <option value="image">Image Watermark</option>
+        </select>
+    </div>
+
+    <!-- TEXT WATERMARK OPTIONS -->
+    <div id="watermarkTextOptions">
+        <div class="input-group">
+            <label>Watermark Text</label>
+            <input type="text" id="watermarkText" placeholder="e.g. CONFIDENTIAL, DRAFT, SAMPLE">
+        </div>
+        <div class="converter-grid">
+            <div class="input-group"><label>Font Size</label><input type="number" id="watermarkFontSize" value="48" min="10" max="150"></div>
+            <div class="input-group"><label>Colour</label><input type="color" id="watermarkColor" value="#94a3b8" style="height:50px;"></div>
+        </div>
+    </div>
+
+    <!-- IMAGE WATERMARK OPTIONS -->
+    <div id="watermarkImageOptions" style="display:none;">
+        <div class="input-group">
+            <label>Watermark Image</label>
+            <input type="file" id="watermarkImageInput" accept="image/*">
+        </div>
+    </div>
+
+    <div class="converter-grid">
+        <div class="input-group">
+            <label>Opacity — <span id="watermarkOpacityLabel">30%</span></label>
+            <input type="range" id="watermarkOpacity" min="5" max="100" value="30" oninput="document.getElementById('watermarkOpacityLabel').textContent=this.value+'%'">
+        </div>
+        <div class="input-group">
+            <label>Rotation (degrees)</label>
+            <input type="number" id="watermarkRotation" value="45" min="0" max="360">
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label>Position</label>
+        <select id="watermarkPosition">
+            <option value="center">Center (single, large)</option>
+            <option value="tile">Tiled (repeated across page)</option>
+        </select>
+    </div>
+
+    <button class="btn-action" onclick="applyWatermark()">💧 Add Watermark</button>
+    <div id="watermarkResult" class="result-box" style="display:none;font-size:1rem;"></div>
+
+    <div class="ft-seo-content">
+        <h2>Free PDF Watermark Tool — Add Text or Image Watermark Online</h2>
+        <p>Stamp every page of your PDF with a custom text or image watermark — adjust opacity, rotation, and position. Runs entirely in your browser, no uploads, no signup.</p>
+        <h3>Frequently Asked Questions</h3>
+        <div class="faq-seo">
+            <div><strong>Can I add my own logo as a watermark?</strong><span>Yes. Switch to Image Watermark and upload any PNG or JPG image.</span></div>
+            <div><strong>Does this apply to every page?</strong><span>Yes, the watermark is applied consistently across every page of the document.</span></div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== PDF ROTATE/REORDER ==================== -->
+<section id="pdf-organize" class="tool-card">
+    <h2>PDF Organize — Rotate & Reorder Pages</h2>
+    <p class="tool-description">Rotate individual pages and rearrange page order before downloading.</p>
+
+    <div class="input-group">
+        <label style="font-weight:bold;">Upload PDF</label>
+        <input type="file" id="organizePdfInput" accept="application/pdf" onchange="loadPDFForOrganize()">
+    </div>
+
+    <div id="organizePagesGrid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:14px; margin-top:20px;"></div>
+
+    <button class="btn-action" id="organizeDownloadBtn" onclick="downloadOrganizedPDF()" style="display:none; margin-top:20px; background:#28a745;">⬇️ Download Reorganized PDF</button>
+    <div id="organizeResult" class="result-box" style="display:none;font-size:1rem;"></div>
+
+    <div class="ft-seo-content">
+        <h2>Free PDF Page Organizer — Rotate & Reorder Pages Online</h2>
+        <p>Rotate any page 90 degrees at a time and rearrange page order before downloading — all in your browser, no uploads, no signup.</p>
+        <h3>Frequently Asked Questions</h3>
+        <div class="faq-seo">
+            <div><strong>Can I remove a page?</strong><span>Yes, click the ✕ on any page thumbnail to remove it from the final document.</span></div>
+            <div><strong>Is my PDF uploaded anywhere?</strong><span>No, everything is processed locally in your browser.</span></div>
+        </div>
+    </div>
+</section>
 
         <!-- ==================== FAQ ==================== -->
         <section id="faq" class="tool-card">

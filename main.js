@@ -836,7 +836,7 @@ async function convertFile() {
 
 /* ============================================
    PDF EDITOR — Full Featured
-   Text | Draw | Highlight | Sign | Erase | Image
+   Text | Click-to-Edit | Draw | Highlight | Sign | Erase | Image
    Multi-page support
    ============================================ */
 
@@ -861,6 +861,8 @@ let isPlacingSignature = false;
 let signCanvas       = null;
 let signCtx          = null;
 let isSignDrawing    = false;
+let isTextPlacementArmed = false;
+let pdfTextItemsByPage = {};
 
 function initPageLayers(page) {
     if (!textLayers[page])   textLayers[page]   = [];
@@ -886,7 +888,7 @@ function selectPDFTool(tool) {
         activeBtn.style.color       = '#4f46e5';
     }
 
-    const panels = ['textOptions','drawOptions','highlightOptions','signOptions','eraserOptions','imageOptions'];
+    const panels = ['textOptions','edittextOptions','drawOptions','highlightOptions','signOptions','eraserOptions','imageOptions'];
     panels.forEach(p => {
         const el = document.getElementById(p);
         if (el) el.style.display = 'none';
@@ -903,6 +905,16 @@ function selectPDFTool(tool) {
     }
 
     if (tool === 'sign') initSignaturePad();
+
+    // Load or clear the click-to-edit text overlay
+    if (tool === 'edittext') {
+        loadPDFTextOverlay(currentPDFPage);
+    } else {
+        clearPDFTextOverlay();
+    }
+
+    // Reset text placement arming if leaving the text tool
+    if (tool !== 'text') disarmTextPlacement();
 }
 
 function togglePDFBold() {
@@ -923,6 +935,164 @@ function setHighlightColor(color) {
     event.target.style.border = '2px solid #6366f1';
 }
 
+/* ---- MOBILE-SAFE TEXT PLACEMENT ---- */
+function armTextPlacement() {
+    const text = document.getElementById('pdfTextToAdd')?.value.trim();
+    if (!text) {
+        showStatus('❌ Type your text first, then tap this button.', 'error');
+        return;
+    }
+    isTextPlacementArmed = true;
+    const btn  = document.getElementById('pdfPlaceTextBtn');
+    const hint = document.getElementById('textPlacementHint');
+    if (btn)  { btn.style.background = '#16a34a'; btn.textContent = '👆 Now tap the PDF to place it'; }
+    if (hint) hint.style.display = 'block';
+
+    const canvas = document.getElementById('pdfCanvas');
+    if (canvas) canvas.style.cursor = 'copy';
+}
+
+function disarmTextPlacement() {
+    isTextPlacementArmed = false;
+    const btn  = document.getElementById('pdfPlaceTextBtn');
+    const hint = document.getElementById('textPlacementHint');
+    if (btn)  { btn.style.background = '#6366f1'; btn.textContent = '📍 Tap here, then tap on the PDF to place your text'; }
+    if (hint) hint.style.display = 'none';
+    const textArea = document.getElementById('pdfTextToAdd');
+    if (textArea) textArea.value = '';
+
+    const canvas = document.getElementById('pdfCanvas');
+    if (canvas) canvas.style.cursor = 'crosshair';
+}
+
+/* ---- CLICK-TO-EDIT EXISTING TEXT (WPS-style) ---- */
+async function loadPDFTextOverlay(pageNum) {
+    if (currentPDFTool !== 'edittext') return;
+
+    const overlay = document.getElementById('pdfTextOverlay');
+    if (!overlay) return;
+    overlay.innerHTML = '';
+    overlay.style.pointerEvents = 'auto';
+
+    const page      = await pdfDoc.getPage(pageNum);
+    const viewport  = page.getViewport({ scale: 1.5 });
+    const canvas    = document.getElementById('pdfCanvas');
+    const scaleX    = canvas.clientWidth  / canvas.width;
+    const scaleY    = canvas.clientHeight / canvas.height;
+
+    if (!pdfTextItemsByPage[pageNum]) {
+        const textContent = await page.getTextContent();
+        pdfTextItemsByPage[pageNum] = textContent.items;
+    }
+
+    const items = pdfTextItemsByPage[pageNum];
+
+    items.forEach((item, index) => {
+        if (!item.str || !item.str.trim()) return;
+
+        const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
+        const fontHeight = Math.hypot(tx[2], tx[3]);
+        const left = tx[4];
+        const top  = tx[5] - fontHeight;
+        const width  = item.width  * viewport.scale;
+        const height = fontHeight;
+
+        const span = document.createElement('div');
+        span.className = 'pdf-text-span';
+        span.dataset.originalText = item.str;
+        span.dataset.itemIndex = index;
+        span.textContent = item.str;
+
+        span.style.left     = (left * scaleX) + 'px';
+        span.style.top      = (top * scaleY) + 'px';
+        span.style.width    = (width * scaleX) + 'px';
+        span.style.height   = (height * scaleY) + 'px';
+        span.style.fontSize = (height * scaleY) + 'px';
+        span.style.lineHeight = (height * scaleY) + 'px';
+        span.style.fontFamily = 'sans-serif';
+
+        span.onclick = () => startInlineTextEdit(span, item, viewport, scaleX, scaleY, pageNum);
+
+        overlay.appendChild(span);
+    });
+}
+
+function clearPDFTextOverlay() {
+    const overlay = document.getElementById('pdfTextOverlay');
+    if (overlay) {
+        overlay.innerHTML = '';
+        overlay.style.pointerEvents = 'none';
+    }
+}
+
+function startInlineTextEdit(span, item, viewport, scaleX, scaleY, pageNum) {
+    if (span.classList.contains('pdf-text-span-editing')) return;
+
+    const originalText = span.dataset.originalText;
+    span.classList.add('pdf-text-span-editing');
+    span.contentEditable = true;
+    span.focus();
+
+    const range = document.createRange();
+    range.selectNodeContents(span);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+
+    const commit = async () => {
+        const newText = span.textContent.trim();
+        span.contentEditable = false;
+        span.classList.remove('pdf-text-span-editing');
+
+        if (newText === originalText || newText === '') {
+            span.textContent = originalText;
+            return;
+        }
+
+        const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
+        const fontHeight = Math.hypot(tx[2], tx[3]);
+        const left   = tx[4];
+        const top    = tx[5] - fontHeight;
+        const width  = item.width * viewport.scale;
+
+        initPageLayers(pageNum);
+        eraserLayers[pageNum].push({
+            rectMode: true, rectX: left - 2, rectY: top - 2,
+            rectWidth: width + 6, rectHeight: fontHeight + 4
+        });
+
+        // Auto-detect script and render correctly
+        const isRTL = detectTextDirection(newText);
+        const font  = isRTL ? 'Noto Sans Arabic' : 'Arial';
+        const rendered = await renderTextToImageData(newText, font, Math.round(fontHeight * 0.85), '#000000', false);
+        const img = new Image();
+        img.src = rendered.dataUrl;
+        await new Promise(r => img.onload = r);
+
+        imageLayers[pageNum].push({ type: 'image', img, x: left, y: top, w: rendered.width, h: rendered.height });
+        actionHistory.push({ tool: 'image', page: pageNum, layerIndex: imageLayers[pageNum].length - 1 });
+
+        span.textContent = newText;
+        span.dataset.originalText = newText;
+
+        drawPDFPreview();
+        showStatus('✅ Text updated', 'success');
+    };
+
+    span.onblur = commit;
+    span.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            span.blur();
+        }
+        if (e.key === 'Escape') {
+            span.textContent = originalText;
+            span.blur();
+        }
+    };
+}
+
+/* ---- SIGNATURE PAD ---- */
 function initSignaturePad() {
     signCanvas = document.getElementById('signatureCanvas');
     if (!signCanvas) return;
@@ -953,6 +1123,7 @@ function placeSignatureOnPDF() {
     showStatus('✅ Now click on the PDF where you want your signature.', 'success');
 }
 
+/* ---- INIT PDF EDITOR ---- */
 async function initPDFEditor() {
     const file = document.getElementById('pdfEditInput').files[0];
     if (!file) return;
@@ -963,6 +1134,7 @@ async function initPDFEditor() {
     eraserLayers  = {};
     actionHistory = [];
     pdfPageImages = {};
+    pdfTextItemsByPage = {};
     currentPDFPage = 1;
 
     const list = document.getElementById('layerList');
@@ -1008,6 +1180,10 @@ async function renderPDFPage(pageNum) {
     updatePageLabel();
     drawPDFPreview();
     attachCanvasEvents();
+
+    if (currentPDFTool === 'edittext') {
+        loadPDFTextOverlay(pageNum);
+    }
 }
 
 function updatePageLabel() {
@@ -1025,6 +1201,7 @@ async function changePDFPage(dir) {
         initPageLayers(currentPDFPage);
         updatePageLabel();
         drawPDFPreview();
+        if (currentPDFTool === 'edittext') loadPDFTextOverlay(currentPDFPage);
     }
 }
 
@@ -1037,7 +1214,15 @@ function attachCanvasEvents() {
     canvas.onclick      = handlePDFCanvasClick;
     canvas.ontouchstart = e => { e.preventDefault(); handlePDFMouseDown(e.touches[0]); };
     canvas.ontouchmove  = e => { e.preventDefault(); handlePDFMouseMove(e.touches[0]); };
-    canvas.ontouchend   = e => { e.preventDefault(); handlePDFMouseUp(); };
+    canvas.ontouchend   = e => {
+        e.preventDefault();
+        handlePDFMouseUp();
+        // On mobile, treat touchend as the click for placement tools
+        if (currentPDFTool === 'text' || currentPDFTool === 'image' || currentPDFTool === 'sign') {
+            const touch = e.changedTouches[0];
+            handlePDFCanvasClick(touch);
+        }
+    };
 }
 
 function getCanvasCoords(e) {
@@ -1088,21 +1273,35 @@ function handlePDFMouseUp() {
     isErasing = false;
 }
 
-function handlePDFCanvasClick(e) {
-    if (currentPDFTool === 'draw' || currentPDFTool === 'highlight' || currentPDFTool === 'eraser') return;
+async function handlePDFCanvasClick(e) {
+    if (currentPDFTool === 'draw' || currentPDFTool === 'highlight' || currentPDFTool === 'eraser' || currentPDFTool === 'edittext') return;
     const { x, y } = getCanvasCoords(e);
 
     if (currentPDFTool === 'text') {
-        const text   = document.getElementById('pdfTextToAdd')?.value.trim();
-        const color  = document.getElementById('pdfTextColor')?.value || '#000000';
-        const size   = parseInt(document.getElementById('pdfFontSize')?.value || 20);
-        const font   = document.getElementById('pdfFontFamily')?.value || 'Arial';
-        if (!text) { showStatus('❌ Please enter text first.', 'error'); return; }
-        const layer = { type: 'text', content: text, x, y, color, size, bold: isBold, font };
-        textLayers[currentPDFPage].push(layer);
-        actionHistory.push({ tool: 'text', page: currentPDFPage, layerIndex: textLayers[currentPDFPage].length - 1 });
-        addLayerToList('text', `"${text}"`, currentPDFPage, textLayers[currentPDFPage].length - 1);
+        if (!isTextPlacementArmed) {
+            showStatus('❌ Tap "Place your text" button first, then tap the PDF.', 'error');
+            return;
+        }
+        const text  = document.getElementById('pdfTextToAdd')?.value.trim();
+        const color = document.getElementById('pdfTextColor')?.value || '#000000';
+        const size  = parseInt(document.getElementById('pdfFontSize')?.value || 20);
+        const font  = document.getElementById('pdfFontFamily')?.value || 'Arial';
+
+        if (!text) { showStatus('❌ Please type some text first.', 'error'); return; }
+
+        const rendered = await renderTextToImageData(text, font, size, color, isBold);
+        const img = new Image();
+        img.src = rendered.dataUrl;
+        await new Promise(r => img.onload = r);
+
+        const layer = { type: 'image', img, x, y: y - rendered.height, w: rendered.width, h: rendered.height };
+        imageLayers[currentPDFPage].push(layer);
+        actionHistory.push({ tool: 'image', page: currentPDFPage, layerIndex: imageLayers[currentPDFPage].length - 1 });
+        addLayerToList('text', `"${text}"`, currentPDFPage, imageLayers[currentPDFPage].length - 1);
         drawPDFPreview();
+
+        disarmTextPlacement();
+        showStatus('✅ Text placed on PDF!', 'success');
     }
 
     if (currentPDFTool === 'image') {
@@ -1141,6 +1340,9 @@ function applyEraser(e) {
     eraserLayers[currentPDFPage].push({ x, y, size });
 }
 
+let pdfImgOriginalRatio = 1;
+let pdfImgAspectLocked  = true;
+
 function loadPDFImage(input) {
     const file = input.files[0];
     if (!file) return;
@@ -1148,9 +1350,86 @@ function loadPDFImage(input) {
     reader.onload = e => {
         pdfImportedImg     = new Image();
         pdfImportedImg.src = e.target.result;
-        pdfImportedImg.onload = () => showStatus('✅ Image ready. Click on the PDF to place it.', 'success');
+        pdfImportedImg.onload = () => {
+            // Store true aspect ratio
+            pdfImgOriginalRatio = pdfImportedImg.width / pdfImportedImg.height;
+
+            // Set sensible default size (max 300px on longest side)
+            let defaultW = pdfImportedImg.width;
+            let defaultH = pdfImportedImg.height;
+            const maxDim = 300;
+            if (defaultW > maxDim || defaultH > maxDim) {
+                if (defaultW > defaultH) {
+                    defaultH = Math.round((defaultH / defaultW) * maxDim);
+                    defaultW = maxDim;
+                } else {
+                    defaultW = Math.round((defaultW / defaultH) * maxDim);
+                    defaultH = maxDim;
+                }
+            }
+
+            document.getElementById('pdfImgWidth').value  = defaultW;
+            document.getElementById('pdfImgHeight').value = defaultH;
+            document.getElementById('pdfImgScaleSlider').value = 100;
+            document.getElementById('pdfImgScaleLabel').textContent = '100%';
+
+            // Show preview thumbnail
+            const previewWrapper = document.getElementById('pdfImagePreviewWrapper');
+            const previewThumb   = document.getElementById('pdfImagePreviewThumb');
+            if (previewWrapper && previewThumb) {
+                previewThumb.src = e.target.result;
+                previewWrapper.style.display = 'block';
+            }
+
+            showStatus('✅ Image ready. Adjust size, then click on the PDF to place it.', 'success');
+        };
     };
     reader.readAsDataURL(file);
+}
+
+function togglePDFImgAspectLock() {
+    pdfImgAspectLocked = !pdfImgAspectLocked;
+    const btn = document.getElementById('pdfImgLockBtn');
+    if (btn) {
+        btn.style.background  = pdfImgAspectLocked ? '#eef2ff' : '#fff';
+        btn.style.borderColor = pdfImgAspectLocked ? '#6366f1' : '#e2e8f0';
+        btn.textContent = pdfImgAspectLocked ? '🔗' : '🔓';
+    }
+}
+
+function onPDFImgSizeChange(changedField) {
+    if (!pdfImgAspectLocked || !pdfImportedImg) return;
+
+    const widthInput  = document.getElementById('pdfImgWidth');
+    const heightInput = document.getElementById('pdfImgHeight');
+
+    if (changedField === 'width') {
+        const newWidth = parseInt(widthInput.value) || 0;
+        heightInput.value = Math.round(newWidth / pdfImgOriginalRatio);
+    } else {
+        const newHeight = parseInt(heightInput.value) || 0;
+        widthInput.value = Math.round(newHeight * pdfImgOriginalRatio);
+    }
+}
+
+function onPDFImgScaleSlider(percent) {
+    if (!pdfImportedImg) return;
+    document.getElementById('pdfImgScaleLabel').textContent = percent + '%';
+
+    const baseWidth  = pdfImportedImg.width  * (percent / 100);
+    const baseHeight = pdfImportedImg.height * (percent / 100);
+
+    // Cap at reasonable max so it doesn't overflow the page
+    const maxDim = 600;
+    let finalW = baseWidth, finalH = baseHeight;
+    if (finalW > maxDim || finalH > maxDim) {
+        const scale = maxDim / Math.max(finalW, finalH);
+        finalW *= scale;
+        finalH *= scale;
+    }
+
+    document.getElementById('pdfImgWidth').value  = Math.round(finalW);
+    document.getElementById('pdfImgHeight').value = Math.round(finalH);
 }
 
 function drawPDFPreview() {
@@ -1162,7 +1441,11 @@ function drawPDFPreview() {
 
     ctx.fillStyle = '#ffffff';
     (eraserLayers[currentPDFPage] || []).forEach(e => {
-        ctx.fillRect(e.x - e.size/2, e.y - e.size/2, e.size, e.size);
+        if (e.rectMode) {
+            ctx.fillRect(e.rectX, e.rectY, e.rectWidth, e.rectHeight);
+        } else {
+            ctx.fillRect(e.x - e.size/2, e.y - e.size/2, e.size, e.size);
+        }
     });
 
     (drawLayers[currentPDFPage] || []).forEach(layer => {
@@ -1250,13 +1533,23 @@ async function downloadEditedPDF() {
             const scaleY = height / canvas.height;
 
             (eraserLayers[pageNum] || []).forEach(e => {
-                page.drawRectangle({
-                    x: (e.x - e.size/2) * scaleX,
-                    y: height - ((e.y + e.size/2) * scaleY),
-                    width:  e.size * scaleX,
-                    height: e.size * scaleY,
-                    color:  rgb(1, 1, 1)
-                });
+                if (e.rectMode) {
+                    page.drawRectangle({
+                        x: e.rectX * scaleX,
+                        y: height - ((e.rectY + e.rectHeight) * scaleY),
+                        width:  e.rectWidth * scaleX,
+                        height: e.rectHeight * scaleY,
+                        color:  rgb(1, 1, 1)
+                    });
+                } else {
+                    page.drawRectangle({
+                        x: (e.x - e.size/2) * scaleX,
+                        y: height - ((e.y + e.size/2) * scaleY),
+                        width:  e.size * scaleX,
+                        height: e.size * scaleY,
+                        color:  rgb(1, 1, 1)
+                    });
+                }
             });
 
             for (const layer of (textLayers[pageNum] || [])) {
@@ -1297,6 +1590,46 @@ async function downloadEditedPDF() {
         console.error(err);
         showStatus('❌ Download failed. Please try again.', 'error');
     }
+
+    /* ============================================
+   MULTI-SCRIPT TEXT RENDERING
+   Renders text via canvas (correct shaping for
+   Arabic, Hebrew, Hindi, CJK etc.) then embeds
+   as an image into the PDF for accurate display.
+   ============================================ */
+function detectTextDirection(text) {
+    // Arabic/Hebrew unicode ranges = RTL
+    return /[\u0590-\u08FF]/.test(text);
+}
+
+async function renderTextToImageData(text, font, size, color, bold) {
+    const canvas = document.createElement('canvas');
+    const ctx    = canvas.getContext('2d');
+    const isRTL  = detectTextDirection(text);
+    const weight = bold ? 'bold' : 'normal';
+
+    ctx.font = `${weight} ${size * 3}px "${font}"`;
+    const metrics = ctx.measureText(text);
+    const padding = 10;
+
+    canvas.width  = Math.ceil(metrics.width) + padding * 2;
+    canvas.height = Math.ceil(size * 3 * 1.4) + padding * 2;
+
+    ctx.font = `${weight} ${size * 3}px "${font}"`;
+    ctx.fillStyle = color;
+    ctx.textBaseline = 'top';
+    ctx.direction = isRTL ? 'rtl' : 'ltr';
+    ctx.textAlign = isRTL ? 'right' : 'left';
+
+    const x = isRTL ? canvas.width - padding : padding;
+    ctx.fillText(text, x, padding);
+
+    return {
+        dataUrl: canvas.toDataURL('image/png'),
+        width: canvas.width / 3,
+        height: canvas.height / 3
+    };
+}
 }
 
 /* ============================================
@@ -1876,6 +2209,358 @@ async function unlockPDF() {
         result.style.background  = '#fef2f2';
         result.style.borderColor = '#fecaca';
         showStatus('❌ Unlock failed.', 'error');
+    }
+}
+
+/* ============================================
+   WORD TO PDF
+   ============================================ */
+async function convertDocToPDF() {
+    const file   = document.getElementById('docToPdfInput').files[0];
+    const result = document.getElementById('docToPdfResult');
+
+    if (!file) { showStatus('❌ Please select a .docx file.', 'error'); return; }
+
+    result.style.display    = 'flex';
+    result.style.background = '#f8fafc';
+    result.innerHTML = '<span class="spinner"></span> Converting to PDF...';
+
+    try {
+        const buffer = await file.arrayBuffer();
+        const converted = await mammoth.convertToHtml({ arrayBuffer: buffer });
+
+        const renderArea = document.getElementById('docToPdfRenderArea');
+        renderArea.innerHTML = converted.value;
+
+        // Render the HTML to canvas, then to PDF
+        const canvas = await html2canvas(renderArea, { scale: 2, useCORS: true });
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'pt', 'a4');
+        const pageWidth  = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth   = pageWidth;
+        const imgHeight  = (canvas.height * imgWidth) / canvas.width;
+
+        let heightLeft = imgHeight;
+        let position   = 0;
+
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+
+        pdf.save('FlexTools_Converted.pdf');
+
+        result.innerHTML         = '✅ PDF downloaded successfully!';
+        result.style.background  = '#f0fdf4';
+        result.style.borderColor = '#22c55e';
+        result.classList.add('has-result');
+        showStatus('✅ Converted to PDF!', 'success');
+
+    } catch (err) {
+        console.error(err);
+        result.innerHTML         = '❌ Conversion failed. Please try a different file.';
+        result.style.background  = '#fef2f2';
+        showStatus('❌ Conversion failed.', 'error');
+    }
+}
+
+/* ============================================
+   PDF TO WORD — Text extraction based
+   ============================================ */
+async function convertPDFtoDoc() {
+    const file   = document.getElementById('pdfToDocInput').files[0];
+    const result = document.getElementById('pdfToDocResult');
+
+    if (!file) { showStatus('❌ Please select a PDF file.', 'error'); return; }
+
+    result.style.display    = 'flex';
+    result.style.background = '#f8fafc';
+    result.innerHTML = '<span class="spinner"></span> Extracting text...';
+
+    try {
+        const bytes = await file.arrayBuffer();
+        const pdf   = await pdfjsLib.getDocument({ data: bytes }).promise;
+        let htmlContent = '';
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+
+            let lastY = null;
+            let lineBuffer = '';
+
+            textContent.items.forEach(item => {
+                if (!item.str) return;
+                const y = item.transform[5];
+
+                if (lastY !== null && Math.abs(y - lastY) > 5) {
+                    htmlContent += `<p>${lineBuffer.trim()}</p>`;
+                    lineBuffer = '';
+                }
+                lineBuffer += item.str + ' ';
+                lastY = y;
+            });
+
+            if (lineBuffer.trim()) htmlContent += `<p>${lineBuffer.trim()}</p>`;
+            if (i < pdf.numPages) htmlContent += '<p style="page-break-after: always;"></p>';
+        }
+
+        if (!htmlContent.trim()) {
+            result.innerHTML = '❌ No text found. This may be a scanned/image PDF — try the Image to Word (OCR) tool instead.';
+            result.style.background = '#fef2f2';
+            showStatus('❌ No text detected.', 'error');
+            return;
+        }
+
+        const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>${htmlContent}</body></html>`;
+        const blob = htmlDocx.asBlob(fullHtml);
+        triggerDownload(blob, 'FlexTools_Converted.docx');
+
+        result.innerHTML         = '✅ Word document downloaded successfully!';
+        result.style.background  = '#f0fdf4';
+        result.style.borderColor = '#22c55e';
+        result.classList.add('has-result');
+        showStatus('✅ Converted to Word!', 'success');
+
+    } catch (err) {
+        console.error(err);
+        result.innerHTML        = '❌ Conversion failed. The file may be corrupted or image-based.';
+        result.style.background = '#fef2f2';
+        showStatus('❌ Conversion failed.', 'error');
+    }
+}
+
+/* ============================================
+   PDF WATERMARK
+   ============================================ */
+function toggleWatermarkType() {
+    const type = document.getElementById('watermarkType').value;
+    document.getElementById('watermarkTextOptions').style.display  = type === 'text'  ? 'block' : 'none';
+    document.getElementById('watermarkImageOptions').style.display = type === 'image' ? 'block' : 'none';
+}
+
+async function applyWatermark() {
+    const file   = document.getElementById('watermarkPdfInput').files[0];
+    const result = document.getElementById('watermarkResult');
+    const type   = document.getElementById('watermarkType').value;
+    const opacity  = parseInt(document.getElementById('watermarkOpacity').value) / 100;
+    const rotation = parseInt(document.getElementById('watermarkRotation').value);
+    const position = document.getElementById('watermarkPosition').value;
+
+    if (!file) { showStatus('❌ Please select a PDF file.', 'error'); return; }
+
+    result.style.display    = 'flex';
+    result.style.background = '#f8fafc';
+    result.innerHTML = '<span class="spinner"></span> Applying watermark...';
+
+    try {
+        const { PDFDocument, rgb, degrees } = PDFLib;
+        const bytes = await file.arrayBuffer();
+        const doc   = await PDFDocument.load(bytes);
+        const pages = doc.getPages();
+
+        if (type === 'text') {
+            const text     = document.getElementById('watermarkText').value.trim() || 'WATERMARK';
+            const fontSize = parseInt(document.getElementById('watermarkFontSize').value) || 48;
+            const hex      = document.getElementById('watermarkColor').value.replace('#','');
+            const r = parseInt(hex.substring(0,2),16)/255;
+            const g = parseInt(hex.substring(2,4),16)/255;
+            const b = parseInt(hex.substring(4,6),16)/255;
+            const font = await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+
+            pages.forEach(page => {
+                const { width, height } = page.getSize();
+
+                if (position === 'center') {
+                    page.drawText(text, {
+                        x: width / 2 - (text.length * fontSize * 0.25),
+                        y: height / 2,
+                        size: fontSize,
+                        font,
+                        color: rgb(r, g, b),
+                        opacity,
+                        rotate: degrees(rotation)
+                    });
+                } else {
+                    // Tiled across the page
+                    const stepX = fontSize * text.length * 0.7;
+                    const stepY = fontSize * 3;
+                    for (let y = 0; y < height + stepY; y += stepY) {
+                        for (let x = -stepX; x < width + stepX; x += stepX) {
+                            page.drawText(text, {
+                                x, y, size: fontSize, font,
+                                color: rgb(r, g, b), opacity, rotate: degrees(rotation)
+                            });
+                        }
+                    }
+                }
+            });
+
+        } else {
+            const imgFile = document.getElementById('watermarkImageInput').files[0];
+            if (!imgFile) { showStatus('❌ Please select a watermark image.', 'error'); return; }
+
+            const imgBytes = await imgFile.arrayBuffer();
+            const isJpg = imgFile.type.includes('jpeg') || imgFile.type.includes('jpg');
+            const embeddedImg = isJpg ? await doc.embedJpg(imgBytes) : await doc.embedPng(imgBytes);
+            const imgDims = embeddedImg.scale(0.4);
+
+            pages.forEach(page => {
+                const { width, height } = page.getSize();
+                if (position === 'center') {
+                    page.drawImage(embeddedImg, {
+                        x: width / 2 - imgDims.width / 2,
+                        y: height / 2 - imgDims.height / 2,
+                        width: imgDims.width,
+                        height: imgDims.height,
+                        opacity,
+                        rotate: degrees(rotation)
+                    });
+                } else {
+                    for (let y = 0; y < height; y += imgDims.height * 1.5) {
+                        for (let x = 0; x < width; x += imgDims.width * 1.5) {
+                            page.drawImage(embeddedImg, {
+                                x, y, width: imgDims.width, height: imgDims.height,
+                                opacity, rotate: degrees(rotation)
+                            });
+                        }
+                    }
+                }
+            });
+        }
+
+        const outBytes = await doc.save();
+        triggerDownload(new Blob([outBytes], { type: 'application/pdf' }), 'FlexTools_Watermarked.pdf');
+
+        result.innerHTML         = '✅ Watermark applied and downloaded!';
+        result.style.background  = '#f0fdf4';
+        result.style.borderColor = '#22c55e';
+        result.classList.add('has-result');
+        showStatus('✅ Watermark added!', 'success');
+
+    } catch (err) {
+        console.error(err);
+        result.innerHTML        = '❌ Failed to add watermark. Please try again.';
+        result.style.background = '#fef2f2';
+        showStatus('❌ Watermark failed.', 'error');
+    }
+}
+
+/* ============================================
+   PDF ROTATE / REORDER
+   ============================================ */
+let organizePages = []; // { originalIndex, rotation, thumbUrl, removed }
+
+async function loadPDFForOrganize() {
+    const file = document.getElementById('organizePdfInput').files[0];
+    if (!file) return;
+
+    organizePDFBytes = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: organizePDFBytes }).promise;
+    organizePages = [];
+
+    const grid = document.getElementById('organizePagesGrid');
+    grid.innerHTML = '<p style="grid-column:1/-1;color:#64748b;">Loading pages...</p>';
+
+    for (let i = 1; i <= pdf.numPages; i++) {
+        const page     = await pdf.getPage(i);
+        const viewport = page.getViewport({ scale: 0.4 });
+        const canvas   = document.createElement('canvas');
+        canvas.width  = viewport.width;
+        canvas.height = viewport.height;
+        await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+
+        organizePages.push({
+            originalIndex: i - 1,
+            rotation: 0,
+            thumbUrl: canvas.toDataURL(),
+            removed: false
+        });
+    }
+
+    renderOrganizeGrid();
+    document.getElementById('organizeDownloadBtn').style.display = 'block';
+}
+
+let organizePDFBytes = null;
+
+function renderOrganizeGrid() {
+    const grid = document.getElementById('organizePagesGrid');
+    grid.innerHTML = '';
+
+    organizePages.forEach((p, idx) => {
+        if (p.removed) return;
+        const card = document.createElement('div');
+        card.style.cssText = 'border:1px solid #e2e8f0;border-radius:10px;padding:8px;background:#f8fafc;text-align:center;';
+        card.innerHTML = `
+            <div style="overflow:hidden;height:140px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:6px;margin-bottom:8px;">
+                <img src="${p.thumbUrl}" style="max-width:100%;max-height:100%;transform:rotate(${p.rotation}deg);transition:transform 0.2s;">
+            </div>
+            <p style="font-size:11px;color:#64748b;margin-bottom:6px;">Page ${p.originalIndex + 1}</p>
+            <div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;">
+                <button onclick="rotateOrganizePage(${idx})" style="padding:4px 8px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer;font-size:11px;">↻ Rotate</button>
+                <button onclick="moveOrganizePage(${idx},-1)" style="padding:4px 8px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer;font-size:11px;">◀</button>
+                <button onclick="moveOrganizePage(${idx},1)" style="padding:4px 8px;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer;font-size:11px;">▶</button>
+                <button onclick="removeOrganizePage(${idx})" style="padding:4px 8px;border:1px solid #fecaca;background:#fff;border-radius:6px;cursor:pointer;font-size:11px;color:#dc2626;">✕</button>
+            </div>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+function rotateOrganizePage(idx) {
+    organizePages[idx].rotation = (organizePages[idx].rotation + 90) % 360;
+    renderOrganizeGrid();
+}
+
+function moveOrganizePage(idx, dir) {
+    const target = idx + dir;
+    if (target < 0 || target >= organizePages.length) return;
+    [organizePages[idx], organizePages[target]] = [organizePages[target], organizePages[idx]];
+    renderOrganizeGrid();
+}
+
+function removeOrganizePage(idx) {
+    organizePages[idx].removed = true;
+    renderOrganizeGrid();
+}
+
+async function downloadOrganizedPDF() {
+    const result = document.getElementById('organizeResult');
+    result.style.display = 'flex';
+    result.innerHTML = '<span class="spinner"></span> Building your PDF...';
+
+    try {
+        const { PDFDocument, degrees } = PDFLib;
+        const srcDoc = await PDFDocument.load(organizePDFBytes);
+        const newDoc = await PDFDocument.create();
+
+        const activePages = organizePages.filter(p => !p.removed);
+        for (const p of activePages) {
+            const [copied] = await newDoc.copyPages(srcDoc, [p.originalIndex]);
+            copied.setRotation(degrees(p.rotation));
+            newDoc.addPage(copied);
+        }
+
+        const bytes = await newDoc.save();
+        triggerDownload(new Blob([bytes], { type: 'application/pdf' }), 'FlexTools_Organized.pdf');
+
+        result.innerHTML = '✅ PDF downloaded successfully!';
+        result.style.background = '#f0fdf4';
+        result.classList.add('has-result');
+        showStatus('✅ PDF organized!', 'success');
+    } catch (err) {
+        console.error(err);
+        result.innerHTML = '❌ Failed. Please try again.';
+        result.style.background = '#fef2f2';
     }
 }
 
