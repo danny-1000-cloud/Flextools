@@ -622,6 +622,26 @@ input[type="file"] {
     z-index: 5;
 }
 
+.pdf-inline-edit-controls select,
+.pdf-inline-edit-controls input {
+    outline: none;
+}
+.pdf-inline-edit-controls select:hover,
+.pdf-inline-edit-controls input:hover {
+    opacity: 0.9;
+}
+
+.fillable-blank {
+    background: #eef2ff;
+    border-radius: 4px;
+    font-weight: 600;
+}
+.fillable-blank:hover,
+.fillable-blank:focus {
+    background: #e0e7ff;
+    outline: none;
+}
+
 /* ============================================
    MOBILE TOP BAR (hidden on desktop)
    ============================================ */

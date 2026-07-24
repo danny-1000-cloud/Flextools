@@ -1232,7 +1232,7 @@
 
     <!-- LIVE CANVAS + CLICK-TO-EDIT TEXT OVERLAY -->
     <div id="pdfViewContainer" style="margin-top:16px;border:2px solid #334155;border-radius:12px;overflow:hidden;display:none;background:#525659;position:relative;">
-        <canvas id="pdfCanvas" style="width:100%;height:auto;display:block;cursor:crosshair;touch-action:none;"></canvas>
+       <canvas id="pdfCanvas" style="width:100%;height:auto;display:block;cursor:crosshair;touch-action:none;" onclick="handlePDFPlacementClick(event)"></canvas> 
         <div id="pdfTextOverlay" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;"></div>
     </div>
 
@@ -1467,55 +1467,61 @@
     </section>
 
         <!-- ==================== DOC EDITOR ==================== -->
-        <section id="doc-editor" class="tool-card">
+       
+            <section id="doc-editor" class="tool-card">
     <h2>Document Editor</h2>
-    <p class="tool-description">Write, edit and export documents with full formatting. Import Word files or scan images directly into the editor.</p>
+    <p class="tool-description">Write, edit and export documents with full formatting. Import Word files, scan images, or turn receipts/invoices into fillable templates.</p>
 
     <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#92400e;line-height:1.7;">
-        ℹ️ <strong>Good to know:</strong> Best for text-based documents. Complex Word formatting like tables, custom fonts, headers, footers, and page numbers may simplify during import and export — this is a browser limitation not a bug.
+        ℹ️ <strong>Good to know:</strong> Best for text-based documents. Complex Word formatting like tables, custom fonts, headers, footers, and page numbers may simplify during import and export.
     </div>
 
-    <!-- IMPORT OPTIONS -->
     <div class="input-group">
-        <label style="font-weight:bold;">Import (optional)</label>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
-            <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 10px;background:#f8fafc;border:1.5px dashed #e2e8f0;border-radius:12px;cursor:pointer;text-align:center;">
-                <span style="font-size:24px;">📄</span>
-                <span style="font-size:12px;font-weight:700;color:#475569;">Word Doc</span>
-                <span style="font-size:10px;color:#94a3b8;">.docx file</span>
-                <input type="file" id="importDoc" accept=".docx" onchange="importWordFile(this)" style="display:none;">
-            </label>
-            <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 10px;background:#f8fafc;border:1.5px dashed #e2e8f0;border-radius:12px;cursor:pointer;text-align:center;">
-                <span style="font-size:24px;">🖼️</span>
-                <span style="font-size:12px;font-weight:700;color:#475569;">Scan Image</span>
-                <span style="font-size:10px;color:#94a3b8;">OCR to text</span>
-                <input type="file" id="docImageScan" accept="image/*" onchange="scanImageToDoc(this)" style="display:none;">
-            </label>
-            <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 10px;background:#f8fafc;border:1.5px dashed #e2e8f0;border-radius:12px;cursor:pointer;text-align:center;">
-                <span style="font-size:24px;">📷</span>
-                <span style="font-size:12px;font-weight:700;color:#475569;">Camera</span>
-                <span style="font-size:10px;color:#94a3b8;">Scan document</span>
-                <input type="file" id="docCameraScan" accept="image/*" capture="environment" onchange="scanImageToDoc(this)" style="display:none;">
-            </label>
-        </div>
+    <label style="font-weight:bold;">Import (optional)</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px;">
+        <label for="importDoc" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 10px;background:#f8fafc;border:1.5px dashed #e2e8f0;border-radius:12px;cursor:pointer;text-align:center;">
+            <span style="font-size:24px;">📄</span>
+            <span style="font-size:12px;font-weight:700;color:#475569;">Word Doc</span>
+        </label>
+        <input type="file" id="importDoc" accept=".docx" onchange="importWordFile(this)" style="position:absolute;width:1px;height:1px;opacity:0;">
 
-        <!-- OCR PROGRESS -->
-        <div id="ocrProgressWrapper" style="display:none;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:12px;">
-            <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-                <span style="font-size:13px;font-weight:700;color:#475569;">📖 Reading document...</span>
-                <span id="ocrPercent" style="font-size:13px;font-weight:700;color:#6366f1;">0%</span>
-            </div>
-            <div style="background:#e2e8f0;border-radius:999px;height:6px;overflow:hidden;">
-                <div id="ocrProgressBar" style="background:#6366f1;height:100%;width:0%;border-radius:999px;transition:width 0.3s ease;"></div>
-            </div>
-            <p id="ocrStatusText" style="font-size:11px;color:#94a3b8;margin-top:8px;">Initialising OCR engine...</p>
-        </div>
+        <label for="docImageScan" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 10px;background:#f8fafc;border:1.5px dashed #e2e8f0;border-radius:12px;cursor:pointer;text-align:center;">
+            <span style="font-size:24px;">🖼️</span>
+            <span style="font-size:12px;font-weight:700;color:#475569;">Scan Image</span>
+        </label>
+        <input type="file" id="docImageScan" accept="image/*" onchange="scanImageToDoc(this)" style="position:absolute;width:1px;height:1px;opacity:0;">
+
+        <label for="docCameraScan" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 10px;background:#f8fafc;border:1.5px dashed #e2e8f0;border-radius:12px;cursor:pointer;text-align:center;">
+            <span style="font-size:24px;">📷</span>
+            <span style="font-size:12px;font-weight:700;color:#475569;">Camera</span>
+        </label>
+        <input type="file" id="docCameraScan" accept="image/*" capture="environment" onchange="scanImageToDoc(this)" style="position:absolute;width:1px;height:1px;opacity:0;">
+
+        <label for="docTemplateScan" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 10px;background:#eef2ff;border:1.5px dashed #6366f1;border-radius:12px;cursor:pointer;text-align:center;">
+            <span style="font-size:24px;">📋</span>
+            <span style="font-size:12px;font-weight:700;color:#4f46e5;">Fillable Template</span>
+        </label>
+        <input type="file" id="docTemplateScan" accept="image/*" onchange="extractDocTemplate(this)" style="position:absolute;width:1px;height:1px;opacity:0;">
     </div>
+
+    <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#4338ca;line-height:1.6;">
+        💡 <strong>Fillable Template:</strong> Upload a receipt, quotation, or invoice photo. Labels stay as-is, amounts/dates become editable blanks. Review before filling.
+    </div>
+
+    <div id="ocrProgressWrapper" style="display:none;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+            <span style="font-size:13px;font-weight:700;color:#475569;">📖 Reading document...</span>
+            <span id="ocrPercent" style="font-size:13px;font-weight:700;color:#6366f1;">0%</span>
+        </div>
+        <div style="background:#e2e8f0;border-radius:999px;height:6px;overflow:hidden;">
+            <div id="ocrProgressBar" style="background:#6366f1;height:100%;width:0%;border-radius:999px;transition:width 0.3s ease;"></div>
+        </div>
+        <p id="ocrStatusText" style="font-size:11px;color:#94a3b8;margin-top:8px;">Initialising OCR engine...</p>
+    </div>
+</div>
 
     <!-- TOOLBAR -->
     <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
-
-        <!-- Font family -->
         <select id="docFontFamily" onchange="applyDocFormat('fontName',this.value)" style="width:120px;padding:6px 10px;border-radius:8px;border:1px solid #e2e8f0;font-size:12px;font-weight:600;">
             <option value="Arial">Arial</option>
             <option value="Times New Roman">Times New Roman</option>
@@ -1526,60 +1532,57 @@
             <option value="Trebuchet MS">Trebuchet</option>
         </select>
 
-        <!-- Font size -->
-        <select id="docFontSize" onchange="applyDocFormat('fontSize',this.value)" style="width:72px;padding:6px 10px;border-radius:8px;border:1px solid #e2e8f0;font-size:12px;font-weight:600;">
-            <option value="1">8</option>
-            <option value="2">10</option>
-            <option value="3" selected>12</option>
-            <option value="4">14</option>
-            <option value="5">18</option>
-            <option value="6">24</option>
-            <option value="7">36</option>
+        <select id="docFontSize" onchange="applyRealFontSize(this.value)" style="width:72px;padding:6px 10px;border-radius:8px;border:1px solid #e2e8f0;font-size:12px;font-weight:600;">
+            <option value="8">8</option>
+            <option value="10">10</option>
+            <option value="12" selected>12</option>
+            <option value="14">14</option>
+            <option value="16">16</option>
+            <option value="18">18</option>
+            <option value="24">24</option>
+            <option value="32">32</option>
+            <option value="48">48</option>
         </select>
 
         <div style="width:1px;height:24px;background:#e2e8f0;"></div>
+        <button onclick="document.execCommand('undo')" title="Undo" style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:13px;">↩️</button>
+        <button onclick="document.execCommand('redo')" title="Redo" style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:13px;">↪️</button>
 
-        <!-- Format buttons -->
-        <button onclick="applyDocFormat('bold')"          title="Bold"          style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-weight:900;font-size:13px;">B</button>
-        <button onclick="applyDocFormat('italic')"        title="Italic"        style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-style:italic;font-size:13px;">I</button>
-        <button onclick="applyDocFormat('underline')"     title="Underline"     style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;text-decoration:underline;font-size:13px;">U</button>
+        <div style="width:1px;height:24px;background:#e2e8f0;"></div>
+        <button onclick="applyDocFormat('bold')" title="Bold" style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-weight:900;font-size:13px;">B</button>
+        <button onclick="applyDocFormat('italic')" title="Italic" style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-style:italic;font-size:13px;">I</button>
+        <button onclick="applyDocFormat('underline')" title="Underline" style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;text-decoration:underline;font-size:13px;">U</button>
         <button onclick="applyDocFormat('strikeThrough')" title="Strikethrough" style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;text-decoration:line-through;font-size:13px;">S</button>
 
         <div style="width:1px;height:24px;background:#e2e8f0;"></div>
-
-        <!-- Alignment -->
-        <button onclick="applyDocFormat('justifyLeft')"   title="Align Left"   style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:13px;">⬅</button>
-        <button onclick="applyDocFormat('justifyCenter')" title="Center"        style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:13px;">↔</button>
-        <button onclick="applyDocFormat('justifyRight')"  title="Align Right"  style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:13px;">➡</button>
+        <button onclick="applyDocFormat('justifyLeft')" title="Align Left" style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:13px;">⬅</button>
+        <button onclick="applyDocFormat('justifyCenter')" title="Center" style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:13px;">↔</button>
+        <button onclick="applyDocFormat('justifyRight')" title="Align Right" style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:13px;">➡</button>
 
         <div style="width:1px;height:24px;background:#e2e8f0;"></div>
-
-        <!-- Lists -->
-        <button onclick="applyDocFormat('insertUnorderedList')" title="Bullet List"   style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:13px;">• List</button>
-        <button onclick="applyDocFormat('insertOrderedList')"   title="Numbered List" style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:13px;">1. List</button>
+        <button onclick="applyDocFormat('insertUnorderedList')" title="Bullet List" style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:13px;">• List</button>
+        <button onclick="applyDocFormat('insertOrderedList')" title="Numbered List" style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:13px;">1. List</button>
 
         <div style="width:1px;height:24px;background:#e2e8f0;"></div>
+        <button onclick="insertDocTable()" title="Insert Table" style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#475569;">▦ Table</button>
+        <label style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#475569;">
+            🖼️ Image
+            <input type="file" accept="image/*" onchange="insertDocImage(this)" style="display:none;">
+        </label>
 
-        <!-- Colours -->
+        <div style="width:1px;height:24px;background:#e2e8f0;"></div>
         <div style="display:flex;align-items:center;gap:4px;">
             <span style="font-size:11px;color:#64748b;font-weight:600;">A</span>
-            <input type="color" id="docTextColor" value="#000000" onchange="applyDocFormat('foreColor',this.value)"
-                title="Text colour" style="width:32px;height:30px;padding:1px;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer;">
+            <input type="color" id="docTextColor" value="#000000" onchange="applyDocFormat('foreColor',this.value)" title="Text colour" style="width:32px;height:30px;padding:1px;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer;">
         </div>
         <div style="display:flex;align-items:center;gap:4px;">
             <span style="font-size:11px;color:#64748b;font-weight:600;">BG</span>
-            <input type="color" id="docBgColor" value="#ffffff" onchange="applyDocFormat('hiliteColor',this.value)"
-                title="Background colour" style="width:32px;height:30px;padding:1px;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer;">
+            <input type="color" id="docBgColor" value="#ffffff" onchange="applyDocFormat('hiliteColor',this.value)" title="Background colour" style="width:32px;height:30px;padding:1px;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer;">
         </div>
 
         <div style="width:1px;height:24px;background:#e2e8f0;"></div>
-
-        <!-- Find & Replace -->
         <button onclick="toggleFindReplace()" style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#475569;">🔍 Find</button>
-
-        <!-- Clear formatting -->
         <button onclick="applyDocFormat('removeFormat')" title="Clear Formatting" style="padding:6px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#475569;">✕ Clear</button>
-
     </div>
 
     <!-- FIND & REPLACE -->
@@ -1592,34 +1595,40 @@
         </div>
     </div>
 
-    <!-- EDITOR AREA -->
+    <!-- DRAFT RESTORE -->
+    <div id="draftRestoreBanner" style="display:none;background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:13px;color:#4338ca;display:flex;justify-content:space-between;align-items:center;">
+        <span>📝 We found unsaved work from your last session.</span>
+        <div style="display:flex;gap:8px;">
+            <button onclick="restoreDocDraft()" style="padding:5px 12px;background:#6366f1;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">Restore</button>
+            <button onclick="dismissDocDraft()" style="padding:5px 12px;background:#fff;border:1px solid #c7d2fe;border-radius:6px;cursor:pointer;font-size:12px;color:#4338ca;">Discard</button>
+        </div>
+    </div>
+
+    <!-- EDITOR -->
     <div id="docEditorArea"
         contenteditable="true"
         spellcheck="true"
-        style="min-height:500px;padding:40px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;font-size:14px;line-height:1.8;color:#1e293b;outline:none;font-family:Arial,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.04);"
-        oninput="updateDocWordCount()">
+        style="min-height:600px; max-width:800px; margin:0 auto; padding:60px; background:#fff; border:1px solid #e2e8f0; border-radius:4px; font-size:14px; line-height:1.8; color:#1e293b; outline:none; font-family:Arial,sans-serif; box-shadow:0 4px 16px rgba(0,0,0,0.08);"
+        oninput="updateDocWordCount(); autosaveDoc();">
     </div>
 
-    <!-- WORD COUNT -->
     <div style="display:flex;justify-content:space-between;padding:8px 4px;margin-top:6px;">
         <span id="docWordCount" style="font-size:12px;color:#94a3b8;">0 words · 0 characters</span>
-        <span style="font-size:12px;color:#94a3b8;">Auto-editing enabled</span>
     </div>
 
-    <!-- EXPORT BUTTONS -->
     <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
         <button class="btn-action" onclick="downloadDocAsWord()" style="background:#2b579a;flex:1;">⬇️ Export as .DOCX</button>
-        <button class="btn-action" onclick="downloadDocAsTxt()"  style="background:#475569;flex:1;">⬇️ Export as .TXT</button>
-        <button class="btn-action" onclick="printDoc()"          style="background:#0f172a;flex:1;">🖨️ Print / Save PDF</button>
+        <button class="btn-action" onclick="downloadDocAsTxt()" style="background:#475569;flex:1;">⬇️ Export as .TXT</button>
+        <button class="btn-action" onclick="printDoc()" style="background:#0f172a;flex:1;">🖨️ Print / Save PDF</button>
     </div>
 
     <div class="ft-seo-content">
         <h2>Free Online Document Editor — Write, Format and Export</h2>
-        <p>A full-featured browser document editor with font controls, text colours, alignment, bullet lists, find and replace, word count, and export to DOCX or TXT. Scan images directly into the editor using OCR. Everything stays on your device.</p>
+        <p>A full-featured browser document editor with font controls, tables, images, find and replace, autosave, and export to DOCX or TXT. Turn photos of receipts and invoices into fillable templates instantly.</p>
         <h3>Frequently Asked Questions</h3>
         <div class="faq-seo">
             <div><strong>Can I edit existing Word documents?</strong><span>Yes. Upload a .docx file and the text content loads into the editor ready to modify and re-export.</span></div>
-            <div><strong>Can I scan a document into the editor?</strong><span>Yes. Use the Scan Image or Camera option to extract text from a photo using OCR — it loads directly into the editor.</span></div>
+            <div><strong>Can I turn a receipt into a fillable form?</strong><span>Yes. Use the Fillable Template option — company details and labels stay as-is while amounts and dates become editable blanks.</span></div>
             <div><strong>What export formats are available?</strong><span>You can export as .DOCX for Word, .TXT for plain text, or use Print to save as PDF.</span></div>
             <div><strong>Are my documents private?</strong><span>Yes. Everything stays in your browser. Nothing is sent to any server.</span></div>
         </div>
