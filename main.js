@@ -825,13 +825,34 @@ async function convertFile() {
         const file   = document.getElementById('fileConvInput').files[0];
         const format = document.getElementById('fileToFormat').value;
         if (!file) throw new Error('Please select a file.');
-        const img    = await loadImage(file);
+
+        let workingFile = file;
+        const isHeic = /heic|heif/i.test(file.type) || /\.hei[cf]$/i.test(file.name);
+
+        if (isHeic) {
+            if (typeof heic2any === 'undefined') {
+                throw new Error('HEIC support library failed to load. Refresh the page and try again.');
+            }
+            workingFile = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.92 });
+        }
+
+        let img;
+        try {
+            img = await loadImage(workingFile);
+        } catch (e) {
+            throw new Error('This image format could not be read by your browser. Try JPG, PNG, WebP, GIF, or an iPhone HEIC photo.');
+        }
+
         const canvas = document.createElement('canvas');
         canvas.width  = img.width;
         canvas.height = img.height;
         canvas.getContext('2d').drawImage(img, 0, 0);
         const ext = format.split('/')[1];
-        canvas.toBlob(b => triggerDownload(b, `FlexTools_Converted.${ext}`), format);
+
+        canvas.toBlob(b => {
+            if (!b) { showStatus('❌ Could not convert to this format. Try a different output option.', 'error'); return; }
+            triggerDownload(b, `FlexTools_Converted.${ext}`);
+        }, format, 0.95);
     });
 }
 
@@ -2008,37 +2029,69 @@ async function scanImageToDoc(input) {
             }
         });
 
-        const text = result.data.text.trim();
-        if (!text) {
+        const words = result.data.words || [];
+        if (!words.length) {
             showStatus('❌ No text found. Try a clearer, well-lit photo.', 'error');
             if (progressWrapper) progressWrapper.style.display = 'none';
             return;
         }
 
+        const html = buildHtmlFromOCRWords(words);
         const editor = getDocEditor();
-        if (editor) {
-            const lines = text.split('\n');
-            let html = '';
-            lines.forEach(line => { html += line.trim() ? `<p>${escapeHtml(line.trim())}</p>` : '<p><br></p>'; });
-            editor.innerHTML = html;
-            updateDocWordCount();
-        }
+        if (editor) { editor.innerHTML = html; updateDocWordCount(); }
 
         if (progressBar)     { progressBar.style.width = '100%'; progressBar.style.background = '#22c55e'; }
         if (progressPercent) progressPercent.textContent = '100%';
         if (statusText)      statusText.textContent = '✅ Text extracted!';
         setTimeout(() => { if (progressWrapper) progressWrapper.style.display = 'none'; }, 2000);
 
-        showStatus(`✅ Scanned successfully.`, 'success');
+        showStatus(`✅ Scanned — review formatting before exporting.`, 'success');
         document.getElementById('docEditorArea')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     } catch (err) {
         console.error('OCR scan error:', err);
         if (progressWrapper) progressWrapper.style.display = 'none';
-        showStatus('❌ Scan failed: ' + (err.message || 'unknown error') + '. Try a clearer image.', 'error');
+        showStatus('❌ Scan failed: ' + (err.message || 'unknown error'), 'error');
     }
 
     input.value = '';
+}
+
+function buildHtmlFromOCRWords(words) {
+    const positioned = words.map(w => ({
+        text: w.text, x: w.bbox.x0, y: (w.bbox.y0 + w.bbox.y1) / 2, w: w.bbox.x1 - w.bbox.x0
+    }));
+    positioned.sort((a, b) => a.y - b.y);
+
+    const rows = []; let currentRow = []; let lastY = null;
+    positioned.forEach(p => {
+        if (lastY !== null && Math.abs(p.y - lastY) > 14) { rows.push(currentRow); currentRow = []; }
+        currentRow.push(p); lastY = p.y;
+    });
+    if (currentRow.length) rows.push(currentRow);
+
+    let html = '';
+    rows.forEach(row => {
+        row.sort((a, b) => a.x - b.x);
+        const cols = []; let col = [row[0]];
+        for (let i = 1; i < row.length; i++) {
+            const gap = row[i].x - (row[i - 1].x + row[i - 1].w);
+            if (gap > 40) { cols.push(col); col = []; }
+            col.push(row[i]);
+        }
+        if (col.length) cols.push(col);
+
+        if (cols.length >= 3) {
+            html += '<table style="border-collapse:collapse;margin:4px 0;"><tr>';
+            cols.forEach(c => { html += `<td style="padding:2px 10px;vertical-align:top;">${escapeHtml(c.map(w => w.text).join(' '))}</td>`; });
+            html += '</tr></table>';
+        } else {
+            const line = row.map(w => w.text).join(' ');
+            html += line.trim() ? `<p style="margin:2px 0;">${escapeHtml(line)}</p>` : '<p><br></p>';
+        }
+    });
+
+    return html;
 }
 
 async function extractDocTemplate(input) {
@@ -2455,6 +2508,8 @@ async function convertPDFtoDoc() {
     const result = document.getElementById('pdfToDocResult');
 
     if (!file) { showStatus('❌ Please select a PDF file.', 'error'); return; }
+    if (typeof pdfjsLib === 'undefined') { showStatus('❌ PDF engine failed to load. Refresh and try again.', 'error'); return; }
+    if (typeof JSZip === 'undefined') { showStatus('❌ File builder failed to load. Refresh and try again.', 'error'); return; }
 
     result.style.display    = 'flex';
     result.style.background = '#f8fafc';
@@ -2463,54 +2518,164 @@ async function convertPDFtoDoc() {
     try {
         const bytes = await file.arrayBuffer();
         const pdf   = await pdfjsLib.getDocument({ data: bytes }).promise;
-        let htmlContent = '';
+        let totalItems = 0;
+        let bodyXml = '';
 
         for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
+            const page        = await pdf.getPage(i);
             const textContent = await page.getTextContent();
-
-            let lastY = null;
-            let lineBuffer = '';
-
-            textContent.items.forEach(item => {
-                if (!item.str) return;
-                const y = item.transform[5];
-
-                if (lastY !== null && Math.abs(y - lastY) > 5) {
-                    htmlContent += `<p>${lineBuffer.trim()}</p>`;
-                    lineBuffer = '';
-                }
-                lineBuffer += item.str + ' ';
-                lastY = y;
-            });
-
-            if (lineBuffer.trim()) htmlContent += `<p>${lineBuffer.trim()}</p>`;
-            if (i < pdf.numPages) htmlContent += '<p style="page-break-after: always;"></p>';
+            const viewport    = page.getViewport({ scale: 1 });
+            totalItems += textContent.items.length;
+            bodyXml += buildDocxXmlFromItems(textContent.items, viewport);
         }
 
-        if (!htmlContent.trim()) {
-            result.innerHTML = '❌ No text found. This may be a scanned/image PDF — try the Image to Word (OCR) tool instead.';
+        if (totalItems === 0 || !bodyXml.trim()) {
+            result.innerHTML = `❌ No selectable text found (checked ${pdf.numPages} page${pdf.numPages > 1 ? 's' : ''}). This is likely a scanned photo saved as PDF — try Image to Word (OCR) instead.`;
             result.style.background = '#fef2f2';
-            showStatus('❌ No text detected.', 'error');
+            showStatus('❌ No extractable text — likely a scanned PDF.', 'error');
             return;
         }
 
-        const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>${htmlContent}</body></html>`;
-        const blob = htmlDocx.asBlob(fullHtml);
-        triggerDownload(blob, 'FlexTools_Converted.docx');
+        const blob = await buildRealDocxBlob(bodyXml);
 
-        result.innerHTML         = '✅ Word document downloaded successfully!';
+        if (!blob || blob.size < 1000) {
+            result.innerHTML = '❌ File generation produced an unexpectedly small file. Please try again.';
+            result.style.background = '#fef2f2';
+            showStatus('❌ Generation failed.', 'error');
+            return;
+        }
+
+        triggerDownload(blob, 'FlexTools_Converted.docx');
+        result.innerHTML         = `✅ Word document downloaded — fully editable, even after re-opening! (${totalItems} text elements)`;
         result.style.background  = '#f0fdf4';
         result.style.borderColor = '#22c55e';
         result.classList.add('has-result');
         showStatus('✅ Converted to Word!', 'success');
 
     } catch (err) {
-        console.error(err);
-        result.innerHTML        = '❌ Conversion failed. The file may be corrupted or image-based.';
+        console.error('PDF to Doc error:', err);
+        result.innerHTML = '❌ Conversion failed: ' + (err.message || 'unknown error') + '. Please try again or contact support via WhatsApp.';
         result.style.background = '#fef2f2';
         showStatus('❌ Conversion failed.', 'error');
     }
+}
+
+/* ---- Build raw Word XML paragraphs/tables from PDF text positions ---- */
+function buildDocxXmlFromItems(items, viewport) {
+    const positioned = items
+        .filter(it => it.str && it.str.trim())
+        .map(it => {
+            const tx = pdfjsLib.Util.transform(viewport.transform, it.transform);
+            return { text: it.str, x: tx[4], y: tx[5], w: it.width * viewport.scale };
+        });
+    if (!positioned.length) return '';
+
+    positioned.sort((a, b) => b.y - a.y);
+    const rows = []; let currentRow = []; let lastY = null;
+    positioned.forEach(p => {
+        if (lastY !== null && Math.abs(p.y - lastY) > 6) { rows.push(currentRow); currentRow = []; }
+        currentRow.push(p); lastY = p.y;
+    });
+    if (currentRow.length) rows.push(currentRow);
+
+    const classified = rows.map(row => {
+        row.sort((a, b) => a.x - b.x);
+        const cols = []; let col = [row[0]];
+        for (let i = 1; i < row.length; i++) {
+            const gap = row[i].x - (row[i - 1].x + row[i - 1].w);
+            if (gap > 20) { cols.push(col); col = []; }
+            col.push(row[i]);
+        }
+        if (col.length) cols.push(col);
+        return {
+            isTabular: cols.length >= 3,
+            columns: cols.map(c => c.map(w => w.text).join(' ')),
+            text: row.map(w => w.text).join(' ')
+        };
+    });
+
+    let xml = '';
+    let pendingRows = [];
+
+    const flushTable = () => {
+        if (!pendingRows.length) return;
+        xml += '<w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/></w:tblPr>';
+        pendingRows.forEach(cols => {
+            xml += '<w:tr>';
+            cols.forEach(cellText => {
+                xml += `<w:tc><w:tcPr/><w:p><w:r><w:t xml:space="preserve">${xmlEscape(cellText)}</w:t></w:r></w:p></w:tc>`;
+            });
+            xml += '</w:tr>';
+        });
+        xml += '</w:tbl>';
+        pendingRows = [];
+    };
+
+    classified.forEach(row => {
+        if (row.isTabular) {
+            pendingRows.push(row.columns);
+        } else {
+            flushTable();
+            if (row.text.trim()) {
+                xml += `<w:p><w:r><w:t xml:space="preserve">${xmlEscape(row.text)}</w:t></w:r></w:p>`;
+            }
+        }
+    });
+    flushTable();
+
+    return xml;
+}
+
+function xmlEscape(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+}
+
+/* ---- Assemble a genuine, valid .docx file using JSZip ---- */
+async function buildRealDocxBlob(bodyXml) {
+    const zip = new JSZip();
+
+    zip.file('[Content_Types].xml',
+`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`);
+
+    zip.folder('_rels').file('.rels',
+`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`);
+
+    zip.folder('word').folder('_rels').file('document.xml.rels',
+`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+</Relationships>`);
+
+    const documentXml =
+`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    ${bodyXml}
+    <w:sectPr>
+      <w:pgSz w:w="11906" w:h="16838"/>
+      <w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/>
+    </w:sectPr>
+  </w:body>
+</w:document>`;
+
+    zip.folder('word').file('document.xml', documentXml);
+
+    return await zip.generateAsync({
+        type: 'blob',
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    });
 }
 
 /* ============================================

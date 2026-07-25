@@ -90,6 +90,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
     <!-- JSZip for real AES encryption -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <!-- JSZip Utils -->
@@ -995,7 +996,7 @@
         <section id="file-converter" class="tool-card">
             <h2>File Format Converter</h2>
             <p class="tool-description">Convert images between PNG, JPG, and WebP formats instantly.</p>
-            <div class="input-group"><input type="file" id="fileConvInput" accept="image/*"></div>
+            <div class="input-group"><input type="file" id="fileConvInput" accept="image/*,.heic,.heif"></div>
             <div class="input-group">
                 <label>Convert To</label>
                 <select id="fileToFormat">
@@ -1605,11 +1606,13 @@
     </div>
 
     <!-- EDITOR -->
-    <div id="docEditorArea"
-        contenteditable="true"
-        spellcheck="true"
-        style="min-height:600px; max-width:800px; margin:0 auto; padding:60px; background:#fff; border:1px solid #e2e8f0; border-radius:4px; font-size:14px; line-height:1.8; color:#1e293b; outline:none; font-family:Arial,sans-serif; box-shadow:0 4px 16px rgba(0,0,0,0.08);"
-        oninput="updateDocWordCount(); autosaveDoc();">
+    <div style="background:#525659; border:2px solid #334155; border-radius:12px; padding:24px 12px; overflow-x:auto;">
+        <div id="docEditorArea"
+            contenteditable="true"
+            spellcheck="true"
+            style="min-height:600px; max-width:800px; margin:0 auto; padding:60px; background:#fff; border-radius:4px; font-size:14px; line-height:1.8; color:#1e293b; outline:none; font-family:Arial,sans-serif; box-shadow:0 6px 20px rgba(0,0,0,0.35);"
+            oninput="updateDocWordCount(); autosaveDoc();">
+        </div>
     </div>
 
     <div style="display:flex;justify-content:space-between;padding:8px 4px;margin-top:6px;">
