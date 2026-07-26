@@ -1,25 +1,29 @@
 {
   "version": 2,
-  "headers": [
+  "routes": [
     {
-      "source": "/sw.js",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
-      ]
+      "src": "/(.*)",
+      "has": [
+        { "type": "host", "value": "flextools.pro" }
+      ],
+      "headers": { "Location": "https://www.flextools.pro/$1" },
+      "status": 301
     },
     {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-cache" }
-      ]
-    }
-  ],
-  "routes": [
+      "src": "/sw.js",
+      "headers": {
+        "Cache-Control": "no-cache, no-store, must-revalidate"
+      },
+      "dest": "/sw.js"
+    },
     { "src": "/image/(.*)", "dest": "/image/$1" },
     { "src": "/style.css", "dest": "/style.css" },
     { "src": "/main.js", "dest": "/main.js" },
-    { "src": "/sw.js", "dest": "/sw.js" },
     { "src": "/sitemap.xml", "dest": "/sitemap.xml" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    {
+      "src": "/(.*)",
+      "headers": { "Cache-Control": "no-cache" },
+      "dest": "/index.html"
+    }
   ]
 }

@@ -2513,19 +2513,60 @@ async function convertPDFtoDoc() {
 
     result.style.display    = 'flex';
     result.style.background = '#f8fafc';
-    result.innerHTML = '<span class="spinner"></span> Extracting text...';
+    result.innerHTML = '<span class="spinner"></span> Extracting text and images...';
 
     try {
         const bytes = await file.arrayBuffer();
         const pdf   = await pdfjsLib.getDocument({ data: bytes }).promise;
         let totalItems = 0;
         let bodyXml = '';
+        const extractedImages = []; // { id, base64, width, height }
 
         for (let i = 1; i <= pdf.numPages; i++) {
             const page        = await pdf.getPage(i);
             const textContent = await page.getTextContent();
             const viewport    = page.getViewport({ scale: 1 });
             totalItems += textContent.items.length;
+
+            // Extract any embedded images on this page (logos, stamps, etc.)
+            const opList = await page.getOperatorList();
+            for (let j = 0; j < opList.fnArray.length; j++) {
+                if (opList.fnArray[j] === pdfjsLib.OPS.paintImageXObject) {
+                    const imgName = opList.argsArray[j][0];
+                    try {
+                        const imgObj = await new Promise((resolve) => page.objs.get(imgName, resolve));
+                        if (imgObj && imgObj.data && imgObj.width && imgObj.height) {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = imgObj.width;
+                            canvas.height = imgObj.height;
+                            const ctx = canvas.getContext('2d');
+                            const imgData = ctx.createImageData(imgObj.width, imgObj.height);
+
+                            // Handle RGB (3 channel) vs RGBA (4 channel) source data
+                            if (imgObj.data.length === imgObj.width * imgObj.height * 3) {
+                                for (let p = 0, q = 0; p < imgObj.data.length; p += 3, q += 4) {
+                                    imgData.data[q]   = imgObj.data[p];
+                                    imgData.data[q+1] = imgObj.data[p+1];
+                                    imgData.data[q+2] = imgObj.data[p+2];
+                                    imgData.data[q+3] = 255;
+                                }
+                            } else {
+                                imgData.data.set(imgObj.data);
+                            }
+                            ctx.putImageData(imgData, 0, 0);
+                            extractedImages.push({
+                                id: `image${extractedImages.length + 1}`,
+                                base64: canvas.toDataURL('image/png').split(',')[1],
+                                width: imgObj.width,
+                                height: imgObj.height
+                            });
+                        }
+                    } catch (imgErr) {
+                        console.warn('Could not extract one embedded image:', imgErr);
+                    }
+                }
+            }
+
             bodyXml += buildDocxXmlFromItems(textContent.items, viewport);
         }
 
@@ -2536,7 +2577,29 @@ async function convertPDFtoDoc() {
             return;
         }
 
-        const blob = await buildRealDocxBlob(bodyXml);
+        // Prepend extracted images (e.g. logo) before the text body
+        let imageXml = '';
+        extractedImages.slice(0, 3).forEach((img, idx) => { // cap at 3 to keep file size sane
+            const displayW = Math.min(img.width, 200);
+            const displayH = Math.round(img.height * (displayW / img.width));
+            imageXml += `<w:p><w:r><w:drawing>
+                <wp:inline distT="0" distB="0" distL="0" distR="0" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
+                  <wp:extent cx="${displayW * 9525}" cy="${displayH * 9525}"/>
+                  <wp:docPr id="${idx+1}" name="${img.id}"/>
+                  <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+                    <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                      <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                        <pic:nvPicPr><pic:cNvPr id="${idx+1}" name="${img.id}"/><pic:cNvPicPr/></pic:nvPicPr>
+                        <pic:blipFill><a:blip r:embed="rId${idx+2}" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>
+                        <pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${displayW * 9525}" cy="${displayH * 9525}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr>
+                      </pic:pic>
+                    </a:graphicData>
+                  </a:graphic>
+                </wp:inline>
+            </w:drawing></w:r></w:p>`;
+        });
+
+        const blob = await buildRealDocxBlob(imageXml + bodyXml, extractedImages.slice(0, 3));
 
         if (!blob || blob.size < 1000) {
             result.innerHTML = '❌ File generation produced an unexpectedly small file. Please try again.';
@@ -2546,7 +2609,7 @@ async function convertPDFtoDoc() {
         }
 
         triggerDownload(blob, 'FlexTools_Converted.docx');
-        result.innerHTML         = `✅ Word document downloaded — fully editable, even after re-opening! (${totalItems} text elements)`;
+        result.innerHTML         = `✅ Word document downloaded — with formatting and ${extractedImages.length > 0 ? extractedImages.length + ' image(s)' : 'text'} preserved!`;
         result.style.background  = '#f0fdf4';
         result.style.borderColor = '#22c55e';
         result.classList.add('has-result');
@@ -2566,7 +2629,19 @@ function buildDocxXmlFromItems(items, viewport) {
         .filter(it => it.str && it.str.trim())
         .map(it => {
             const tx = pdfjsLib.Util.transform(viewport.transform, it.transform);
-            return { text: it.str, x: tx[4], y: tx[5], w: it.width * viewport.scale };
+            // Font height directly from the transform matrix — real size, not guessed
+            const fontHeight = Math.hypot(tx[2], tx[3]);
+            const fontName = (it.fontName || '').toLowerCase();
+            const isBold = fontName.includes('bold');
+            const isItalic = fontName.includes('italic') || fontName.includes('oblique');
+            return {
+                text: it.str,
+                x: tx[4], y: tx[5],
+                w: it.width * viewport.scale,
+                size: Math.round(fontHeight),
+                bold: isBold,
+                italic: isItalic
+            };
         });
     if (!positioned.length) return '';
 
@@ -2589,21 +2664,34 @@ function buildDocxXmlFromItems(items, viewport) {
         if (col.length) cols.push(col);
         return {
             isTabular: cols.length >= 3,
-            columns: cols.map(c => c.map(w => w.text).join(' ')),
-            text: row.map(w => w.text).join(' ')
+            columns: cols.map(c => ({ runs: c })),
+            runs: row
         };
     });
 
     let xml = '';
     let pendingRows = [];
 
+    // Convert PDF font size (points) to Word half-points (w:sz uses half-points)
+    const toHalfPoints = (size) => Math.max(12, Math.round(size * 2));
+
+    const buildRunXml = (wordItem) => {
+        const rPr = `<w:rPr>
+            ${wordItem.bold ? '<w:b/>' : ''}
+            ${wordItem.italic ? '<w:i/>' : ''}
+            <w:sz w:val="${toHalfPoints(wordItem.size)}"/>
+        </w:rPr>`;
+        return `<w:r>${rPr}<w:t xml:space="preserve">${xmlEscape(wordItem.text)} </w:t></w:r>`;
+    };
+
     const flushTable = () => {
         if (!pendingRows.length) return;
         xml += '<w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/></w:tblPr>';
         pendingRows.forEach(cols => {
             xml += '<w:tr>';
-            cols.forEach(cellText => {
-                xml += `<w:tc><w:tcPr/><w:p><w:r><w:t xml:space="preserve">${xmlEscape(cellText)}</w:t></w:r></w:p></w:tc>`;
+            cols.forEach(cell => {
+                const cellRuns = cell.runs.map(buildRunXml).join('');
+                xml += `<w:tc><w:tcPr/><w:p>${cellRuns}</w:p></w:tc>`;
             });
             xml += '</w:tr>';
         });
@@ -2616,8 +2704,10 @@ function buildDocxXmlFromItems(items, viewport) {
             pendingRows.push(row.columns);
         } else {
             flushTable();
-            if (row.text.trim()) {
-                xml += `<w:p><w:r><w:t xml:space="preserve">${xmlEscape(row.text)}</w:t></w:r></w:p>`;
+            const lineHasContent = row.runs.some(r => r.text.trim());
+            if (lineHasContent) {
+                const runsXml = row.runs.map(buildRunXml).join('');
+                xml += `<w:p>${runsXml}</w:p>`;
             }
         }
     });
@@ -2636,15 +2726,21 @@ function xmlEscape(str) {
 }
 
 /* ---- Assemble a genuine, valid .docx file using JSZip ---- */
-async function buildRealDocxBlob(bodyXml) {
+async function buildRealDocxBlob(bodyXml, images = []) {
     const zip = new JSZip();
+
+    const imageOverrides = images.map((img, idx) =>
+        `<Override PartName="/word/media/${img.id}.png" ContentType="image/png"/>`
+    ).join('');
 
     zip.file('[Content_Types].xml',
 `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
   <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
   <Default Extension="xml" ContentType="application/xml"/>
+  <Default Extension="png" ContentType="image/png"/>
   <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+  ${imageOverrides}
 </Types>`);
 
     zip.folder('_rels').file('.rels',
@@ -2653,10 +2749,20 @@ async function buildRealDocxBlob(bodyXml) {
   <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
 </Relationships>`);
 
+    const imageRels = images.map((img, idx) =>
+        `<Relationship Id="rId${idx+2}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/${img.id}.png"/>`
+    ).join('');
+
     zip.folder('word').folder('_rels').file('document.xml.rels',
 `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+${imageRels}
 </Relationships>`);
+
+    if (images.length) {
+        const mediaFolder = zip.folder('word').folder('media');
+        images.forEach(img => mediaFolder.file(`${img.id}.png`, img.base64, { base64: true }));
+    }
 
     const documentXml =
 `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
