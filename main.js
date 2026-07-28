@@ -2578,10 +2578,14 @@ async function convertPDFtoDoc() {
         }
 
         // Prepend extracted images (e.g. logo) before the text body
+        // Prepend extracted images (e.g. logo) before the text body
+        const userImageSize = parseInt(document.getElementById('pdfToDocImageSize')?.value ?? 150);
         let imageXml = '';
-        extractedImages.slice(0, 3).forEach((img, idx) => { // cap at 3 to keep file size sane
-            const displayW = Math.min(img.width, 200);
-            const displayH = Math.round(img.height * (displayW / img.width));
+
+        if (userImageSize > 0) {
+            extractedImages.slice(0, 3).forEach((img, idx) => { // cap at 3 to keep file size sane
+                const displayW = Math.min(img.width, userImageSize);
+                const displayH = Math.round(img.height * (displayW / img.width));
             imageXml += `<w:p><w:r><w:drawing>
                 <wp:inline distT="0" distB="0" distL="0" distR="0" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
                   <wp:extent cx="${displayW * 9525}" cy="${displayH * 9525}"/>
@@ -2598,6 +2602,7 @@ async function convertPDFtoDoc() {
                 </wp:inline>
             </w:drawing></w:r></w:p>`;
         });
+    }
 
         const blob = await buildRealDocxBlob(imageXml + bodyXml, extractedImages.slice(0, 3));
 

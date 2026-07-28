@@ -1688,8 +1688,14 @@
     </div>
 
     <div class="input-group">
-        <label style="font-weight:bold;">Upload PDF</label>
-        <input type="file" id="pdfToDocInput" accept="application/pdf">
+        <label style="font-weight:bold;">Extracted Image Size</label>
+        <select id="pdfToDocImageSize" style="width:100%; padding:8px; border-radius:8px; border:1px solid #e2e8f0;">
+            <option value="100">Small (100px)</option>
+            <option value="150" selected>Medium (150px) — Recommended</option>
+            <option value="250">Large (250px)</option>
+            <option value="0">Skip images entirely</option>
+        </select>
+        <p style="font-size:12px; color:#94a3b8; margin-top:6px;">Controls the size of logos/images extracted from your PDF into the Word document.</p>
     </div>
 
     <button class="btn-action" onclick="convertPDFtoDoc()">📝 Convert to Word</button>
