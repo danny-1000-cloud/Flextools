@@ -733,28 +733,157 @@ function calculateIncomeTax() {
 }
 
 /* ============================================
-   IMAGE TO WORD (OCR)
+   IMAGE TO WORD — OCR TOOL (Rebuilt)
    ============================================ */
-async function processImageToWord() {
-    await processTask('Image to Word', async () => {
-        const file = document.getElementById('wordImageInput').files[0];
-        if (!file) throw new Error('Please select an image first.');
-        const { data: { text } } = await Tesseract.recognize(file, 'eng');
-        document.getElementById('wordExtractedText').value = text;
-        document.getElementById('wordPreviewArea').style.display = 'block';
+
+function startImageToWordConversion() {
+    console.log('[OCR] Extract button clicked.');
+
+    const input = document.getElementById('imageToWordInput');
+    const btn = document.getElementById('extractBtn');
+
+    if (!input || input.files.length === 0) {
+        alert('Please select an image first.');
+        return;
+    }
+
+    const file = input.files[0];
+    console.log('[OCR] File selected:', file.name, file.type, file.size + ' bytes');
+
+    if (typeof Tesseract === 'undefined') {
+        console.error('[OCR] Tesseract library is not loaded. Check your <script> tag in <head>.');
+        alert('OCR engine failed to load. Please refresh the page and try again.');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+
+    runOCR(file).finally(() => {
+        btn.disabled = false;
+        btn.textContent = 'Extract Text';
     });
+}
+
+async function runOCR(file) {
+    const progressDiv = document.getElementById('ocrProgress');
+    const previewArea = document.getElementById('wordPreviewArea');
+    const textArea = document.getElementById('wordExtractedText');
+    const langSelect = document.getElementById('ocrLanguage');
+    const language = langSelect ? langSelect.value : 'eng';
+
+    progressDiv.style.display = 'block';
+    progressDiv.textContent = '🔄 Loading image...';
+
+    try {
+        // Step 1: Load image into an <img> element
+        const img = new Image();
+        const objectUrl = URL.createObjectURL(file);
+        img.src = objectUrl;
+
+        await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = () => reject(new Error('Could not load the selected image file.'));
+        });
+
+        console.log('[OCR] Image loaded:', img.naturalWidth + 'x' + img.naturalHeight);
+
+        // Step 2: Preprocess — grayscale + contrast threshold (improves accuracy)
+        progressDiv.textContent = '🔄 Preparing image...';
+
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+
+        for (let i = 0; i < data.length; i += 4) {
+            const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+            const value = gray > 150 ? 255 : 0;
+            data[i] = data[i + 1] = data[i + 2] = value;
+        }
+        ctx.putImageData(imageData, 0, 0);
+
+        URL.revokeObjectURL(objectUrl);
+
+        // Step 3: Run OCR
+        progressDiv.textContent = '🔄 Reading text from image (this can take 10-30 seconds)...';
+        console.log('[OCR] Starting Tesseract recognition, language:', language);
+
+        const result = await Tesseract.recognize(canvas, language, {
+            logger: (m) => {
+                if (m.status === 'recognizing text') {
+                    const pct = Math.round(m.progress * 100);
+                    progressDiv.textContent = `🔄 Reading text... ${pct}%`;
+                }
+                console.log('[OCR]', m.status, m.progress);
+            }
+        });
+
+        console.log('[OCR] Raw result:', result.data.text);
+
+        // Step 4: Sanitize output
+        let cleanText = result.data.text
+            .replace(/<[^>]*>/g, '')
+            .replace(/[\u0000-\u001F\u007F]/g, '')
+            .replace(/[^\x20-\x7E\u00A0-\u024F\u1E00-\u1EFF\n]/g, '')
+            .replace(/[ \t]{2,}/g, ' ')
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
+
+        progressDiv.style.display = 'none';
+        previewArea.style.display = 'block';
+
+        if (!cleanText) {
+            textArea.value = '';
+            textArea.placeholder = 'No readable text was found. Try a clearer, well-lit photo with less blur.';
+            console.warn('[OCR] No text extracted after cleaning.');
+            return;
+        }
+
+        textArea.value = cleanText;
+        console.log('[OCR] Success. Extracted ' + cleanText.length + ' characters.');
+
+    } catch (err) {
+        console.error('[OCR] Error during processing:', err);
+        progressDiv.style.display = 'none';
+        previewArea.style.display = 'block';
+        textArea.value = '';
+        textArea.placeholder = 'Something went wrong: ' + err.message;
+    }
 }
 
 function downloadProcessedWord() {
     const text = document.getElementById('wordExtractedText').value;
-    triggerDownload(new Blob([text], { type: 'application/msword' }), 'FlexTools_OCR.doc');
+    if (!text.trim()) {
+        alert('No text to download yet.');
+        return;
+    }
+    const blob = new Blob([text], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'extracted-text.doc';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
 
-function copyToClipboard() {
-    const text = document.getElementById('wordExtractedText');
-    text.select();
-    document.execCommand('copy');
-    showStatus('✅ Text copied to clipboard!', 'success');
+function copyExtractedTextToClipboard() {
+    const text = document.getElementById('wordExtractedText').value;
+    if (!text.trim()) {
+        alert('No text to copy yet.');
+        return;
+    }
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Text copied to clipboard!');
+    }).catch(() => {
+        alert('Could not copy automatically. Please select and copy the text manually.');
+    });
 }
 
 /* ============================================
@@ -1809,6 +1938,7 @@ function getDocEditor() {
 function initDocEditor() {
     const editor = getDocEditor();
     if (editor) updateDocWordCount();
+    initDocImageSelection(); // ADD THIS LINE
 }
 
 function applyDocFormat(command, value = null) {
@@ -2215,6 +2345,51 @@ function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
+}
+
+let selectedDocImage = null;
+
+function initDocImageSelection() {
+    const editor = document.getElementById('docEditorArea');
+    if (!editor) return;
+
+    editor.addEventListener('click', function(e) {
+        // Deselect any previously selected image
+        if (selectedDocImage) {
+            selectedDocImage.classList.remove('doc-img-selected');
+        }
+
+        if (e.target.tagName === 'IMG') {
+            selectedDocImage = e.target;
+            selectedDocImage.classList.add('doc-img-selected');
+
+            const currentWidth = selectedDocImage.offsetWidth || 300;
+            document.getElementById('docImgWidthSlider').value = currentWidth;
+            document.getElementById('docImgWidthValue').textContent = currentWidth + 'px';
+            document.getElementById('docImageResizeBar').style.display = 'flex';
+        } else {
+            selectedDocImage = null;
+            document.getElementById('docImageResizeBar').style.display = 'none';
+        }
+    });
+}
+
+document.getElementById('docImgWidthSlider')?.addEventListener('input', function() {
+    const width = this.value;
+    document.getElementById('docImgWidthValue').textContent = width + 'px';
+    if (selectedDocImage) {
+        selectedDocImage.style.width = width + 'px';
+        selectedDocImage.style.maxWidth = width + 'px';
+    }
+});
+
+function deleteSelectedDocImage() {
+    if (selectedDocImage) {
+        selectedDocImage.remove();
+        selectedDocImage = null;
+        document.getElementById('docImageResizeBar').style.display = 'none';
+        updateDocWordCount();
+    }
 }
 
 /* ============================================

@@ -163,6 +163,18 @@ html, body {
 /* ============================================
    WORKSPACE
    ============================================ */
+#docEditorArea img {
+    max-width: 300px;
+    height: auto;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.15s;
+}
+
+#docEditorArea img.doc-img-selected {
+    border-color: #6366f1;
+}
+
 .workspace {
     flex: 1;
     display: flex;
