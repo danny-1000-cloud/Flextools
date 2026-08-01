@@ -8,7 +8,13 @@
     <meta name="description" content="16+ free online tools — edit PDFs, compress images, convert currencies, calculate VAT, BMI and more. No signup, no watermarks, files never leave your device.">
     <meta name="keywords" content="free PDF editor, image compressor, currency converter, VAT calculator, BMI calculator, merge PDF, split PDF, image to word, OCR, crypto converter, income tax calculator, no signup tools">
     <meta name="author" content="FlexTools Pro">
-    <link rel="icon" type="image/x-icon" href="image/flex-logo.png">
+    <meta name="description" content="Free PDF, Word & Image tools — edit, convert, merge and compress files directly in your browser. No signup required.">
+    <meta property="og:title" content="FlexTools Pro — Free PDF, Word & Image Tools">
+    <meta property="og:description" content="Edit, convert, merge and compress PDFs and images for free, directly in your browser.">
+    <meta property="og:url" content="https://www.flextools.pro/">
+    <meta name="twitter:title" content="FlexTools Pro — Free PDF, Word & Image Tools">
+    <meta name="twitter:description" content="Edit, convert, merge and compress PDFs and images for free, directly in your browser.">
+    <link rel="icon" type="image/x-icon" href="image/flex-logo.png">  
     <link rel="canonical" href="https://flextools.pro/" />
 
     <!-- Google Analytics -->
@@ -901,12 +907,24 @@
         </section>
 
         <!-- ==================== IMAGE TO WORD ==================== -->
+        
         <section id="word" class="tool-card">
     <h2>Image to Word</h2>
     <p class="tool-description">FlexTools Pro's Image to Word tool uses OCR to turn any photo of text into an editable Word document for free.</p>
 
     <div style="margin: 16px 0;">
-        <input type="file" id="imageToWordInput" accept="image/*" style="margin-bottom: 12px; display: block;">
+        <input type="file" id="imageToWordInput" accept="image/*" onchange="previewOCRImage()" style="margin-bottom: 12px; display: block;">
+
+        <div id="ocrPreviewWrapper" style="display:none; margin-bottom: 16px;">
+            <p style="font-size: 13px; color: #6b7280; margin-bottom: 8px;">
+                If your image is sideways or upside down, rotate it before extracting:
+            </p>
+            <div style="display:flex; gap:10px; align-items:center; margin-bottom:12px;">
+                <button onclick="rotateOCRImage(-90)" style="padding:8px 14px; background:#e5e7eb; border:none; border-radius:8px; cursor:pointer; font-weight:600;">⟲ Rotate Left</button>
+                <button onclick="rotateOCRImage(90)" style="padding:8px 14px; background:#e5e7eb; border:none; border-radius:8px; cursor:pointer; font-weight:600;">⟳ Rotate Right</button>
+            </div>
+            <canvas id="ocrPreviewCanvas" style="max-width:100%; border:1px solid #ddd; border-radius:8px;"></canvas>
+        </div>
 
         <div style="margin-bottom: 12px;">
             <label style="font-size: 14px; font-weight: 600; margin-right: 10px;">Language:</label>
@@ -928,7 +946,7 @@
 
     <div id="wordPreviewArea" style="display:none; border-top:2px solid #eee; padding-top:20px; margin-top:20px; text-align:left;">
         <label style="font-weight:bold; display:block; margin-bottom:8px;">Extracted Text — Edit Before Downloading:</label>
-        <textarea id="wordExtractedText" style="width:100%; min-height:250px; padding:12px; border:1px solid #ddd; border-radius:8px; font-family:inherit; line-height:1.5; resize:vertical; margin-bottom:15px;" placeholder="Extracted text appears here..."></textarea>
+        <textarea id="wordExtractedText" style="width:100%; min-height:250px; padding:12px; border:1px solid #ddd; border-radius:8px; font-family:inherit; line-height:1.5; resize:vertical; margin-bottom:15px; white-space:pre-wrap;" placeholder="Extracted text appears here..."></textarea>
         <div style="display:flex; gap:10px;">
             <button class="btn-action" onclick="downloadProcessedWord()" style="background:#28a745;">Download .doc</button>
             <button class="btn-action" onclick="copyExtractedTextToClipboard()" style="background:#6c757d;">Copy Text</button>
@@ -939,15 +957,15 @@
 
     <div class="ft-seo-content">
         <h2>Free Image to Word Converter — Extract Text From Images Online</h2>
-        <p>Turn any photo, screenshot, or scanned document into editable text using our <strong>free OCR tool</strong>. Supports PNG, JPG, JPEG, and WebP. Everything processes locally — your images never leave your device.</p>
+        <p>Turn any photo, screenshot, or scanned document into editable text using our <strong>free OCR tool</strong>. Rotate sideways or upside-down photos before extracting for best accuracy. Supports PNG, JPG, JPEG, and WebP. Everything processes locally — your images never leave your device.</p>
         <h3>Frequently Asked Questions</h3>
         <div class="faq-seo">
             <div><strong>What image formats are supported?</strong><span>PNG, JPG, JPEG, and WebP all work perfectly.</span></div>
+            <div><strong>My photo is sideways — what do I do?</strong><span>Use the Rotate Left/Right buttons that appear after uploading to straighten your image before extracting.</span></div>
             <div><strong>Are my images secure?</strong><span>Yes. Your file stays on your device — it is never uploaded to any server.</span></div>
-            <div><strong>Is there a usage limit?</strong><span>None at all. Convert as many images as you need, completely free.</span></div>
         </div>
     </div>
-    </section>
+</section>
 
         <!-- ==================== IMAGE COMPRESSOR ==================== -->
         <section id="img-compressor" class="tool-card">

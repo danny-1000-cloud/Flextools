@@ -364,6 +364,8 @@ function toggleSidebar(forceClose = false) {
         if (btn) btn.classList.add('open');
         document.body.style.overflow = 'hidden';
     }
+
+    updatePageMeta(id); // ADD THIS LINE
 }
 
 /* ============================================
@@ -733,39 +735,96 @@ function calculateIncomeTax() {
 }
 
 /* ============================================
-   IMAGE TO WORD — OCR TOOL (Rebuilt)
+   IMAGE TO WORD — OCR TOOL (v2 — with rotate + paragraph fix)
    ============================================ */
 
-function startImageToWordConversion() {
-    console.log('[OCR] Extract button clicked.');
+let ocrOriginalImage = null;
+let ocrCurrentRotation = 0;
 
+function previewOCRImage() {
     const input = document.getElementById('imageToWordInput');
-    const btn = document.getElementById('extractBtn');
+    if (!input.files || input.files.length === 0) return;
 
-    if (!input || input.files.length === 0) {
+    const file = input.files[0];
+    const img = new Image();
+    img.onload = () => {
+        ocrOriginalImage = img;
+        ocrCurrentRotation = 0;
+        drawRotatedPreview();
+        document.getElementById('ocrPreviewWrapper').style.display = 'block';
+    };
+    img.src = URL.createObjectURL(file);
+}
+
+function rotateOCRImage(degrees) {
+    ocrCurrentRotation = (ocrCurrentRotation + degrees + 360) % 360;
+    drawRotatedPreview();
+}
+
+function drawRotatedPreview() {
+    if (!ocrOriginalImage) return;
+
+    const canvas = document.getElementById('ocrPreviewCanvas');
+    const ctx = canvas.getContext('2d');
+    const isSideways = (ocrCurrentRotation === 90 || ocrCurrentRotation === 270);
+
+    canvas.width = isSideways ? ocrOriginalImage.height : ocrOriginalImage.width;
+    canvas.height = isSideways ? ocrOriginalImage.width : ocrOriginalImage.height;
+
+    ctx.save();
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate((ocrCurrentRotation * Math.PI) / 180);
+    ctx.drawImage(
+        ocrOriginalImage,
+        -ocrOriginalImage.width / 2,
+        -ocrOriginalImage.height / 2
+    );
+    ctx.restore();
+}
+
+function getFinalRotatedCanvas() {
+    // Produces the actual full-resolution rotated canvas used for OCR
+    const isSideways = (ocrCurrentRotation === 90 || ocrCurrentRotation === 270);
+    const canvas = document.createElement('canvas');
+    canvas.width = isSideways ? ocrOriginalImage.height : ocrOriginalImage.width;
+    canvas.height = isSideways ? ocrOriginalImage.width : ocrOriginalImage.height;
+    const ctx = canvas.getContext('2d');
+
+    ctx.save();
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate((ocrCurrentRotation * Math.PI) / 180);
+    ctx.drawImage(
+        ocrOriginalImage,
+        -ocrOriginalImage.width / 2,
+        -ocrOriginalImage.height / 2
+    );
+    ctx.restore();
+
+    return canvas;
+}
+
+function startImageToWordConversion() {
+    if (!ocrOriginalImage) {
         alert('Please select an image first.');
         return;
     }
 
-    const file = input.files[0];
-    console.log('[OCR] File selected:', file.name, file.type, file.size + ' bytes');
-
     if (typeof Tesseract === 'undefined') {
-        console.error('[OCR] Tesseract library is not loaded. Check your <script> tag in <head>.');
         alert('OCR engine failed to load. Please refresh the page and try again.');
         return;
     }
 
+    const btn = document.getElementById('extractBtn');
     btn.disabled = true;
     btn.textContent = 'Processing...';
 
-    runOCR(file).finally(() => {
+    runOCR().finally(() => {
         btn.disabled = false;
         btn.textContent = 'Extract Text';
     });
 }
 
-async function runOCR(file) {
+async function runOCR() {
     const progressDiv = document.getElementById('ocrProgress');
     const previewArea = document.getElementById('wordPreviewArea');
     const textArea = document.getElementById('wordExtractedText');
@@ -773,31 +832,15 @@ async function runOCR(file) {
     const language = langSelect ? langSelect.value : 'eng';
 
     progressDiv.style.display = 'block';
-    progressDiv.textContent = '🔄 Loading image...';
+    progressDiv.textContent = '🔄 Preparing image...';
 
     try {
-        // Step 1: Load image into an <img> element
-        const img = new Image();
-        const objectUrl = URL.createObjectURL(file);
-        img.src = objectUrl;
+        // Step 1: Get the rotated version of the image
+        const rotatedCanvas = getFinalRotatedCanvas();
 
-        await new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = () => reject(new Error('Could not load the selected image file.'));
-        });
-
-        console.log('[OCR] Image loaded:', img.naturalWidth + 'x' + img.naturalHeight);
-
-        // Step 2: Preprocess — grayscale + contrast threshold (improves accuracy)
-        progressDiv.textContent = '🔄 Preparing image...';
-
-        const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        // Step 2: Preprocess — grayscale + contrast threshold
+        const ctx = rotatedCanvas.getContext('2d');
+        const imageData = ctx.getImageData(0, 0, rotatedCanvas.width, rotatedCanvas.height);
         const data = imageData.data;
 
         for (let i = 0; i < data.length; i += 4) {
@@ -807,53 +850,115 @@ async function runOCR(file) {
         }
         ctx.putImageData(imageData, 0, 0);
 
-        URL.revokeObjectURL(objectUrl);
-
-        // Step 3: Run OCR
+        // Step 3: Run OCR — request word-level position data
         progressDiv.textContent = '🔄 Reading text from image (this can take 10-30 seconds)...';
-        console.log('[OCR] Starting Tesseract recognition, language:', language);
 
-        const result = await Tesseract.recognize(canvas, language, {
+        const result = await Tesseract.recognize(rotatedCanvas, language, {
             logger: (m) => {
                 if (m.status === 'recognizing text') {
                     const pct = Math.round(m.progress * 100);
                     progressDiv.textContent = `🔄 Reading text... ${pct}%`;
                 }
-                console.log('[OCR]', m.status, m.progress);
             }
         });
 
-        console.log('[OCR] Raw result:', result.data.text);
-
-        // Step 4: Sanitize output
-        let cleanText = result.data.text
-            .replace(/<[^>]*>/g, '')
-            .replace(/[\u0000-\u001F\u007F]/g, '')
-            .replace(/[^\x20-\x7E\u00A0-\u024F\u1E00-\u1EFF\n]/g, '')
-            .replace(/[ \t]{2,}/g, ' ')
-            .replace(/\n{3,}/g, '\n\n')
-            .trim();
+        // Step 4: Rebuild proper lines and paragraphs using word position data
+        const cleanText = rebuildTextWithLayout(result.data);
 
         progressDiv.style.display = 'none';
         previewArea.style.display = 'block';
 
-        if (!cleanText) {
+        if (!cleanText.trim()) {
             textArea.value = '';
-            textArea.placeholder = 'No readable text was found. Try a clearer, well-lit photo with less blur.';
-            console.warn('[OCR] No text extracted after cleaning.');
+            textArea.placeholder = 'No readable text was found. Try rotating the image or using a clearer, well-lit photo.';
             return;
         }
 
         textArea.value = cleanText;
-        console.log('[OCR] Success. Extracted ' + cleanText.length + ' characters.');
 
     } catch (err) {
-        console.error('[OCR] Error during processing:', err);
+        console.error('[OCR] Error:', err);
         progressDiv.style.display = 'none';
         previewArea.style.display = 'block';
         textArea.value = '';
         textArea.placeholder = 'Something went wrong: ' + err.message;
     }
+}
+
+/* Rebuilds text with real line breaks and paragraph breaks
+   based on the actual vertical position of each word on the
+   page, instead of Tesseract's raw flattened text output. */
+function rebuildTextWithLayout(ocrData) {
+    if (!ocrData.words || ocrData.words.length === 0) {
+        return sanitizeText(ocrData.text || '');
+    }
+
+    // Sort words top-to-bottom, then left-to-right
+    const words = ocrData.words
+        .filter(w => w.text && w.text.trim().length > 0)
+        .sort((a, b) => {
+            const yDiff = a.bbox.y0 - b.bbox.y0;
+            if (Math.abs(yDiff) > 10) return yDiff; // different line
+            return a.bbox.x0 - b.bbox.x0; // same line, sort left to right
+        });
+
+    let lines = [];
+    let currentLine = [];
+    let lastY = null;
+    let lastLineHeight = null;
+
+    words.forEach(word => {
+        const y = word.bbox.y0;
+        const height = word.bbox.y1 - word.bbox.y0;
+
+        if (lastY === null) {
+            currentLine.push(word);
+        } else if (Math.abs(y - lastY) <= (lastLineHeight || height) * 0.6) {
+            // Same line
+            currentLine.push(word);
+        } else {
+            // New line — record gap size to detect paragraph breaks later
+            const gap = y - lastY;
+            lines.push({ words: currentLine, gapBefore: gap, lineHeight: lastLineHeight || height });
+            currentLine = [word];
+        }
+
+        lastY = y;
+        lastLineHeight = height;
+    });
+    if (currentLine.length) {
+        lines.push({ words: currentLine, gapBefore: 0, lineHeight: lastLineHeight });
+    }
+
+    // Build final text — insert an extra blank line where the
+    // vertical gap is noticeably larger than a normal line gap
+    let output = '';
+    lines.forEach((line, idx) => {
+        const lineText = line.words.map(w => w.text).join(' ');
+
+        if (idx > 0) {
+            const normalGap = line.lineHeight * 1.5;
+            if (line.gapBefore > normalGap * 1.8) {
+                output += '\n\n'; // paragraph break
+            } else {
+                output += '\n'; // normal line break
+            }
+        }
+
+        output += lineText;
+    });
+
+    return sanitizeText(output);
+}
+
+function sanitizeText(rawText) {
+    return rawText
+        .replace(/<[^>]*>/g, '')
+        .replace(/[\u0000-\u001F\u007F]/g, '\n')
+        .replace(/[^\x20-\x7E\u00A0-\u024F\u1E00-\u1EFF\n]/g, '')
+        .replace(/[ \t]{2,}/g, ' ')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
 }
 
 function downloadProcessedWord() {
@@ -862,7 +967,14 @@ function downloadProcessedWord() {
         alert('No text to download yet.');
         return;
     }
-    const blob = new Blob([text], { type: 'application/msword' });
+    const htmlContent = text.split('\n\n').map(para =>
+        `<p>${para.split('\n').join('<br>')}</p>`
+    ).join('');
+
+    const blob = new Blob(
+        ['<html><head><meta charset="utf-8"></head><body>' + htmlContent + '</body></html>'],
+        { type: 'application/msword' }
+    );
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -3225,3 +3337,148 @@ document.addEventListener('submit', async (e) => {
         msg.textContent = '❌ Network error. Try again.';
     }
 });  
+
+/* ============================================
+   DYNAMIC META TAG MANAGER
+   Updates title, description, canonical, and
+   Open Graph tags per tool — same function as
+   RankMath/Yoast, adapted for a single-page app.
+   ============================================ */
+
+const toolMetaData = {
+    'home': {
+        title: 'FlexTools Pro — Free PDF, Word & Image Tools',
+        description: 'Edit, convert, merge and compress PDFs and images for free, directly in your browser. No signup, no uploads to any server.'
+    },
+    'currency-converter': {
+        title: 'Free Currency Converter — Live Exchange Rates | FlexTools Pro',
+        description: 'Convert between world currencies with live exchange rates, free online, no signup required.'
+    },
+    'crypto-converter': {
+        title: 'Free Crypto Converter — Live Rates | FlexTools Pro',
+        description: 'Convert between cryptocurrencies and world currencies with live rates, free online with no signup.'
+    },
+    'unit-converter': {
+        title: 'Free Unit Converter — Length, Weight, Temperature | FlexTools Pro',
+        description: 'Convert between length, weight, temperature, and volume units instantly, free online.'
+    },
+    'vat-calculator': {
+        title: 'Free VAT Calculator — Nigeria, Ghana & More | FlexTools Pro',
+        description: 'Calculate VAT-inclusive and VAT-exclusive prices instantly for Ghana, Nigeria, and other countries, free online.'
+    },
+    'percentage-calculator': {
+        title: 'Free Percentage Calculator | FlexTools Pro',
+        description: 'Instantly calculate percentage increases, decreases, and comparisons for free online.'
+    },
+    'bmi-calculator': {
+        title: 'Free BMI Calculator | FlexTools Pro',
+        description: 'Calculate your Body Mass Index (BMI) instantly and free, with health category results.'
+    },
+    'tax-calculator': {
+        title: 'Free Income Tax Calculator | FlexTools Pro',
+        description: 'Estimate your take-home pay after income tax deductions instantly, free online.'
+    },
+    'word': {
+        title: 'Free Image to Word Converter (OCR) | FlexTools Pro',
+        description: 'FlexTools Pro\'s Image to Word tool uses OCR to turn any photo of text into an editable Word document for free.'
+    },
+    'img-compressor': {
+        title: 'Free Image Compressor | FlexTools Pro',
+        description: 'Compress JPG, PNG, and WebP images online for free without losing quality. No upload to server, fully private.'
+    },
+    'img-resizer': {
+        title: 'Free Image Resizer | FlexTools Pro',
+        description: 'Resize any photo or image to custom dimensions for free, directly in your browser.'
+    },
+    'file-converter': {
+        title: 'Free Image File Converter | FlexTools Pro',
+        description: 'Convert images between JPG, PNG, WebP, and HEIC formats for free, with no signup required.'
+    },
+    'pdf-editor': {
+        title: 'Free PDF Editor — Edit, Sign, Annotate | FlexTools Pro',
+        description: 'Edit PDF text, add signatures, images, and annotations directly in your browser. Free, no signup, files never leave your device.'
+    },
+    'pdf-merge': {
+        title: 'Free Merge PDF Tool | FlexTools Pro',
+        description: 'Combine multiple PDF files into one document for free, directly in your browser with no signup required.'
+    },
+    'pdf-split': {
+        title: 'Free Split PDF Tool | FlexTools Pro',
+        description: 'Extract pages from any PDF into separate files for free, processed entirely in your browser.'
+    },
+    'pdf-to-jpg': {
+        title: 'Free PDF to JPG Converter | FlexTools Pro',
+        description: 'Convert any PDF page into a downloadable JPG image for free, with no signup required.'
+    },
+    'pdf-protect': {
+        title: 'Free PDF Password Protect Tool | FlexTools Pro',
+        description: 'Secure any PDF file with a password for free, processed entirely in your browser with no server upload.'
+    },
+    'pdf-unlock': {
+        title: 'Free PDF Unlock Tool | FlexTools Pro',
+        description: 'Remove password protection from a PDF for free, without uploading your file to any server.'
+    },
+    'doc-editor': {
+        title: 'Free Document Editor | FlexTools Pro',
+        description: 'Write, format, and edit Word-style documents for free directly in your browser, including scanning receipts into fillable templates.'
+    },
+    'pdf': {
+        title: 'Free Image to PDF Converter | FlexTools Pro',
+        description: 'Convert any photo or image into a PDF file for free, with no signup required.'
+    },
+    'doc-to-pdf': {
+        title: 'Free Word to PDF Converter | FlexTools Pro',
+        description: 'Convert a .docx Word file into a PDF for free, directly in your browser.'
+    },
+    'pdf-to-doc': {
+        title: 'Free PDF to Word Converter | FlexTools Pro',
+        description: 'Convert PDF files to editable Word documents online for free. No signup, no watermark, files processed locally in your browser.'
+    },
+    'pdf-watermark': {
+        title: 'Free PDF Watermark Tool | FlexTools Pro',
+        description: 'Add a custom text watermark across every page of a PDF for free, with no signup required.'
+    },
+    'pdf-organize': {
+        title: 'Free PDF Rotate & Reorder Tool | FlexTools Pro',
+        description: 'Rotate and reorder pages within any PDF for free, directly in your browser.'
+    }
+};
+
+function updatePageMeta(toolId) {
+    const meta = toolMetaData[toolId] || toolMetaData['home'];
+    const fullTitle = meta.title;
+    const desc = meta.description;
+    const canonicalUrl = toolId === 'home'
+        ? 'https://www.flextools.pro/'
+        : `https://www.flextools.pro/${toolId}`;
+
+    // Update <title>
+    document.title = fullTitle;
+
+    // Update meta description
+    let descTag = document.querySelector('meta[name="description"]');
+    if (descTag) descTag.setAttribute('content', desc);
+
+    // Update canonical URL
+    let canonicalTag = document.querySelector('link[rel="canonical"]');
+    if (canonicalTag) canonicalTag.setAttribute('href', canonicalUrl);
+
+    // Update Open Graph tags
+    setMetaProperty('og:title', fullTitle);
+    setMetaProperty('og:description', desc);
+    setMetaProperty('og:url', canonicalUrl);
+
+    // Update Twitter Card tags
+    setMetaName('twitter:title', fullTitle);
+    setMetaName('twitter:description', desc);
+}
+
+function setMetaProperty(property, content) {
+    let tag = document.querySelector(`meta[property="${property}"]`);
+    if (tag) tag.setAttribute('content', content);
+}
+
+function setMetaName(name, content) {
+    let tag = document.querySelector(`meta[name="${name}"]`);
+    if (tag) tag.setAttribute('content', content);
+}
