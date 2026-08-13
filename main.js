@@ -2048,9 +2048,11 @@ function getDocEditor() {
 }
 
 function initDocEditor() {
-    const editor = getDocEditor();
-    if (editor) updateDocWordCount();
-    initDocImageSelection(); // ADD THIS LINE
+    var editor = getDocEditor();
+    if (editor && typeof updateDocWordCount === 'function') {
+        updateDocWordCount();
+    }
+    initDocImageSystem();
 }
 
 function applyDocFormat(command, value = null) {
@@ -2459,48 +2461,121 @@ function escapeHtml(str) {
     return div.innerHTML;
 }
 
-let selectedDocImage = null;
+/* ============================================
+   DOC EDITOR — Movable Images (v2, rebuilt clean)
+   ============================================ */
 
-function initDocImageSelection() {
-    const editor = document.getElementById('docEditorArea');
-    if (!editor) return;
+var docSelectedImage = null;
+var docImageIsDragging = false;
+var docDragOffsetX = 0;
+var docDragOffsetY = 0;
 
-    editor.addEventListener('click', function(e) {
-        // Deselect any previously selected image
-        if (selectedDocImage) {
-            selectedDocImage.classList.remove('doc-img-selected');
-        }
+function initDocImageSystem() {
+    var editor = document.getElementById('docEditorArea');
+    if (!editor) { return; }
 
+    editor.addEventListener('click', function (e) {
         if (e.target.tagName === 'IMG') {
-            selectedDocImage = e.target;
-            selectedDocImage.classList.add('doc-img-selected');
-
-            const currentWidth = selectedDocImage.offsetWidth || 300;
-            document.getElementById('docImgWidthSlider').value = currentWidth;
-            document.getElementById('docImgWidthValue').textContent = currentWidth + 'px';
-            document.getElementById('docImageResizeBar').style.display = 'flex';
-        } else {
-            selectedDocImage = null;
-            document.getElementById('docImageResizeBar').style.display = 'none';
+            docSelectImage(e.target);
+        } else if (!docImageIsDragging) {
+            docDeselectImage();
         }
     });
+
+    editor.addEventListener('mousedown', function (e) {
+        if (e.target.tagName === 'IMG' && e.target === docSelectedImage) {
+            docStartImageDrag(e);
+        }
+    });
+
+    document.addEventListener('mousemove', docDragImage);
+    document.addEventListener('mouseup', docStopImageDrag);
+
+    var slider = document.getElementById('docImgWidthSlider');
+    if (slider) {
+        slider.addEventListener('input', function () {
+            var width = this.value;
+            var label = document.getElementById('docImgWidthValue');
+            if (label) { label.textContent = width + 'px'; }
+            if (docSelectedImage) {
+                docSelectedImage.style.width = width + 'px';
+                docSelectedImage.style.maxWidth = width + 'px';
+            }
+        });
+    }
 }
 
-document.getElementById('docImgWidthSlider')?.addEventListener('input', function() {
-    const width = this.value;
-    document.getElementById('docImgWidthValue').textContent = width + 'px';
-    if (selectedDocImage) {
-        selectedDocImage.style.width = width + 'px';
-        selectedDocImage.style.maxWidth = width + 'px';
+function docSelectImage(img) {
+    if (docSelectedImage) {
+        docSelectedImage.classList.remove('wps-selected');
     }
-});
+    img.classList.add('wps-image');
+    img.classList.add('wps-selected');
+    if (!img.style.position || img.style.position === 'static') {
+        img.style.position = 'relative';
+    }
+    docSelectedImage = img;
 
-function deleteSelectedDocImage() {
-    if (selectedDocImage) {
-        selectedDocImage.remove();
-        selectedDocImage = null;
-        document.getElementById('docImageResizeBar').style.display = 'none';
-        updateDocWordCount();
+    var currentWidth = img.offsetWidth || 300;
+    var slider = document.getElementById('docImgWidthSlider');
+    var label = document.getElementById('docImgWidthValue');
+    if (slider) { slider.value = currentWidth; }
+    if (label) { label.textContent = currentWidth + 'px'; }
+
+    var toolbar = document.getElementById('docImageToolbar');
+    if (toolbar) { toolbar.style.display = 'flex'; }
+}
+
+function docDeselectImage() {
+    if (docSelectedImage) {
+        docSelectedImage.classList.remove('wps-selected');
+    }
+    docSelectedImage = null;
+    var toolbar = document.getElementById('docImageToolbar');
+    if (toolbar) { toolbar.style.display = 'none'; }
+}
+
+function docStartImageDrag(e) {
+    if (!docSelectedImage) { return; }
+    docImageIsDragging = true;
+    var rect = docSelectedImage.getBoundingClientRect();
+    docDragOffsetX = e.clientX - rect.left;
+    docDragOffsetY = e.clientY - rect.top;
+    e.preventDefault();
+}
+
+function docDragImage(e) {
+    if (!docImageIsDragging || !docSelectedImage) { return; }
+
+    var editor = document.getElementById('docEditorArea');
+    var editorRect = editor.getBoundingClientRect();
+
+    var newLeft = e.clientX - editorRect.left - docDragOffsetX;
+    var newTop = e.clientY - editorRect.top - docDragOffsetY;
+
+    docSelectedImage.style.position = 'absolute';
+    docSelectedImage.style.left = newLeft + 'px';
+    docSelectedImage.style.top = newTop + 'px';
+    docSelectedImage.style.zIndex = '10';
+
+    if (editor.style.position !== 'relative') {
+        editor.style.position = 'relative';
+    }
+}
+
+function docStopImageDrag() {
+    docImageIsDragging = false;
+}
+
+function docImageDelete() {
+    if (docSelectedImage) {
+        docSelectedImage.remove();
+        docSelectedImage = null;
+        var toolbar = document.getElementById('docImageToolbar');
+        if (toolbar) { toolbar.style.display = 'none'; }
+        if (typeof updateDocWordCount === 'function') {
+            updateDocWordCount();
+        }
     }
 }
 

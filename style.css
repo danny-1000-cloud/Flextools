@@ -184,6 +184,31 @@ html, body {
     width: calc(100% - 280px);
 }
 
+#docEditorArea img.wps-image {
+    position: relative;
+    cursor: move;
+    max-width: 300px;
+    height: auto;
+    border: 2px solid transparent;
+    display: inline-block;
+    transition: border-color 0.15s;
+}
+
+#docEditorArea img.wps-image.wps-selected {
+    border-color: #6366f1;
+}
+
+.wps-image-toolbar {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+}
+
 .top-bar {
     height: 60px;
     display: flex;

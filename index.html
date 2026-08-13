@@ -1638,6 +1638,18 @@
             <button onclick="deleteSelectedDocImage()" style="padding:6px 12px; background:#fee2e2; color:#dc2626; border:none; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">Delete</button>
     </div>
 
+    <div id="docImageToolbar" class="wps-image-toolbar">
+        <span style="font-size:13px; font-weight:600; color:#475569;">Image selected:</span>
+        <label style="font-size:12px; color:#64748b;">Width</label>
+        <input type="range" id="docImgWidthSlider" min="50" max="700" value="300">
+        <span id="docImgWidthValue" style="font-size:12px; font-weight:600; width:50px;">300px</span>
+        <button onclick="docImageDelete()" style="padding:6px 12px; background:#fee2e2; color:#dc2626; border:none; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">Delete</button>
+    </div>
+
+    <div id="docEditorArea" contenteditable="true" style="min-height:400px; border:1px solid #e2e8f0; border-radius:10px; padding:20px; background:#fff;">
+        <p>Start typing your document here...</p>
+    </div>
+
     <div style="background:#525659; border:2px solid #334155; border-radius:12px; padding:24px 12px; overflow-x:auto;">
         <div id="docEditorArea"
             contenteditable="true"
@@ -2264,4 +2276,4 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 </body>
-</html>
+</html> 
