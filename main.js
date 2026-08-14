@@ -1989,6 +1989,7 @@ async function splitPDF() {
     }
 }
 
+
 /* ============================================
    PDF TO JPG
    ============================================ */
@@ -3557,3 +3558,54 @@ function setMetaName(name, content) {
     let tag = document.querySelector(`meta[name="${name}"]`);
     if (tag) tag.setAttribute('content', content);
 }
+
+/* ============================================
+   MOBILE TOUCH FIX FOR PDF CLICK-TO-EDIT
+   Runs automatically, finds all pdf-text-span
+   elements and adds touch support without
+   touching any existing code
+   ============================================ */
+
+function enableMobileTapForPdfSpans() {
+    var spans = document.querySelectorAll('.pdf-text-span');
+    spans.forEach(function (span) {
+        if (span.dataset.mobileTapAdded === 'true') { return; }
+        span.dataset.mobileTapAdded = 'true';
+
+        span.addEventListener('touchend', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            span.click();
+        }, { passive: false });
+    });
+}
+
+// Re-run this every time the PDF overlay changes
+var pdfOverlayWatcher = setInterval(function () {
+    var overlay = document.getElementById('pdfTextOverlay');
+    if (overlay) {
+        enableMobileTapForPdfSpans();
+    }
+}, 1000);
+
+/* ============================================
+   DOC EDITOR DUPLICATE DETECTOR + AUTO-FIX
+   Finds all contenteditable areas and keeps
+   only the first one visible, hides any extras
+   ============================================ */
+
+function fixDuplicateDocEditors() {
+    var editors = document.querySelectorAll('[contenteditable="true"]');
+    if (editors.length > 1) {
+        console.log('Found ' + editors.length + ' contenteditable areas — hiding extras.');
+        for (var i = 1; i < editors.length; i++) {
+            editors[i].style.display = 'none';
+            var parentSection = editors[i].closest('section');
+            if (parentSection) {
+                parentSection.style.display = 'none';
+            }
+        }
+    }
+}
+
+setInterval(fixDuplicateDocEditors, 1000);
