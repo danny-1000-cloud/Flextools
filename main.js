@@ -1471,6 +1471,11 @@ async function loadPDFTextOverlay(pageNum) {
         span.style.fontFamily = 'Arial, sans-serif';
 
         span.onclick = () => startInlineTextEdit(span, item, viewport, pageNum, index);
+        span.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            startInlineTextEdit(span, item, viewport, pageNum, index);
+        }, { passive: false });
         overlay.appendChild(span);
     });
 }
@@ -1733,6 +1738,7 @@ function attachCanvasEvents() {
 }
 
 function onPDFPointerDown(e) {
+    if (currentPDFTool === 'edittext') return; // let overlay spans handle their own touches
     if (['draw', 'highlight', 'eraser'].includes(currentPDFTool)) {
         isPointerDown = true;
         dragStrokePoints = [getCanvasCoords(e)];
@@ -3560,52 +3566,115 @@ function setMetaName(name, content) {
 }
 
 /* ============================================
-   MOBILE TOUCH FIX FOR PDF CLICK-TO-EDIT
-   Runs automatically, finds all pdf-text-span
-   elements and adds touch support without
-   touching any existing code
+   WATERMARK FIX — Diagnostic + Live Preview
+   Wraps existing applyWatermark safely
    ============================================ */
 
-function enableMobileTapForPdfSpans() {
-    var spans = document.querySelectorAll('.pdf-text-span');
-    spans.forEach(function (span) {
-        if (span.dataset.mobileTapAdded === 'true') { return; }
-        span.dataset.mobileTapAdded = 'true';
+function checkWatermarkElements() {
+    var ids = ['watermarkPdfInput', 'watermarkType', 'watermarkTextOptions', 'watermarkImageOptions', 'watermarkOpacity', 'watermarkRotation', 'watermarkPosition', 'watermarkText', 'watermarkFontSize', 'watermarkColor', 'watermarkImageInput', 'watermarkResult'];
+    var missing = [];
+    ids.forEach(function (id) {
+        if (!document.getElementById(id)) { missing.push(id); }
+    });
+    if (missing.length > 0) {
+        console.error('WATERMARK BUG FOUND — missing element IDs:', missing);
+    } else {
+        console.log('All watermark elements found correctly.');
+    }
+}
 
-        span.addEventListener('touchend', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            span.click();
-        }, { passive: false });
+setTimeout(checkWatermarkElements, 2000);
+
+/* ---- Live Preview (image watermark position) ---- */
+function initWatermarkPreviewSafe() {
+    var pdfInput = document.getElementById('watermarkPdfInput');
+    if (!pdfInput || pdfInput.dataset.previewAdded === 'true') { return; }
+    pdfInput.dataset.previewAdded = 'true';
+
+    pdfInput.addEventListener('change', async function (e) {
+        var file = e.target.files[0];
+        if (!file) { return; }
+
+        try {
+            var bytes = await file.arrayBuffer();
+            var pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+            var page = await pdf.getPage(1);
+            var viewport = page.getViewport({ scale: 1 });
+
+            var existing = document.getElementById('wmPreviewCanvas');
+            if (existing) { existing.remove(); }
+
+            var canvas = document.createElement('canvas');
+            canvas.id = 'wmPreviewCanvas';
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            canvas.style.maxWidth = '100%';
+            canvas.style.border = '1px solid #e2e8f0';
+            canvas.style.borderRadius = '8px';
+            canvas.style.marginTop = '12px';
+            canvas.style.display = 'block';
+
+            await page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
+
+            pdfInput.parentElement.appendChild(canvas);
+            drawWmPreviewOverlay(canvas, viewport);
+
+            var watchIds = ['watermarkType', 'watermarkOpacity', 'watermarkRotation', 'watermarkPosition', 'watermarkText', 'watermarkFontSize'];
+            watchIds.forEach(function (id) {
+                var el = document.getElementById(id);
+                if (el && !el.dataset.previewWatched) {
+                    el.dataset.previewWatched = 'true';
+                    el.addEventListener('input', function () { drawWmPreviewOverlay(canvas, viewport); });
+                    el.addEventListener('change', function () { drawWmPreviewOverlay(canvas, viewport); });
+                }
+            });
+
+        } catch (err) {
+            console.error('Watermark preview failed to load PDF:', err);
+        }
     });
 }
 
-// Re-run this every time the PDF overlay changes
-var pdfOverlayWatcher = setInterval(function () {
-    var overlay = document.getElementById('pdfTextOverlay');
-    if (overlay) {
-        enableMobileTapForPdfSpans();
-    }
-}, 1000);
+function drawWmPreviewOverlay(canvas, viewport) {
+    var ctx = canvas.getContext('2d');
+    var type = document.getElementById('watermarkType') ? document.getElementById('watermarkType').value : 'text';
+    var opacity = (parseInt(document.getElementById('watermarkOpacity').value) || 30) / 100;
+    var position = document.getElementById('watermarkPosition') ? document.getElementById('watermarkPosition').value : 'center';
+    var text = document.getElementById('watermarkText') ? (document.getElementById('watermarkText').value || 'WATERMARK') : 'WATERMARK';
+    var fontSize = parseInt(document.getElementById('watermarkFontSize').value) || 48;
 
-/* ============================================
-   DOC EDITOR DUPLICATE DETECTOR + AUTO-FIX
-   Finds all contenteditable areas and keeps
-   only the first one visible, hides any extras
-   ============================================ */
+    // Redraw base PDF page fresh each time
+    var pdfInput = document.getElementById('watermarkPdfInput');
+    var file = pdfInput.files[0];
+    if (!file) { return; }
 
-function fixDuplicateDocEditors() {
-    var editors = document.querySelectorAll('[contenteditable="true"]');
-    if (editors.length > 1) {
-        console.log('Found ' + editors.length + ' contenteditable areas — hiding extras.');
-        for (var i = 1; i < editors.length; i++) {
-            editors[i].style.display = 'none';
-            var parentSection = editors[i].closest('section');
-            if (parentSection) {
-                parentSection.style.display = 'none';
-            }
-        }
-    }
+    file.arrayBuffer().then(function (bytes) {
+        pdfjsLib.getDocument({ data: bytes }).promise.then(function (pdf) {
+            pdf.getPage(1).then(function (page) {
+                page.render({ canvasContext: ctx, viewport: viewport }).promise.then(function () {
+                    ctx.save();
+                    ctx.globalAlpha = opacity;
+                    ctx.font = fontSize + 'px Arial';
+                    ctx.fillStyle = '#94a3b8';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+
+                    if (position === 'tiled') {
+                        var stepX = fontSize * text.length * 0.7;
+                        var stepY = fontSize * 3;
+                        for (var y = 0; y < canvas.height + stepY; y += stepY) {
+                            for (var x = 0; x < canvas.width + stepX; x += stepX) {
+                                ctx.fillText(text, x, y);
+                            }
+                        }
+                    } else {
+                        ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+                    }
+                    ctx.restore();
+                });
+            });
+        });
+    });
 }
 
-setInterval(fixDuplicateDocEditors, 1000);
+setInterval(initWatermarkPreviewSafe, 1000);
