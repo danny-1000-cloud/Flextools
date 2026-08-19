@@ -1432,7 +1432,7 @@ async function loadPDFTextOverlay(pageNum) {
     const overlay = document.getElementById('pdfTextOverlay');
     if (!overlay) return;
     overlay.innerHTML = '';
-    overlay.style.pointerEvents = 'auto';
+    overlay.style.touchAction = 'manipulation';
 
     const page     = await pdfDoc.getPage(pageNum);
     const viewport = page.getViewport({ scale: PDF_RENDER_SCALE });
@@ -1470,12 +1470,11 @@ async function loadPDFTextOverlay(pageNum) {
         span.style.lineHeight = (fontHeight * scaleY) + 'px';
         span.style.fontFamily = 'Arial, sans-serif';
 
-        span.onclick = () => startInlineTextEdit(span, item, viewport, pageNum, index);
-        span.addEventListener('touchend', (e) => {
-            e.preventDefault();
+        span.style.touchAction = 'manipulation';
+        span.onpointerup = (e) => {
             e.stopPropagation();
             startInlineTextEdit(span, item, viewport, pageNum, index);
-        }, { passive: false });
+        };
         overlay.appendChild(span);
     });
 }
@@ -1533,12 +1532,11 @@ function startInlineTextEdit(span, item, viewport, pageNum, itemIndex) {
 
         span.dataset.lastCommittedText = newText;
         span.textContent = newText;
-        span.onclick = () => startInlineTextEdit(span, item, viewport, pageNum, itemIndex);
-        span.addEventListener('touchend', (e) => {
-            e.preventDefault();
+        span.style.touchAction = 'manipulation';
+        span.onpointerup = (e) => {
             e.stopPropagation();
             startInlineTextEdit(span, item, viewport, pageNum, itemIndex);
-        }, { passive: false });
+        };
 
         addLayerToList(`Edited: "${newText}"`);
         showStatus('✅ Text updated — click it again anytime to edit further', 'success');
