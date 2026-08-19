@@ -1534,6 +1534,11 @@ function startInlineTextEdit(span, item, viewport, pageNum, itemIndex) {
         span.dataset.lastCommittedText = newText;
         span.textContent = newText;
         span.onclick = () => startInlineTextEdit(span, item, viewport, pageNum, itemIndex);
+        span.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            startInlineTextEdit(span, item, viewport, pageNum, itemIndex);
+        }, { passive: false });
 
         addLayerToList(`Edited: "${newText}"`);
         showStatus('✅ Text updated — click it again anytime to edit further', 'success');
