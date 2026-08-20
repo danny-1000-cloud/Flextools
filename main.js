@@ -1885,6 +1885,56 @@ async function renderTextToImageData(text, font, size, color, bold) {
 }
 
 /* ============================================
+   MERGE PDF — Single, Range, All Pages
+   ============================================ */
+async function mergePDFs() {
+    const files = document.getElementById('mergeInput').files;
+
+    if (!files || files.length < 2) {
+        showStatus('❌ Please select at least 2 PDF files to merge.', 'error');
+        return;
+    }
+
+    const btn = document.querySelector('#pdf-merge .btn-action');
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Merging...';
+
+    try {
+        const { PDFDocument } = PDFLib;
+        const mergedPdf = await PDFDocument.create();
+
+        for (let i = 0; i < files.length; i++) {
+            const fileBytes = await files[i].arrayBuffer();
+            const pdf = await PDFDocument.load(fileBytes, { ignoreEncryption: true });
+            const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+            copiedPages.forEach((page) => mergedPdf.addPage(page));
+        }
+
+        const mergedBytes = await mergedPdf.save();
+        const blob = new Blob([mergedBytes], { type: 'application/pdf' });
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'FlexTools_Merged.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        showStatus('✅ PDFs merged and downloaded!', 'success');
+
+    } catch (err) {
+        console.error('Merge error:', err);
+        showStatus('❌ Merge failed: ' + (err.message || 'One of the files may be corrupted or password-protected.'), 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+}
+
+/* ============================================
    SPLIT PDF — Single, Range, All Pages
    ============================================ */
 async function previewSplitPDF() {
@@ -2827,38 +2877,164 @@ async function convertDocToPDF() {
 
     try {
         const buffer = await file.arrayBuffer();
-        const converted = await mammoth.convertToHtml({ arrayBuffer: buffer });
 
-        const renderArea = document.getElementById('docToPdfRenderArea');
-        renderArea.innerHTML = converted.value;
+        // Extract images alongside HTML so we can embed them too
+        const converted = await mammoth.convertToHtml(
+            { arrayBuffer: buffer },
+            {
+                convertImage: mammoth.images.imgElement(async (image) => {
+                    const base64 = await image.read('base64');
+                    return { src: `data:${image.contentType};base64,${base64}` };
+                })
+            }
+        );
 
-        // Render the HTML to canvas, then to PDF
-        const canvas = await html2canvas(renderArea, { scale: 2, useCORS: true });
-        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const parser = new DOMParser();
+        const docHtml = parser.parseFromString(converted.value, 'text/html');
+        const elements = Array.from(docHtml.body.children);
 
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF('p', 'pt', 'a4');
-        const pageWidth  = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        const imgWidth   = pageWidth;
-        const imgHeight  = (canvas.height * imgWidth) / canvas.width;
-
-        let heightLeft = imgHeight;
-        let position   = 0;
-
-        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-
-        while (heightLeft > 0) {
-            position = heightLeft - imgHeight;
-            pdf.addPage();
-            pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
+        if (!elements.length) {
+            throw new Error('No readable content found in this document.');
         }
 
-        pdf.save('FlexTools_Converted.pdf');
+        const { PDFDocument, StandardFonts, rgb } = PDFLib;
+        const pdfDoc = await PDFDocument.create();
+        const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+        const fontBold    = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+        const fontItalic  = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
 
-        result.innerHTML         = '✅ PDF downloaded successfully!';
+        const pageWidth  = 595.28;
+        const pageHeight = 841.89;
+        const margin     = 50;
+        const maxLineWidth = pageWidth - margin * 2;
+
+        let page = pdfDoc.addPage([pageWidth, pageHeight]);
+        let y = pageHeight - margin;
+
+        function newPageIfNeeded(neededSpace) {
+            if (y - neededSpace < margin) {
+                page = pdfDoc.addPage([pageWidth, pageHeight]);
+                y = pageHeight - margin;
+            }
+        }
+
+        function wrapAndDraw(text, fontSize, font, indent = 0, spacingAfter = 8) {
+            const lineHeight = fontSize * 1.35;
+            const usableWidth = maxLineWidth - indent;
+            const words = text.split(' ');
+            let currentLine = '';
+
+            for (const word of words) {
+                const testLine = currentLine ? currentLine + ' ' + word : word;
+                const testWidth = font.widthOfTextAtSize(testLine, fontSize);
+
+                if (testWidth > usableWidth && currentLine) {
+                    newPageIfNeeded(lineHeight);
+                    page.drawText(currentLine, { x: margin + indent, y, size: fontSize, font, color: rgb(0, 0, 0) });
+                    y -= lineHeight;
+                    currentLine = word;
+                } else {
+                    currentLine = testLine;
+                }
+            }
+
+            if (currentLine) {
+                newPageIfNeeded(lineHeight);
+                page.drawText(currentLine, { x: margin + indent, y, size: fontSize, font, color: rgb(0, 0, 0) });
+                y -= lineHeight;
+            }
+
+            y -= spacingAfter;
+        }
+
+        async function drawImageElement(imgEl) {
+            try {
+                const src = imgEl.getAttribute('src');
+                if (!src || !src.startsWith('data:')) return;
+
+                const base64 = src.split(',')[1];
+                const isPng = src.includes('image/png');
+                const imgBytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+
+                const embeddedImg = isPng
+                    ? await pdfDoc.embedPng(imgBytes)
+                    : await pdfDoc.embedJpg(imgBytes);
+
+                let imgWidth = embeddedImg.width;
+                let imgHeight = embeddedImg.height;
+
+                const maxImgWidth = maxLineWidth;
+                if (imgWidth > maxImgWidth) {
+                    const scale = maxImgWidth / imgWidth;
+                    imgWidth *= scale;
+                    imgHeight *= scale;
+                }
+
+                newPageIfNeeded(imgHeight + 15);
+                page.drawImage(embeddedImg, { x: margin, y: y - imgHeight, width: imgWidth, height: imgHeight });
+                y -= imgHeight + 15;
+            } catch (e) {
+                console.warn('Image skipped:', e);
+            }
+        }
+
+        // Process each block-level element with formatting based on its tag
+        for (const el of elements) {
+            const tag = el.tagName.toLowerCase();
+            const text = el.textContent.trim();
+
+            if (tag === 'img') {
+                await drawImageElement(el);
+                continue;
+            }
+
+            if (!text && tag !== 'img') { y -= 6; continue; }
+
+            if (tag === 'h1') {
+                newPageIfNeeded(30);
+                wrapAndDraw(text, 22, fontBold, 0, 14);
+            } else if (tag === 'h2') {
+                newPageIfNeeded(26);
+                wrapAndDraw(text, 18, fontBold, 0, 12);
+            } else if (tag === 'h3') {
+                newPageIfNeeded(22);
+                wrapAndDraw(text, 15, fontBold, 0, 10);
+            } else if (tag === 'ul' || tag === 'ol') {
+                const items = Array.from(el.children);
+                items.forEach((li, index) => {
+                    const bullet = tag === 'ul' ? '•  ' : `${index + 1}.  `;
+                    wrapAndDraw(bullet + li.textContent.trim(), 12, fontRegular, 15, 6);
+                });
+            } else if (tag === 'p') {
+                // Check if paragraph contains bold/italic runs
+                const hasBold = el.querySelector('strong, b');
+                const hasItalic = el.querySelector('em, i');
+                const useFont = hasBold ? fontBold : (hasItalic ? fontItalic : fontRegular);
+                wrapAndDraw(text, 12, useFont, 0, 8);
+
+                // Handle any images inside this paragraph too
+                const innerImgs = el.querySelectorAll('img');
+                for (const innerImg of innerImgs) {
+                    await drawImageElement(innerImg);
+                }
+            } else {
+                wrapAndDraw(text, 12, fontRegular, 0, 8);
+            }
+        }
+
+        const pdfBytes = await pdfDoc.save();
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'FlexTools_Converted.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        result.innerHTML         = '✅ PDF downloaded — real editable text with formatting preserved!';
         result.style.background  = '#f0fdf4';
         result.style.borderColor = '#22c55e';
         result.classList.add('has-result');
@@ -2866,7 +3042,7 @@ async function convertDocToPDF() {
 
     } catch (err) {
         console.error(err);
-        result.innerHTML         = '❌ Conversion failed. Please try a different file.';
+        result.innerHTML         = '❌ Conversion failed: ' + (err.message || 'Please try a different file.');
         result.style.background  = '#fef2f2';
         showStatus('❌ Conversion failed.', 'error');
     }
