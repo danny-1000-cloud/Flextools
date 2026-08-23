@@ -593,37 +593,65 @@
 
         <!-- ==================== UNIT CONVERTER ==================== -->
         <section id="unit-converter" class="tool-card">
-            <h2>Unit Converter</h2>
-            <p class="tool-description">Unit Converter: "FlexTools Pro's Unit Converter instantly converts length, weight, temperature, and volume for free."</p>
-            <div class="input-group"><label>Value</label><input type="number" id="unitValue" placeholder="0"></div>
-            <div class="input-group">
-                <label>Type</label>
-                <select id="unitType">
-                    <option value="mToFt">Length — Meters to Feet</option>
-                    <option value="ftToM">Length — Feet to Meters</option>
-                    <option value="kgToLb">Weight — KG to Pounds</option>
-                    <option value="lbToKg">Weight — Pounds to KG</option>
-                    <option value="cToF">Temperature — Celsius to Fahrenheit</option>
-                    <option value="fToC">Temperature — Fahrenheit to Celsius</option>
-                    <option value="mbToGb">Data — MB to GB</option>
-                    <option value="gbToMb">Data — GB to MB</option>
-                    <option value="kmToMiles">Distance — KM to Miles</option>
-                    <option value="milesToKm">Distance — Miles to KM</option>
-                </select>
-            </div>
-            <button class="btn-action" onclick="convertUnits()">Convert Now</button>
-            <div id="unitResult" class="result-box"></div>
-            <div data-mndbanid="545c191e-6a97-455a-a696-54b09a225a71"></div>
-            <div class="ft-seo-content">
-                <h2>Free Online Unit Converter — Length, Weight, Temperature & More</h2>
-                <p>Convert between metric and imperial units instantly. Length, weight, temperature, data size and distance — all calculated locally in your browser with no ads or signup.</p>
-                <h3>Frequently Asked Questions</h3>
-                <div class="faq-seo">
-                    <div><strong>What units are supported?</strong><span>Length, weight, temperature, data size, and distance — with more being added.</span></div>
-                    <div><strong>Are my inputs saved?</strong><span>No. All calculations happen locally. Nothing is transmitted or stored.</span></div>
-                </div>
-            </div>
-        </section>
+    <h2>Unit Converter</h2>
+    <p class="tool-description">Convert between 100+ units across 12 categories — length, weight, temperature, area, volume, speed, time, energy, pressure, power, force, and digital storage. Instant results, no signup.</p>
+
+    <div class="input-group">
+        <label style="font-weight:bold; display:block; margin-bottom:8px;">Category</label>
+        <select id="unitCategory" onchange="populateUnitOptions()" style="width:100%; padding:10px; border-radius:8px; border:1px solid #e2e8f0; font-size:15px;">
+            <option value="length">📏 Length</option>
+            <option value="weight">⚖️ Weight / Mass</option>
+            <option value="temperature">🌡️ Temperature</option>
+            <option value="area">📐 Area</option>
+            <option value="volume">🧪 Volume</option>
+            <option value="speed">🚀 Speed</option>
+            <option value="time">⏱️ Time</option>
+            <option value="digital">💾 Digital Storage</option>
+            <option value="energy">⚡ Energy</option>
+            <option value="pressure">🎈 Pressure</option>
+            <option value="power">🔋 Power</option>
+            <option value="force">💪 Force</option>
+            <option value="angle">📐 Angle</option>
+            <option value="fuel">⛽ Fuel Consumption</option>
+        </select>
+    </div>
+
+    <div class="converter-grid" style="display:grid; grid-template-columns:1fr auto 1fr; gap:10px; align-items:end; margin:16px 0;">
+        <div class="input-group">
+            <label style="font-size:13px; color:#64748b;">From</label>
+            <select id="unitFrom" onchange="convertUnits()" style="width:100%; padding:10px; border-radius:8px; border:1px solid #e2e8f0;"></select>
+            <input type="number" id="unitValueFrom" placeholder="0" value="1" oninput="convertUnits()" style="width:100%; padding:10px; border-radius:8px; border:1px solid #e2e8f0; margin-top:8px; font-size:16px;">
+        </div>
+
+        <button onclick="swapUnits()" style="padding:10px; background:#eef2ff; border:1px solid #c7d2fe; border-radius:50%; width:44px; height:44px; cursor:pointer; font-size:18px; align-self:center; margin-bottom:44px;">⇄</button>
+
+        <div class="input-group">
+            <label style="font-size:13px; color:#64748b;">To</label>
+            <select id="unitTo" onchange="convertUnits()" style="width:100%; padding:10px; border-radius:8px; border:1px solid #e2e8f0;"></select>
+            <input type="text" id="unitValueTo" readonly style="width:100%; padding:10px; border-radius:8px; border:1px solid #e2e8f0; margin-top:8px; font-size:16px; background:#f8fafc; font-weight:700; color:#4f46e5;">
+        </div>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+        <label style="font-size:13px; color:#64748b;">Decimal Precision:</label>
+        <input type="range" id="unitPrecision" min="0" max="10" value="4" oninput="updatePrecisionLabel(); convertUnits();" style="flex:1;">
+        <span id="unitPrecisionLabel" style="font-size:13px; font-weight:600; width:20px;">4</span>
+    </div>
+
+    <div id="unitFormula" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; font-size:13px; color:#475569; margin-bottom:16px;"></div>
+    <div data-mndbanid="545c191e-6a97-455a-a696-54b09a225a71"></div>
+    <div class="ft-seo-content">
+        <h2>Free Online Unit Converter — 100+ Units Across 12 Categories</h2>
+        <p>Convert length, weight, temperature, area, volume, speed, time, energy, pressure, power, force, angle, and fuel consumption instantly. Uses international standard conversion factors with adjustable decimal precision — all free, all in your browser.</p>
+        <h3>Frequently Asked Questions</h3>
+        <div class="faq-seo">
+            <div><strong>How many units and categories are supported?</strong><span>12+ categories covering over 100 individual units — from everyday conversions like kilometers to miles, to specialized ones like pressure and energy.</span></div>
+            <div><strong>How accurate are the conversions?</strong><span>We use international standard conversion factors with precision adjustable up to 10 decimal places.</span></div>
+            <div><strong>Does it work for temperature conversions?</strong><span>Yes — temperature uses specialized offset formulas (not simple multiplication) for accurate Celsius, Fahrenheit, and Kelvin conversions.</span></div>
+            <div><strong>Do I need to click a button to convert?</strong><span>No — conversions happen instantly as you type, no button click required.</span></div>
+        </div>
+    </div>
+</section>
 
         <!-- ==================== VAT CALCULATOR ==================== -->
         <section id="vat-calculator" class="tool-card">

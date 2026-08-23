@@ -512,32 +512,222 @@ async function convertCrypto() {
 }
 
 /* ============================================
-   UNIT CONVERTER
+   UNIT CONVERTER — 12 Categories, 100+ Units
    ============================================ */
-function convertUnits() {
-    const val       = parseFloat(document.getElementById('unitValue').value);
-    const type      = document.getElementById('unitType').value;
-    const resultBox = document.getElementById('unitResult');
 
-    if (isNaN(val)) { resultBox.innerHTML = 'Please enter a valid number.'; return; }
+const unitData = {
+    length: {
+        units: {
+            meter: 1, kilometer: 1000, centimeter: 0.01, millimeter: 0.001,
+            micrometer: 0.000001, nanometer: 0.000000001, mile: 1609.344,
+            yard: 0.9144, foot: 0.3048, inch: 0.0254, nauticalMile: 1852,
+            lightYear: 9460730472580800
+        },
+        labels: { meter:'Meter', kilometer:'Kilometer', centimeter:'Centimeter', millimeter:'Millimeter', micrometer:'Micrometer', nanometer:'Nanometer', mile:'Mile', yard:'Yard', foot:'Foot', inch:'Inch', nauticalMile:'Nautical Mile', lightYear:'Light Year' }
+    },
+    weight: {
+        units: {
+            kilogram: 1, gram: 0.001, milligram: 0.000001, metricTon: 1000,
+            pound: 0.453592, ounce: 0.0283495, stone: 6.35029, carat: 0.0002
+        },
+        labels: { kilogram:'Kilogram', gram:'Gram', milligram:'Milligram', metricTon:'Metric Ton', pound:'Pound', ounce:'Ounce', stone:'Stone', carat:'Carat' }
+    },
+    temperature: {
+        units: { celsius: 'C', fahrenheit: 'F', kelvin: 'K' },
+        labels: { celsius:'Celsius (°C)', fahrenheit:'Fahrenheit (°F)', kelvin:'Kelvin (K)' }
+    },
+    area: {
+        units: {
+            squareMeter: 1, squareKilometer: 1000000, squareCentimeter: 0.0001,
+            hectare: 10000, acre: 4046.86, squareMile: 2589988.11,
+            squareYard: 0.836127, squareFoot: 0.092903, squareInch: 0.00064516
+        },
+        labels: { squareMeter:'Square Meter', squareKilometer:'Square Kilometer', squareCentimeter:'Square Centimeter', hectare:'Hectare', acre:'Acre', squareMile:'Square Mile', squareYard:'Square Yard', squareFoot:'Square Foot', squareInch:'Square Inch' }
+    },
+    volume: {
+        units: {
+            liter: 1, milliliter: 0.001, cubicMeter: 1000, gallon: 3.78541,
+            quart: 0.946353, pint: 0.473176, cup: 0.24, fluidOunce: 0.0295735,
+            tablespoon: 0.0147868, teaspoon: 0.00492892
+        },
+        labels: { liter:'Liter', milliliter:'Milliliter', cubicMeter:'Cubic Meter', gallon:'Gallon (US)', quart:'Quart', pint:'Pint', cup:'Cup', fluidOunce:'Fluid Ounce', tablespoon:'Tablespoon', teaspoon:'Teaspoon' }
+    },
+    speed: {
+        units: {
+            metersPerSecond: 1, kilometersPerHour: 0.277778, milesPerHour: 0.44704,
+            knot: 0.514444, footPerSecond: 0.3048
+        },
+        labels: { metersPerSecond:'Meters/Second', kilometersPerHour:'Km/Hour', milesPerHour:'Miles/Hour', knot:'Knot', footPerSecond:'Feet/Second' }
+    },
+    time: {
+        units: {
+            second: 1, millisecond: 0.001, minute: 60, hour: 3600,
+            day: 86400, week: 604800, month: 2629746, year: 31556952
+        },
+        labels: { second:'Second', millisecond:'Millisecond', minute:'Minute', hour:'Hour', day:'Day', week:'Week', month:'Month', year:'Year' }
+    },
+    digital: {
+        units: {
+            byte: 1, kilobyte: 1024, megabyte: 1048576, gigabyte: 1073741824,
+            terabyte: 1099511627776, bit: 0.125
+        },
+        labels: { byte:'Byte', kilobyte:'Kilobyte (KB)', megabyte:'Megabyte (MB)', gigabyte:'Gigabyte (GB)', terabyte:'Terabyte (TB)', bit:'Bit' }
+    },
+    energy: {
+        units: {
+            joule: 1, kilojoule: 1000, calorie: 4.184, kilocalorie: 4184,
+            wattHour: 3600, kilowattHour: 3600000, electronvolt: 1.602176634e-19
+        },
+        labels: { joule:'Joule', kilojoule:'Kilojoule', calorie:'Calorie', kilocalorie:'Kilocalorie', wattHour:'Watt-hour', kilowattHour:'Kilowatt-hour', electronvolt:'Electronvolt' }
+    },
+    pressure: {
+        units: {
+            pascal: 1, kilopascal: 1000, bar: 100000, psi: 6894.76,
+            atmosphere: 101325, torr: 133.322
+        },
+        labels: { pascal:'Pascal', kilopascal:'Kilopascal', bar:'Bar', psi:'PSI', atmosphere:'Atmosphere', torr:'Torr' }
+    },
+    power: {
+        units: {
+            watt: 1, kilowatt: 1000, megawatt: 1000000, horsepower: 745.7,
+            btuPerHour: 0.293071
+        },
+        labels: { watt:'Watt', kilowatt:'Kilowatt', megawatt:'Megawatt', horsepower:'Horsepower', btuPerHour:'BTU/Hour' }
+    },
+    force: {
+        units: {
+            newton: 1, kilonewton: 1000, poundForce: 4.44822, dyne: 0.00001,
+            kilogramForce: 9.80665
+        },
+        labels: { newton:'Newton', kilonewton:'Kilonewton', poundForce:'Pound-force', dyne:'Dyne', kilogramForce:'Kilogram-force' }
+    },
+    angle: {
+        units: {
+            degree: 1, radian: 57.2958, gradian: 0.9, arcminute: 0.0166667, arcsecond: 0.000277778
+        },
+        labels: { degree:'Degree', radian:'Radian', gradian:'Gradian', arcminute:'Arcminute', arcsecond:'Arcsecond' }
+    },
+    fuel: {
+        units: {
+            kmPerLiter: 1, milesPerGallon: 0.425144, litersPer100km: 'special'
+        },
+        labels: { kmPerLiter:'Km per Liter', milesPerGallon:'Miles per Gallon', litersPer100km:'Liters/100km' }
+    }
+};
 
-    const conversions = {
-        mToFt:     [val * 3.28084,  'ft'],
-        ftToM:     [val / 3.28084,  'm'],
-        kgToLb:    [val * 2.20462,  'lb'],
-        lbToKg:    [val / 2.20462,  'kg'],
-        cToF:      [(val * 9/5) + 32, '°F'],
-        fToC:      [(val - 32) * 5/9, '°C'],
-        mbToGb:    [val / 1024,     'GB'],
-        gbToMb:    [val * 1024,     'MB'],
-        kmToMiles: [val * 0.621371, 'miles'],
-        milesToKm: [val / 0.621371, 'km']
-    };
+function populateUnitOptions() {
+    const category = document.getElementById('unitCategory').value;
+    const fromSelect = document.getElementById('unitFrom');
+    const toSelect = document.getElementById('unitTo');
+    const data = unitData[category];
 
-    const [result, unit] = conversions[type] || [0, ''];
-    resultBox.innerHTML = `<small>Result</small>${result.toFixed(4)} ${unit}`;
-    resultBox.classList.add('has-result');
+    fromSelect.innerHTML = '';
+    toSelect.innerHTML = '';
+
+    Object.keys(data.units).forEach((key, index) => {
+        const label = data.labels[key];
+        fromSelect.add(new Option(label, key));
+        toSelect.add(new Option(label, key));
+    });
+
+    toSelect.selectedIndex = 1;
+    convertUnits();
 }
+
+function updatePrecisionLabel() {
+    const val = document.getElementById('unitPrecision').value;
+    document.getElementById('unitPrecisionLabel').textContent = val;
+}
+
+function convertUnits() {
+    const category = document.getElementById('unitCategory').value;
+    const fromUnit = document.getElementById('unitFrom').value;
+    const toUnit = document.getElementById('unitTo').value;
+    const inputVal = parseFloat(document.getElementById('unitValueFrom').value);
+    const precision = parseInt(document.getElementById('unitPrecision').value);
+    const outputField = document.getElementById('unitValueTo');
+    const formulaBox = document.getElementById('unitFormula');
+
+    if (isNaN(inputVal)) {
+        outputField.value = '';
+        return;
+    }
+
+    let result;
+
+    if (category === 'temperature') {
+        result = convertTemperature(inputVal, fromUnit, toUnit);
+        formulaBox.textContent = getTemperatureFormula(fromUnit, toUnit);
+    } else if (category === 'fuel') {
+        result = convertFuel(inputVal, fromUnit, toUnit);
+        formulaBox.textContent = '';
+    } else {
+        const data = unitData[category].units;
+        const baseValue = inputVal * data[fromUnit];
+        result = baseValue / data[toUnit];
+        formulaBox.textContent = `1 ${unitData[category].labels[fromUnit]} = ${(data[fromUnit] / data[toUnit]).toFixed(precision)} ${unitData[category].labels[toUnit]}`;
+    }
+
+    outputField.value = formatResult(result, precision);
+}
+
+function convertTemperature(value, from, to) {
+    let celsius;
+    if (from === 'celsius') celsius = value;
+    else if (from === 'fahrenheit') celsius = (value - 32) * 5/9;
+    else if (from === 'kelvin') celsius = value - 273.15;
+
+    if (to === 'celsius') return celsius;
+    if (to === 'fahrenheit') return (celsius * 9/5) + 32;
+    if (to === 'kelvin') return celsius + 273.15;
+}
+
+function getTemperatureFormula(from, to) {
+    if (from === to) return 'Same unit';
+    const formulas = {
+        'celsius-fahrenheit': '°F = (°C × 9/5) + 32',
+        'fahrenheit-celsius': '°C = (°F - 32) × 5/9',
+        'celsius-kelvin': 'K = °C + 273.15',
+        'kelvin-celsius': '°C = K - 273.15',
+        'fahrenheit-kelvin': 'K = (°F - 32) × 5/9 + 273.15',
+        'kelvin-fahrenheit': '°F = (K - 273.15) × 9/5 + 32'
+    };
+    return formulas[`${from}-${to}`] || '';
+}
+
+function convertFuel(value, from, to) {
+    if (from === to) return value;
+    if (from === 'kmPerLiter' && to === 'milesPerGallon') return value * 2.35215;
+    if (from === 'milesPerGallon' && to === 'kmPerLiter') return value / 2.35215;
+    if (from === 'kmPerLiter' && to === 'litersPer100km') return 100 / value;
+    if (from === 'litersPer100km' && to === 'kmPerLiter') return 100 / value;
+    if (from === 'milesPerGallon' && to === 'litersPer100km') return 235.215 / value;
+    if (from === 'litersPer100km' && to === 'milesPerGallon') return 235.215 / value;
+    return value;
+}
+
+function formatResult(value, precision) {
+    if (Math.abs(value) >= 1e15 || (Math.abs(value) < 1e-6 && value !== 0)) {
+        return value.toExponential(precision);
+    }
+    return parseFloat(value.toFixed(precision)).toLocaleString(undefined, { maximumFractionDigits: precision });
+}
+
+function swapUnits() {
+    const fromSelect = document.getElementById('unitFrom');
+    const toSelect = document.getElementById('unitTo');
+    const temp = fromSelect.value;
+    fromSelect.value = toSelect.value;
+    toSelect.value = temp;
+    convertUnits();
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('unitCategory')) {
+        populateUnitOptions();
+    }
+});
 
 /* ============================================
    VAT CALCULATOR
